@@ -1,16 +1,15 @@
 import * as React from 'react';
 import NewEditHorso from "./NewEditHorso";
+import ViewHorsoList from "./ViewHorsoList";
 /*import {IHorso, IKido, IStableAsset, ITrainer} from "../backend/DataModel";*/
 
 export default class AdminMainPanel extends React.Component {
 
   public state = {
-    isEditingHorso: false,
-    isEditingKido: false,
-    isEditingTrainer: false,
-    isViewingHorsos: false,
-    isViewingKidos: false,
-    isViewingTrainers: false,
+    isNewEditMode: false,
+    focusHorso: false,
+    focusKido: false,
+    focusTrainer: false,
 
     /*data: IStableAsset,
     neKido: IKido,
@@ -19,15 +18,15 @@ export default class AdminMainPanel extends React.Component {
   };
 
 
-
-  private selectMenu:any  = (<div>
+  private selectMenu: any = (<div>
     <table>
+      <tbody>
       <tr>
         <td>
-          <button onClick={this.handleViewHorses}>Horsesy</button>
+          <button onClick={this.handleViewHorses.bind(this)}>Horsesy</button>
         </td>
         <td>
-          <button onClick={this.handleNewEditHorse}>Dodaj</button>
+          <button onClick={this.handleNewEditHorse.bind(this)}>Dodaj</button>
         </td>
       </tr>
       <tr>
@@ -46,12 +45,12 @@ export default class AdminMainPanel extends React.Component {
           <button>Dodaj</button>
         </td>
       </tr>
+      </tbody>
     </table>
   </div>);
 
-  constructor(props: any){
+  constructor(props: any) {
     super(props);
-    this.handleViewHorses = this.handleViewHorses.bind(this)
 
   }
 
@@ -61,10 +60,18 @@ export default class AdminMainPanel extends React.Component {
     if (this.isOnMainSelect()) {
       mainContent = this.selectMenu
     } else {
-      if(this.renderGoBackButton()){
-        goBackButton = <button onClick={this.handleGoBackToMainSelect}>Wróć</button>
+      if (this.renderGoBackButton()) {
+        goBackButton = <button onClick={this.handleGoBackToMainSelect.bind(this)}>Wróć</button>
       }
-      mainContent = <NewEditHorso/>
+      if (this.state.focusHorso) {
+        if (this.state.isNewEditMode) {
+          mainContent = <NewEditHorso/>
+        } else {
+          mainContent = <ViewHorsoList/>
+        }
+      } else {
+        mainContent = <p>Under construction</p>
+      }
     }
     return (
       <div>
@@ -76,38 +83,30 @@ export default class AdminMainPanel extends React.Component {
   }
 
   private isOnMainSelect(): boolean {
-    console.log('isOnMainSelect')
-    console.log(this)
-    return (!(this.state.isEditingHorso && this.state.isEditingKido && this.state.isEditingTrainer &&
-      this.state.isViewingHorsos && this.state.isViewingKidos && this.state.isViewingTrainers))
+    return (!this.state.isNewEditMode &&
+      !this.state.focusHorso && !this.state.focusKido && !this.state.focusTrainer)
   }
 
   private backToMainSelect() {
-    this.state.isEditingHorso = false;
-    this.state.isEditingKido= false;
-    this.state.isEditingTrainer = false;
-    this.state.isViewingHorsos = false;
-    this.state.isViewingKidos = false;
-    this.state.isViewingTrainers = false;
+    this.setState({isNewEditMode: false, focusHorso: false, focusKido: false, focusTrainer: false})
   }
 
   private renderGoBackButton(): boolean {
-    return (this.state.isEditingHorso || this.state.isEditingKido || this.state.isEditingTrainer ||
-      this.state.isViewingHorsos || this.state.isViewingKidos || this.state.isViewingTrainers)
+    return (this.state.isNewEditMode ||
+      this.state.focusHorso || this.state.focusKido || this.state.focusTrainer)
   }
 
-  private handleGoBackToMainSelect(){
+  private handleGoBackToMainSelect() {
     this.backToMainSelect()
   }
 
-  private handleViewHorses(){
-    console.log(this.state);
-    this.state.isViewingHorsos = true;
+  private handleViewHorses() {
+    this.setState({focusHorso: true});
   }
 
-  private handleNewEditHorse(){
-    console.log(this.state);
-    this.state.isEditingHorso = true;
+  private handleNewEditHorse() {
+    this.setState({isNewEditMode: true, focusHorso: true});
   }
+
 
 }

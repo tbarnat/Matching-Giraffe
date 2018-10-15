@@ -5,7 +5,7 @@ export default class NewEditHorso extends React.Component {
 
   public render() {
     return (
-        <h1>Konio</h1>
+        <p>Konio</p>
 
     )
   }

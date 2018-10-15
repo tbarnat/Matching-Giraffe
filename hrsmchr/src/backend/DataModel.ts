@@ -24,9 +24,9 @@ export interface IArchiveCalendar {
 
 /*Administration console*/
 export interface IStableAsset {
-  client: IKido[],
-  horse: IHorso[],
-  trainer: ITrainer[]
+  clients: IKido[],
+  horses: IHorso[],
+  trainers: ITrainer[]
 }
 
 export interface IKido {
@@ -34,7 +34,8 @@ export interface IKido {
   name: string,
   surname?: string,
   remarks?: string
-  prefs: IHorso[][] // array will have max 6 levels on first level, and max  elements <= total number of horses
+  prefs: string[][] // array will have max 6 levels on first level, and max  elements <= total number of horses
+  excludes: string[]
 }
 
 export interface ITrainer {
