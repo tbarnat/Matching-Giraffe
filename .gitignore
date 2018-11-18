@@ -1,12 +1,12 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+.idea
+*.iml
+*.log
 README.md
 
 # dependencies
 /node_modules
-
-#test & other
-/test/dist
 
 # production
 /build

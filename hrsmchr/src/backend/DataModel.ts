@@ -1,49 +1,55 @@
 
 /*Horse Riding Day*/
 export interface IHorseRidingDay {
-  day: Date
+  id: number, //db autoincrement
+  day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
+  remarks?: string // additional comments which would be
   hours: IHorseRidingHour[]
 }
 
 export interface IHorseRidingHour {
   hour: string,
+  trainer: string[],
   trainingsDetails: ITrainingDetail[]
 }
 
 export interface ITrainingDetail {
   kidId: string, // this have to match Kido.id
   horse: string | undefined, // undefined is default - matcher engine will handle it
-  trainer: string,
   remarks?: string
 }
 
 /*Archive */
-export interface IArchiveCalendar {
-  [shortDate: string]: IHorseRidingDay
-}
+//IHorseRidingDay[]
+
 
 /*Administration console*/
 export interface IStableAsset {
   clients: IKido[],
   horses: IHorso[],
-  trainers: ITrainer[]
+  trainers: IInstructo[]
 }
 
 export interface IKido {
-  id: string,
+  id: number,//db autoincrement
   name: string,
-  surname?: string,
+  descr?: string,
   remarks?: string
   prefs: string[][] // array will have max 6 levels on first level, and max  elements <= total number of horses
   excludes: string[]
 }
 
-export interface ITrainer {
-  id: string,
-  name?: string
+export interface IInstructo {
+  id: number,//db autoincrement
+  name: string
+  descr?: string
+  remarks?: string
 }
 
 export interface IHorso {
-  id: string,
-  name?: string
+  id: number,//db autoincrement
+  name: string
+  descr?: string
+  remarks?: string
 }
+

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import NewEditHorso from "./NewEditHorso";
 import ViewHorsoList from "./ViewHorsoList";
-/*import {IHorso, IKido, IStableAsset, ITrainer} from "../backend/DataModel";*/
+import NewEditKido from "./NewEditKido";
+/*import {IHorso, IKido, IStableAsset, IInstructo} from "../backend/DataModel";*/
 
 export default class AdminMainPanel extends React.Component {
 
@@ -14,7 +15,7 @@ export default class AdminMainPanel extends React.Component {
     /*data: IStableAsset,
     neKido: IKido,
     neHorso: IHorso,
-    neTrainer: ITrainer*/
+    neTrainer: IInstructo*/
   };
 
 
@@ -34,7 +35,7 @@ export default class AdminMainPanel extends React.Component {
           <button>Bachory</button>
         </td>
         <td>
-          <button>Dodaj</button>
+          <button onClick={this.handleNewEditKido.bind(this)}>Dodaj</button>
         </td>
       </tr>
       <tr>
@@ -69,7 +70,13 @@ export default class AdminMainPanel extends React.Component {
         } else {
           mainContent = <ViewHorsoList/>
         }
-      } else {
+      } else if(this.state.focusKido){
+        if (this.state.isNewEditMode) {
+          mainContent = <NewEditKido/>
+        } else {
+          mainContent = <p>Under construction</p>
+        }
+      } else{
         mainContent = <p>Under construction</p>
       }
     }
@@ -108,5 +115,8 @@ export default class AdminMainPanel extends React.Component {
     this.setState({isNewEditMode: true, focusHorso: true});
   }
 
+  private handleNewEditKido() {
+    this.setState({isNewEditMode: true, focusKido: true});
+  }
 
 }

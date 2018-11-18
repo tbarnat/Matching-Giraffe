@@ -1,5 +1,5 @@
 import * as React from 'react';
-/*import {IHorso, IKido, IStableAsset, ITrainer} from "../backend/DataModel";*/
+/*import {IHorso, IKido, IStableAsset, IInstructo} from "../backend/DataModel";*/
 
 export default class NewEditHorso extends React.Component {
 
@@ -31,7 +31,7 @@ export default class NewEditHorso extends React.Component {
   private onHorsoIdChange(event: any){
     this.horsoForm.id = event.target.value
     console.log(this.horsoForm.id)
-    this.forceUpdate() //working but Browser is complaining
+    //this.forceUpdate() //working but Browser is complaining
   }
 
   private newOrEditLabel(): string{
