@@ -14,7 +14,12 @@
     "lib": ["es2017"],
     "skipLibCheck": true
   },
-  "exclude": ["node_modules",
-  "client-frontend", "docs","temp","test"],
+  "exclude": [
+    "node_modules",
+    "client-frontend",
+    "dist",
+    "docs",
+    "temp",
+    "test"],
   "compileOnSave": false
 }

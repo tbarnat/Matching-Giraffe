@@ -3,6 +3,8 @@
 .idea
 *.iml
 *.log
+dist
+temp
 README.md
 
 # dependencies

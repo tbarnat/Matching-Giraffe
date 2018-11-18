@@ -1,4 +1,11 @@
-import { Db, MongoClient, InsertOneWriteOpResult, UpdateWriteOpResult, InsertWriteOpResult } from 'mongodb'
+import {
+  Db,
+  MongoClient,
+  InsertOneWriteOpResult,
+  UpdateWriteOpResult,
+  InsertWriteOpResult,
+  DeleteWriteOpResultObject
+} from 'mongodb'
 
 export interface IDatabase {
   init(): Promise<void>
@@ -7,6 +14,7 @@ export interface IDatabase {
   updateOne(collectionName: string, filter: Object, update: Object): Promise<UpdateWriteOpResult>
   insertOne(collectionName: string, doc: Object): Promise<InsertOneWriteOpResult>
   insertMany(collectionName: string, docs: Object): Promise<InsertWriteOpResult>
+  deleteOne(collectionName: string, doc: Object): Promise<DeleteWriteOpResultObject>
 }
 
 export interface Config {
@@ -23,6 +31,7 @@ export class Database implements IDatabase {
 
   async init() {
     let client = await MongoClient.connect(this.config.uri);
+    console.log(`client uses ${this.config.uri}`)
     this.db = client.db(this.config.dbName);
     console.log(`connected to database: ${this.config.uri}`)
   }
@@ -48,6 +57,9 @@ export class Database implements IDatabase {
     return this.db.collection(collectionName).insertMany(docs)
   }
 
-  //deleteOne deleteMany  http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#deleteOne
+  deleteOne(collectionName: string, docs: Object) {
+    return this.db.collection(collectionName).deleteOne(docs)
+  }
+  //deleteMany  http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#deleteOne
 
 }

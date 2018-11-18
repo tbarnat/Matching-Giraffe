@@ -1,22 +1,30 @@
+/*Horse Riding Day - QUERY*/
 
-/*Horse Riding Day*/
+export interface IHorseRidingDayQ {
+  id: number, //db autoincrement
+  day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
+  remarks?: string // additional comments which would be
+  hours: IHorseRidingHourQ[]
+}
+
+export interface IHorseRidingHourQ {
+  hour: string,
+  trainer: string[],
+  trainingsDetails: ITrainingQ[]
+}
+
+export interface ITrainingQ {
+  kidId: string, // this have to match Kido.id
+  horse?: string, // undefined is default - matcher engine will handle it
+  remarks?: string
+}
+
+/*Horse Riding Day - RESULT*/
 export interface IHorseRidingDay {
   id: number, //db autoincrement
   day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
   remarks?: string // additional comments which would be
   hours: IHorseRidingHour[]
-}
-
-export interface IHorseRidingHourQuery {
-  hour: string,
-  trainer: string[],
-  trainingsDetails: ITrainingQuery[]
-}
-
-export interface ITrainingQuery {
-  kidId: string, // this have to match Kido.id
-  horse?: string, // undefined is default - matcher engine will handle it
-  remarks?: string
 }
 
 export interface IHorseRidingHour {
