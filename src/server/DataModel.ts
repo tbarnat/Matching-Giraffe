@@ -7,6 +7,18 @@ export interface IHorseRidingDay {
   hours: IHorseRidingHour[]
 }
 
+export interface IHorseRidingHourQuery {
+  hour: string,
+  trainer: string[],
+  trainingsDetails: ITrainingQuery[]
+}
+
+export interface ITrainingQuery {
+  kidId: string, // this have to match Kido.id
+  horse?: string, // undefined is default - matcher engine will handle it
+  remarks?: string
+}
+
 export interface IHorseRidingHour {
   hour: string,
   trainer: string[],
@@ -15,7 +27,7 @@ export interface IHorseRidingHour {
 
 export interface ITrainingDetail {
   kidId: string, // this have to match Kido.id
-  horse: string | undefined, // undefined is default - matcher engine will handle it
+  horse: string, // undefined is default - matcher engine will handle it
   remarks?: string
 }
 
