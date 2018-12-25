@@ -1,10 +1,13 @@
+//all names are identifiers
+
 /*Horse Riding Day - QUERY*/
 
 export interface IHorseRidingDayQ {
-  id: number, //db autoincrement
+  //_id: number, //mongo id
   day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
-  remarks?: string // additional comments which would be
+  remarks?: string // additional comments which would be rewritten
   hours: IHorseRidingHourQ[]
+  dailyExcludes: string[] //unavailable horses ie. injured
 }
 
 export interface IHorseRidingHourQ {
@@ -14,14 +17,14 @@ export interface IHorseRidingHourQ {
 }
 
 export interface ITrainingQ {
-  kidId: string, // this have to match Kido.id
+  kidName: string,
   horse?: string, // undefined is default - matcher engine will handle it
   remarks?: string
 }
 
 /*Horse Riding Day - RESULT*/
 export interface IHorseRidingDay {
-  id: number, //db autoincrement
+  //_id: number, //mongo id
   day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
   remarks?: string // additional comments which would be
   hours: IHorseRidingHour[]
@@ -34,7 +37,7 @@ export interface IHorseRidingHour {
 }
 
 export interface ITrainingDetail {
-  kidId: string, // this have to match Kido.id
+  kidName: string,
   horse: string, // undefined is default - matcher engine will handle it
   remarks?: string
 }
@@ -51,24 +54,48 @@ export interface IStableAsset {
 }
 
 export interface IKido {
-  id: number,//db autoincrement
-  name: string,
+  //_id: number, //mongo id
+  name: string, // unique!!!
   descr?: string,
   remarks?: string
-  prefs: string[][] // array will have max 6 levels on first level, and max  elements <= total number of horses
-  excludes: string[]
+  prefs: PrefType //
+  // last level of prefs is excludes
+}
+
+/*  Important type - defines kido preferences for horse (horso.name) selection  */
+/* total no of elements $lte total number of horses in stables
+the levels of match are: 'best' | 'nice' | 'ok' | 'limp' | 'excl'
+last (5th) level of prefs is excludes - horses which mustn't be selected for any training */
+export type PrefType = {[prefCategory:string]:string[]}
+export type prefCategory = 'best' | 'nice' | 'isok' | 'limp' | 'excl'
+
+export default class DataModel{
+  static readonly allPrefCat= ['best', 'nice', 'isok', 'limp', 'excl']
+  static readonly incPrefCat = ['best', 'nice', 'isok', 'limp']
+  static readonly incPrefCatRev = ['limp','isok','nice', 'best']
+  static readonly excPrefCat = ['excl']
+
+  public static getPrefCatValue(prefCat: string): number{
+    switch (prefCat){
+      case 'best': return 0
+      case 'nice': return 1
+      case 'isok': return 2
+      case 'limp': return 3
+      default: return -10000000000000  //'excl' //todo set to -1 after tests
+    }
+  }
 }
 
 export interface IInstructo {
-  id: number,//db autoincrement
-  name: string
+  _id: number, //mongo id
+  name: string // unique!!!
   descr?: string
   remarks?: string
 }
 
 export interface IHorso {
-  id: number,//db autoincrement
-  name: string
+  _id: number, //mongo id
+  name: string // unique!!!
   descr?: string
   remarks?: string
 }

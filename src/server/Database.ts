@@ -26,8 +26,7 @@ export class Database implements IDatabase {
 
   protected db: Db;
 
-  constructor(protected config: Config) {
-  }
+  constructor(protected config: Config) {}
 
   async init() {
     let client = await MongoClient.connect(this.config.uri);
