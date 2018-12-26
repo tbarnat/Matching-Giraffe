@@ -60,5 +60,4 @@ export class Database implements IDatabase {
     return this.db.collection(collectionName).deleteOne(docs)
   }
   //deleteMany  http://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#deleteOne
-
 }
