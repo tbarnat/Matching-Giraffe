@@ -1,9 +1,9 @@
 
-const Database = require('../dist/Database').Database;
+const Database = require('../dist/server/Database').Database;
 
 const config = {
     uri: 'mongodb://localhost:27017',
-    dbName: 'hm-dev'
+    dbName: 'hmDev'
 }
 
 let testDb = async () => {

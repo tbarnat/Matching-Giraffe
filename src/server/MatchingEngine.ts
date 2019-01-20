@@ -9,6 +9,9 @@ import {
 } from "./DataModel";
 import {Database} from "./Database";
 
+//just for tests  todo rm
+const tableHelper = require('../../test/tableHelper.js')
+
 interface IRankedHourlySolution {
   solution: IHorseRidingHour,
   rank: number
@@ -32,6 +35,7 @@ interface IMatchOptionInfo {
 
 export default class MatchingEngine {
 
+  /* --- Data structures --- */
   public allHorsos: string[] = []
   private avaHorsos: string[] = []
   private kidosInQueryD: string[] = [] //ACHTUNG! - those are distinguishable kidos, not all kidos in query
@@ -43,7 +47,11 @@ export default class MatchingEngine {
   private searchOrder: { [kidoName: string]: IMatchOptionInfo [] } = {} //ordered list of all horses by it's rank by kido - order list of object with extra info
   /* intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions*/
   private qInProc: IRankedHourlySolution[][]
-  private resultList: IResultList
+  //private resultList: IResultList
+
+  /* --- Event type flags --- */
+  private breakHourlyCalc: boolean = false
+  //private breakDailyCalc: boolean = false
 
 
   constructor(protected db: Database) {
@@ -59,6 +67,7 @@ export default class MatchingEngine {
     /*  Finding solutions for every hour separately  */
     let hourNo: number = 0
     dailyQuery.hours.forEach(hour => {
+      this.breakHourlyCalc = false
       this.hourlyMatchingLimited(hour, hourNo)
       hourNo++
     })
@@ -68,7 +77,9 @@ export default class MatchingEngine {
     //qInProc.forEach(hourList => hourList.forEach(hour => this.updateRanks(hour)))
 
 
-    return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
+    return this.mapResultsToISolution(dailyQuery, {results:[]})
+    //todo this is ok -> return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
+    //return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
     // -> formatting to IHorseRidingDay on client side
 
   }
@@ -104,10 +115,9 @@ export default class MatchingEngine {
     }
 
     /*  Update preferences and create index type  */
-    let kidosWithIncompletePrefs = await
-      this.updateKidosPreferences(dailyQuery)
-    if (!kidosWithIncompletePrefs.length) {
-      return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} is/are incomplete/incorrect`
+    let kidosWithIncompletePrefs = await this.updateKidosPreferences(dailyQuery)
+    if (!!kidosWithIncompletePrefs.length) {
+      return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} are incomplete or incorrect`
     }
 
     /*  Count penalty points for kido-horso combination, and set searching order*/
@@ -126,30 +136,46 @@ export default class MatchingEngine {
   }
 
   private async initAllHorsosInStables() {
-    this.allHorsos = ((await this.db.find('horso')) as IHorso[]).map(horso => horso.name)
+    this.allHorsos = ((await this.db.find('horsos')) as IHorso[]).map(horso => horso.name)
   }
 
   private initAvailableHorses(dailyQuery: IHorseRidingDayQ) {
     this.avaHorsos = this.allHorsos.filter(horsoName => {
-      return (dailyQuery.dailyExcludes.indexOf(horsoName) >= 0)
+      return !dailyQuery.dailyExcludes.includes(horsoName)
     })
   }
 
   private async updateKidosPreferences(dailyQuery: IHorseRidingDayQ): Promise<string[]> {
     this.initDistKidosInQuery(dailyQuery)
 
-    let allKidos = ((await this.db.find('kido')) as IKido[])
+    let allKidos = ((await this.db.find('kidos')) as IKido[])
+
+
+    //todo - just for presentation
+    console.log('---raw kido preferences:---')
+    tableHelper.tablePreferences(allKidos)
+
+
     allKidos.filter(kido => {
-      return (this.kidosInQueryD.indexOf(kido.name) >= 0)
+      return (this.kidosInQueryD.includes(kido.name))
     }).forEach(kido => {
       //filter the daily excludes
-      Object.keys(kido.prefs).map(category => {
-        return kido.prefs[category].filter(horso => {
-          return dailyQuery.dailyExcludes.indexOf(horso) <= 0
+      this.kidosPrefs[kido.name] = {}
+      Object.keys(kido.prefs).forEach(category => {
+        this.kidosPrefs[kido.name][category] = kido.prefs[category].filter(horso => {
+          return !dailyQuery.dailyExcludes.includes(horso)
         })
       })
-      this.kidosPrefs[kido.name] = kido.prefs
     })
+
+
+    //todo - just for presentation
+    let kidosWithoutExcludedHorses: any[] = []
+    Object.keys(this.kidosPrefs).forEach(kidoName => kidosWithoutExcludedHorses.push({name: kidoName, prefs: this.kidosPrefs[kidoName]}))
+    console.log('---preferences after filtering of excluded horses:---')
+    tableHelper.tablePreferences(kidosWithoutExcludedHorses)
+
+
     // check if each kidosPref table comprise exactly the number available horses
     let kidosWithIncompletePrefs: string[] = []
     Object.keys(this.kidosPrefs).forEach(kido => {
@@ -190,6 +216,7 @@ export default class MatchingEngine {
 
     DataModel.incPrefCat.forEach(prefCat => {
       this.allKidosInQuery.forEach(kidoName => {
+        //todo 'Cannot read property of undefined'
         this.kidosPrefs[kidoName][prefCat].forEach(horso => {
           penaltyFromUpperLevels[horso] = penaltyFromUpperLevels[horso] ? penaltyFromUpperLevels[horso] : 0
           penaltyForFreq[prefCat][horso] = penaltyForFreq[prefCat][horso] ? penaltyForFreq[prefCat][horso] : 0
@@ -225,22 +252,22 @@ export default class MatchingEngine {
         }))
       })
     })
+    tableHelper.tableSearchOrder(this.searchOrder)
   }
 
   private hourlyMatchingLimited(hour: IHorseRidingHourQ, hourNo: number) {
-    let limitForTime = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
+    let limitForTime = 5 // todo this is temporary
+    //todo this is ok
+    //let limitForTime = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let limitForPossiblities = 20 * limitForTime
-    //todo this timeout is implemented in a very incorrect way
-    let hourTimer = setTimeout(() => {
-      this.hourlyMatchingWorker(hour, hourNo)
-      if (this.qInProc[0].length > limitForPossiblities) {
-        clearTimeout(hourTimer)
-      }
+    this.hourlyMatchingWorker(hour, hourNo, limitForPossiblities)
+    setTimeout(() => {
+      this.breakHourlyCalc = true
     }, limitForTime)
   }
 
   //recursively find solutions by searchOrder and excluding horses from prefs
-  private hourlyMatchingWorker(hour: IHorseRidingHourQ, hourNo: number) {
+  private hourlyMatchingWorker(hour: IHorseRidingHourQ, hourNo: number, limit: number) {
 
     // first part - create a kidoCallingOrder which allows to always get a correctly sorted calling order
     // for next horse from searchOrders objects per each kid
@@ -276,8 +303,11 @@ export default class MatchingEngine {
 
 
     let allOptionsSoFar: IMatchOptionInfo[] = []
-    //generate new option, one by one and produce permutations
-    while (searchOrderForHour.length) {
+    /*generate new option, one by one and produce permutations as long as:
+       - there are options left
+       - the limit of result is not reached
+       - the timeout flag is not raised */
+    while (searchOrderForHour.length && this.qInProc[hourNo].length < limit && !this.breakHourlyCalc) {
       let currentOption = searchOrderForHour.shift()
       if (currentOption) {
         // Permutations can be generated and stored in qInProc for every hour (which is first level of array).
@@ -316,31 +346,39 @@ export default class MatchingEngine {
     return updatedRankedSolution
   }*/
 
-  private combineHoursLimited(dailyQuery: IHorseRidingDayQ) {
+  /*private combineHoursLimited(dailyQuery: IHorseRidingDayQ): IResultList {
+    this.breakDailyCalc = false
     let totalTrainings = 0
     dailyQuery.hours.forEach(hour => {
       totalTrainings += hour.trainingsDetails.length
     })
     let limitForTime = 100 * totalTrainings * this.avaHorsos.length // + max ~5s to juxtapose results
     let limitForPossiblities = 20 * limitForTime
-    //todo this timeout is implemented in a very incorrect way
-    let juxTimer = setTimeout(() => {
-      this.combineHoursWorker()
-      if (this.resultList.results.length >= limitForPossiblities) {
-        clearTimeout(juxTimer)
-      }
+
+    this.combineHoursWorker(limitForPossiblities)
+
+    setTimeout(() => {
+      this.breakDailyCalc = true
     }, limitForTime)
     if (this.resultList.results.length) {
       return this.resultList
     } else {
       return {results: [], errorMsg: `Could not find any good results :(`}
     }
-  }
+  }*/
 
   //todo search for permutation by expanding an input set by rank
-  private combineHoursWorker() {
+  /*private combineHoursWorker(limit: number) {
     //juxtapose qInProc object
-  }
+
+    /!*generate new option, one by one and produce permutations as long as:
+       - there are options left
+       - the limit of result is not reached
+       - the timeout flag is not raised *!/
+    while (true && this.resultList.results.length < limit && !this.breakDailyCalc) {
+
+    }
+  }*/
 
 
 }

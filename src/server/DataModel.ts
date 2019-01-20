@@ -7,7 +7,7 @@ export interface IHorseRidingDayQ {
   day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
   remarks?: string // additional comments which would be rewritten
   hours: IHorseRidingHourQ[]
-  dailyExcludes: string[] //unavailable horses ie. injured
+  dailyExcludes: string[] //unavailable horses 4e. injured
 }
 
 export interface IHorseRidingHourQ {
@@ -87,14 +87,12 @@ export default class DataModel{
 }
 
 export interface IInstructo {
-  _id: number, //mongo id
   name: string // unique!!!
   descr?: string
   remarks?: string
 }
 
 export interface IHorso {
-  _id: number, //mongo id
   name: string // unique!!!
   descr?: string
   remarks?: string

@@ -1,11 +1,18 @@
-const Database = require('../dist/Database').Database;
+const Database = require('../dist/server/Database').Database;
 
 const config = {
     uri: 'mongodb://localhost:27017',
-    dbName: 'hm-dev'
+    dbName: 'hmDev'
 }
 
-let horses = ['Czejen', 'Parys', 'Bella', 'Jadzia', 'Dzidzia', 'Bracio', 'Lady']
+let horses = [
+    {name:'Czejen'},
+    {name:'Parys'},
+    {name:'Bella'},
+    {name:'Jadzia'},
+    {name:'Dzidzia'},
+    {name:'Bracio'},
+    {name:'Lady'}]
 
 let kids =
     [{
@@ -99,18 +106,23 @@ let kids =
             }
         }]
 
-let trainers = ['Eva','Paulina','Inna']
+let trainers = [{name:'Eva'},{name:'Paulina'},{name:'Inna'}]
 
 let fillInDatabase = async () => {
 
     const db = new Database(config);
     await db.init()
 
-    await db.insertMany('horso', horses)
+    await db.insertMany('horsos', horses)
     await db.insertMany('kidos',kids)
     await db.insertMany('trainers',trainers)
 
 }
 
-console.log('database is aobut to be filled with test values')
-fillInDatabase()
+console.log('database is aobut to be filled with some startup values')
+console.log('database is about to be filled with simple mock values')
+try{
+    fillInDatabase().then(() => {console.log('went smooth')})
+}catch(err){
+    console.log(err,'filling error')
+}
