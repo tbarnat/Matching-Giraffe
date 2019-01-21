@@ -248,19 +248,19 @@ export default class MatchingEngine {
           return this.dailyPenaltyIdx[kido][h2] - this.dailyPenaltyIdx[kido][h1]
         })
 
-        let xxx = sortedHorsos.map(horso => {
+        let kidosSearchOrder = sortedHorsos.map(horso => {
           return {horso, kido, penalty: this.dailyPenaltyIdx[kido][horso]}
         }).sort((match1, match2) => {return (match1.penalty - match2.penalty)})
-        this.dailySearchOrder[kido] = this.dailySearchOrder[kido].concat(xxx)
+        this.dailySearchOrder[kido] = this.dailySearchOrder[kido].concat(kidosSearchOrder)
       })
     })
 
-    console.log('---search order table:---')
+    console.log('---search order table for whole day:---')
     tableHelper.tableSearchOrder(this.dailySearchOrder)
   }
 
   private hourlyMatchingLimited(hour: IHorseRidingHourQ, hourNo: number) {
-    let limitForTime = 5 // todo this is temporary
+    let limitForTime = 5000 // todo this is temporary
     //todo this is ok
     //let limitForTime = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let limitForPossiblities = 20 * limitForTime
@@ -283,6 +283,7 @@ export default class MatchingEngine {
     let transitionOrder: { [kidoName: string]: IMatchOptionInfo [] } = {}
     hour.trainingsDetails.forEach(training => {
       let kido: string = training.kidName
+      transitionOrder[kido] = []
       kidoCallingOrder[kido] = kidoCallingOrder[kido] ? kidoCallingOrder[kido] : []
       allKidosThisHour.forEach(otherKido => {
         if (otherKido == kido) {
@@ -305,6 +306,8 @@ export default class MatchingEngine {
       return (penaltyInfo2.penalty - penaltyInfo1.penalty)
     })
 
+
+    //console.log(searchOrderForHour.length)
 
     let allOptionsSoFar: IMatchOptionInfo[] = []
     /*generate new option, one by one and produce permutations as long as:
