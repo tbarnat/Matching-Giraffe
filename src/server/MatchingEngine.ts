@@ -41,10 +41,10 @@ export default class MatchingEngine {
   private kidosInQueryD: string[] = [] //ACHTUNG! - those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
-  /* penaltyPoints: number of occurrence of horse on each kido's pref level (global), and higher levels(global)
+  /* dailyPenaltyIdx: number of occurrence of horse on each kido's pref level (global), and higher levels(global)
     + (index level (each kido) * (number of available horses in sables)^2) */
-  private penaltyPoints: { [kidoName: string]: { [horsoName: string]: number } } = {}
-  private searchOrder: { [kidoName: string]: IMatchOptionInfo [] } = {} //ordered list of all horses by it's rank by kido - order list of object with extra info
+  private dailyPenaltyIdx: { [kidoName: string]: { [horsoName: string]: number } } = {}
+  private dailySearchOrder: { [kidoName: string]: IMatchOptionInfo [] } = {} //ordered list of all horses by it's rank by kido - order list of object with extra info
   /* intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions*/
   private qInProc: IRankedHourlySolution[][]
   //private resultList: IResultList
@@ -131,8 +131,8 @@ export default class MatchingEngine {
     this.avaHorsos = []
     this.kidosInQueryD = []
     this.kidosPrefs = {}
-    this.penaltyPoints = {}
-    this.searchOrder = {}
+    this.dailyPenaltyIdx = {}
+    this.dailySearchOrder = {}
   }
 
   private async initAllHorsosInStables() {
@@ -211,12 +211,12 @@ export default class MatchingEngine {
   private countPenaltyPointsAndOrder(dailyQuery: IHorseRidingDayQ) {
     this.initAllKidosInQuery(dailyQuery)
     // Counts amount of occurrence for each horse in this and higher levels and store it in temporary object 'penaltForFreq'
-    let penaltyForFreq: { [prefCat: string]: { [horsoName: string]: number } }
-    let penaltyFromUpperLevels: { [horsoName: string]: number }
+    let penaltyForFreq: { [prefCat: string]: { [horsoName: string]: number } } = {}
+    let penaltyFromUpperLevels: { [horsoName: string]: number } = {}
 
     DataModel.incPrefCat.forEach(prefCat => {
+      penaltyForFreq[prefCat] = {}
       this.allKidosInQuery.forEach(kidoName => {
-        //todo 'Cannot read property of undefined'
         this.kidosPrefs[kidoName][prefCat].forEach(horso => {
           penaltyFromUpperLevels[horso] = penaltyFromUpperLevels[horso] ? penaltyFromUpperLevels[horso] : 0
           penaltyForFreq[prefCat][horso] = penaltyForFreq[prefCat][horso] ? penaltyForFreq[prefCat][horso] : 0
@@ -232,27 +232,31 @@ export default class MatchingEngine {
     })
     // Get the full penalty points rank for each horse of each kido
     this.kidosInQueryD.forEach(kido => {
+      this.dailyPenaltyIdx[kido] = {}
       DataModel.incPrefCat.forEach(prefCat => {
         this.kidosPrefs[kido][prefCat].forEach(horso => {
-          this.penaltyPoints[kido][horso] = penaltyForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
+          this.dailyPenaltyIdx[kido][horso] = penaltyForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
         })
       })
     })
-    //Get the searchOrder based on lowest penaltyPoinst score
-    Object.keys(this.penaltyPoints).forEach(kido => {
+
+    //Get the dailySearchOrder based on lowest dailyPenaltyIdx score
+    Object.keys(this.dailyPenaltyIdx).forEach(kido => {
+      this.dailySearchOrder[kido] = []
       DataModel.incPrefCat.forEach(prefCat => {
         let sortedHorsos = this.kidosPrefs[kido][prefCat].sort((h1, h2) => {
-          return this.penaltyPoints[kido][h2] - this.penaltyPoints[kido][h1]
+          return this.dailyPenaltyIdx[kido][h2] - this.dailyPenaltyIdx[kido][h1]
         })
-        if (!this.searchOrder[kido]) {
-          this.searchOrder[kido] = []
-        }
-        this.searchOrder[kido].concat(sortedHorsos.map(horso => {
-          return {horso, kido, penalty: this.penaltyPoints[kido][horso]}
-        }))
+
+        let xxx = sortedHorsos.map(horso => {
+          return {horso, kido, penalty: this.dailyPenaltyIdx[kido][horso]}
+        }).sort((match1, match2) => {return (match1.penalty - match2.penalty)})
+        this.dailySearchOrder[kido] = this.dailySearchOrder[kido].concat(xxx)
       })
     })
-    tableHelper.tableSearchOrder(this.searchOrder)
+
+    console.log('---search order table:---')
+    tableHelper.tableSearchOrder(this.dailySearchOrder)
   }
 
   private hourlyMatchingLimited(hour: IHorseRidingHourQ, hourNo: number) {
@@ -266,7 +270,7 @@ export default class MatchingEngine {
     }, limitForTime)
   }
 
-  //recursively find solutions by searchOrder and excluding horses from prefs
+  //recursively find solutions by dailySearchOrder and excluding horses from prefs
   private hourlyMatchingWorker(hour: IHorseRidingHourQ, hourNo: number, limit: number) {
 
     // first part - create a kidoCallingOrder which allows to always get a correctly sorted calling order
@@ -275,7 +279,7 @@ export default class MatchingEngine {
     hour.trainingsDetails.forEach(training => {
       allKidosThisHour.push(training.kidName)
     })
-    let kidoCallingOrder: { [kidoName: string]: string[] } = {} //calling order of kido for searchOrder of different kidos
+    let kidoCallingOrder: { [kidoName: string]: string[] } = {} //calling order of kido for dailySearchOrder of different kidos
     let transitionOrder: { [kidoName: string]: IMatchOptionInfo [] } = {}
     hour.trainingsDetails.forEach(training => {
       let kido: string = training.kidName
@@ -284,7 +288,7 @@ export default class MatchingEngine {
         if (otherKido == kido) {
           return
         }
-        transitionOrder[kido] = transitionOrder[kido].concat(this.searchOrder[otherKido])
+        transitionOrder[kido] = transitionOrder[kido].concat(this.dailySearchOrder[otherKido])
       })
       kidoCallingOrder[kido] = transitionOrder[kido].sort((penaltyInfo1, penaltyInfo2) => {
         return (penaltyInfo2.penalty - penaltyInfo1.penalty)
@@ -295,7 +299,7 @@ export default class MatchingEngine {
     // plain (single level) search order of all kidos for this hour
     let searchOrderForHour: IMatchOptionInfo[] = []
     allKidosThisHour.forEach(kido => {
-      searchOrderForHour.concat(this.searchOrder[kido])
+      searchOrderForHour.concat(this.dailySearchOrder[kido])
     })
     searchOrderForHour.sort((penaltyInfo1, penaltyInfo2) => {
       return (penaltyInfo2.penalty - penaltyInfo1.penalty)

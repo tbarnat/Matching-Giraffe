@@ -47,6 +47,5 @@ prepApp().then(
 ).catch(
     (err) => {console.log(err,'outer catch')}
 )
-return
 
 
