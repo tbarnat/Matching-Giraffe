@@ -283,25 +283,6 @@ export default class MatchingEngine {
       allKidosThisHour.push(training.kidName)
     })
 
-    /*let kidoCallingOrder: { [kidoName: string]: string[] } = {} //calling order of kido for dailySearchOrder of different kidos
-    let transitionOrder: { [kidoName: string]: IMatchOptionInfo [] } = {}
-    hour.trainingsDetails.forEach(training => {
-      let kido: string = training.kidName
-      transitionOrder[kido] = []
-      kidoCallingOrder[kido] = kidoCallingOrder[kido] ? kidoCallingOrder[kido] : []
-      allKidosThisHour.forEach(otherKido => {
-        if (otherKido == kido) {
-          return
-        }
-        transitionOrder[kido] = transitionOrder[kido].concat(this.dailySearchOrder[otherKido])
-      })
-      kidoCallingOrder[kido] = transitionOrder[kido].sort((penaltyInfo1, penaltyInfo2) => {
-        return (penaltyInfo2.penalty - penaltyInfo1.penalty)
-      }).map(penaltyInfo => {
-        return penaltyInfo.kido
-      })
-    })*/ //<- part of code I forgot the purpose, and is probably useless
-
     // plain (single level) search order of all kidos for this hour
     let searchOrderForHour: IMatchOptionInfo[] = []
     allKidosThisHour.forEach(kido => {
@@ -383,10 +364,11 @@ export default class MatchingEngine {
 
     // 0 create new object (copy) of allOptionsSoFar  -> allOptionsFlexOrder -CHECKED
     // 1 take a first kido from allOptionsSoFar (it has the lowest possible penalty)
-    // 2 go through allOptionsSoFar and find the first solution () - assign it with total penalty property
+    // 2 go one-by-one through allOptionsSoFar () and find the first valid solution () - assign it with total penalty property
+    // if no solutions return null
 
 
-    /*think about such case exemplary:
+    /*think about such exemplary cases of searchOrder:
   ┌─────────┬─────────┬─────┬─────┬─────┐
   │ (index) │ penalty │  C  │  A  │  B  │
   ├─────────┼─────────┼─────┼─────┼─────┤
@@ -402,6 +384,23 @@ export default class MatchingEngine {
   │    9    │   50    │     │     │ 'e' │
   │   10    │   50    │ 'e' │     │     │
   └─────────┴─────────┴─────┴─────┴─────┘
+
+  ┌─────────┬─────────┬─────┬─────┬─────┐
+  │ (index) │ penalty │  C  │  A  │  B  │
+  ├─────────┼─────────┼─────┼─────┼─────┤
+  │    0    │    1    │ 'b' │     │     │
+  │    1    │    3    │     │ 'a' │     │
+  │    2    │    3    │     │     │ 'a' │
+  │    3    │    3    │ 'a' │     │     │
+  │    4    │   18    │ 'c' │     │     │
+  │    5    │   18    │     │     │ 'c' │
+  │    6    │   21    │     │     │ 'b' │
+  │    7    │   21    │     │ 'b' │     │
+  │    8    │   37    │     │ 'c' │     │
+  │    9    │   50    │     │     │ 'e' │
+  │   10    │   50    │ 'e' │     │     │
+  └─────────┴─────────┴─────┴─────┴─────┘
+
   */
 
     // 3 take a second kido from allOptionsSoFar (second lowest penalty), starting from the second, and going down
