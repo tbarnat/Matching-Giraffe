@@ -8,6 +8,7 @@ import {
   PrefType
 } from "./DataModel";
 import {Database} from "./Database";
+import Utils from "./Utils";
 
 //just for tests  todo rm
 const tableHelper = require('../../test/tableHelper.js')
@@ -45,13 +46,10 @@ export default class MatchingEngine {
     + (index level (each kido) * (number of available horses in sables)^2) */
   private dailyPenaltyIdx: { [kidoName: string]: { [horsoName: string]: number } } = {}
   private dailySearchOrder: { [kidoName: string]: IMatchOptionInfo [] } = {} //ordered list of all horses by it's rank by kido - order list of object with extra info
-  /* intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions*/
-  private qInProc: IRankedHourlySolution[][]
-  //private resultList: IResultList
 
-  /* --- Event type flags --- */
-  private breakHourlyCalc: boolean = false
-  //private breakDailyCalc: boolean = false
+  /* --- Calculation results --- */
+  //intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions
+  private qInProc: IRankedHourlySolution[][] = []
 
 
   constructor(protected db: Database) {
@@ -66,18 +64,19 @@ export default class MatchingEngine {
 
     /*  Finding solutions for every hour separately  */
     let hourNo: number = 0
-    dailyQuery.hours.forEach(hour => {
-      this.breakHourlyCalc = false
-      this.hourlyMatchingLimited(hour, hourNo)
-      hourNo++
-    })
 
+
+    for (let hour of dailyQuery.hours) {
+      //this.breakHourlyCalc = false
+      this.qInProc[hourNo] = []
+      await this.hourlyMatching(hour, hourNo)
+      hourNo++
+    } //forEach does not work in this case with async-await
 
     //update Ranks (juz nie pamietam o co chodzilo) - trzeba to sprawdzic chyba
     //qInProc.forEach(hourList => hourList.forEach(hour => this.updateRanks(hour)))
 
-
-    return this.mapResultsToISolution(dailyQuery, {results:[]})
+    return this.mapResultsToISolution(dailyQuery, {results: []})
     //todo this is ok -> return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
     //return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
     // -> formatting to IHorseRidingDay on client side
@@ -171,7 +170,10 @@ export default class MatchingEngine {
 
     //todo - just for presentation
     let kidosWithoutExcludedHorses: any[] = []
-    Object.keys(this.kidosPrefs).forEach(kidoName => kidosWithoutExcludedHorses.push({name: kidoName, prefs: this.kidosPrefs[kidoName]}))
+    Object.keys(this.kidosPrefs).forEach(kidoName => kidosWithoutExcludedHorses.push({
+      name: kidoName,
+      prefs: this.kidosPrefs[kidoName]
+    }))
     console.log('---preferences after filtering of excluded horses:---')
     tableHelper.tablePreferences(kidosWithoutExcludedHorses)
 
@@ -250,7 +252,9 @@ export default class MatchingEngine {
 
         let kidosSearchOrder = sortedHorsos.map(horso => {
           return {horso, kido, penalty: this.dailyPenaltyIdx[kido][horso]}
-        }).sort((match1, match2) => {return (match1.penalty - match2.penalty)})
+        }).sort((match1, match2) => {
+          return (match1.penalty - match2.penalty)
+        })
         this.dailySearchOrder[kido] = this.dailySearchOrder[kido].concat(kidosSearchOrder)
       })
     })
@@ -259,19 +263,8 @@ export default class MatchingEngine {
     tableHelper.tableSearchOrder(this.dailySearchOrder)
   }
 
-  private hourlyMatchingLimited(hour: IHorseRidingHourQ, hourNo: number) {
-    let limitForTime = 5000 // todo this is temporary
-    //todo this is ok
-    //let limitForTime = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
-    let limitForPossiblities = 20 * limitForTime
-    this.hourlyMatchingWorker(hour, hourNo, limitForPossiblities)
-    setTimeout(() => {
-      this.breakHourlyCalc = true
-    }, limitForTime)
-  }
-
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
-  private hourlyMatchingWorker(hour: IHorseRidingHourQ, hourNo: number, limit: number) {
+  private async hourlyMatching(hour: IHorseRidingHourQ, hourNo: number) {
 
     // first part - create a kidoCallingOrder which allows to always get a correctly sorted calling order
     // for next horse from searchOrders objects per each kid
@@ -300,31 +293,44 @@ export default class MatchingEngine {
     // plain (single level) search order of all kidos for this hour
     let searchOrderForHour: IMatchOptionInfo[] = []
     allKidosThisHour.forEach(kido => {
-      searchOrderForHour.concat(this.dailySearchOrder[kido])
+      searchOrderForHour = searchOrderForHour.concat(this.dailySearchOrder[kido])
     })
     searchOrderForHour.sort((penaltyInfo1, penaltyInfo2) => {
-      return (penaltyInfo2.penalty - penaltyInfo1.penalty)
+      return (penaltyInfo1.penalty - penaltyInfo2.penalty)
     })
 
+    console.log(`---search order for hour--- (length: ${searchOrderForHour.length})`)
+    console.log(searchOrderForHour)
 
-    //console.log(searchOrderForHour.length)
+    let timeout = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
 
+    let resultsLimit = 20 * timeout
     let allOptionsSoFar: IMatchOptionInfo[] = []
     /*generate new option, one by one and produce permutations as long as:
        - there are options left
        - the limit of result is not reached
        - the timeout flag is not raised */
-    while (searchOrderForHour.length && this.qInProc[hourNo].length < limit && !this.breakHourlyCalc) {
-      let currentOption = searchOrderForHour.shift()
-      if (currentOption) {
-        // Permutations can be generated and stored in qInProc for every hour (which is first level of array).
-        // For every new horse added to permutation set it gets combined with the other horses in order given by kidoCallingOrder
-        // And then its get validated: complete + no repetition
-        this.qInProc[hourNo] = this.getValidPermutation(allOptionsSoFar, currentOption, kidoCallingOrder)
-      }
-    }
+    await Utils.asyncWhile(() => {
+        return (!!searchOrderForHour.length && this.qInProc[hourNo].length < resultsLimit)
+      },
+      async () => {
+        let currentOption = searchOrderForHour.shift()
+        if (currentOption) {
+          // Permutations can be generated and stored in qInProc for every hour (which is first level of array).
+          // For every new horse added to permutation set it gets combined with the other horses in order given by kidoCallingOrder
+          // And then its get validated: complete + no repetition
+          this.qInProc[hourNo] = this.getValidPermutation(allOptionsSoFar, currentOption, kidoCallingOrder)
+          //        this.qInProc[hourNo].push(this.getValidPermutation(allOptionsSoFar, currentOption, kidoCallingOrder))  //todo <- go for this
+        }
 
+
+        //todo rm
+        console.log('   ...')
+      }, timeout)
+
+    // some kind of deferred
   }
+
 
   // get new valid permutations generated by adding currentOption to allOptionsSoFar list and finally putting it to qInProc
   // permutation are taken in order by kidoCallingOrder
