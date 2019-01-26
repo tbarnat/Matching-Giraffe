@@ -7,10 +7,11 @@ export default class Utils {
     }
   }
 
-  public static async asyncWhile( logicalCondition: () => boolean, inWhileBody: () => any, timeout: number){
+  //if strongLogicalCondition is true, loop will continue even in case of timeout
+  public static async asyncWhile( weakLogicalCondition: () => boolean, strongLogicalCondition: () => boolean, inWhileBody: () => any, timeout: number){
     let isTimedOut: boolean = false
     setTimeout(() => {isTimedOut = true},timeout)
-    await this.asyncWhileRecursive(()=> {return (logicalCondition() && !isTimedOut)},inWhileBody)
+    await this.asyncWhileRecursive(()=> {return (weakLogicalCondition() && !isTimedOut) || strongLogicalCondition() },inWhileBody)
   }
 
 }
