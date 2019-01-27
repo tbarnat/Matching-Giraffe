@@ -1,0 +1,4 @@
+1) MatchingEngine -> remove allOptionsSoFar with SearchList object
+2) tableHelper -> make presentation of SearchTable (with global indices)
+3) MatchingEngine -> clean up with accordance to recent idea
+4) SearchList implement getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[]{}

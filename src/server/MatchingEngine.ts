@@ -1,33 +1,14 @@
 import {
-  default as DataModel, IHorseRidingDay, IHorseRidingDayQ, IHorseRidingHour,
-  IHorseRidingHourQ, IHorso, IKido, ITrainingDetail, PrefType
+  default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IHorso, IKido, PrefType,
+  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList
 } from "./DataModel";
 import {Database} from "./Database";
 import Utils from "./Utils";
+import SearchList from "./SearchList";
 
 //just for tests  todo rm
 const tableHelper = require('../../test/tableHelper.js')
 
-interface IRankedHourlySolution {
-  solutionDetails: ITrainingDetail[],
-  rank: number
-}
-
-interface IResultList {
-  results: IHorseRidingHour[]
-  errorMsg?: string
-}
-
-interface IBestSolution {
-  solution: IHorseRidingDay
-  errorMsg?: string
-}
-
-interface IMatchOptionInfo {
-  horso: string,
-  kido: string,
-  penalty: number
-}
 
 export default class MatchingEngine {
 
@@ -41,9 +22,9 @@ export default class MatchingEngine {
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
   /* dailyPenaltyIdx: number of occurrence of horse on each kido's pref level (global), and higher levels(global)
-    + (index level (each kido) * (number of available horses in sables)^2) */
+    + (globalIndex level (each kido) * (number of available horses in sables)^2) */
   private dailyPenaltyIdx: { [kidoName: string]: { [horsoName: string]: number } } = {}
-  private dailySearchOrder: { [kidoName: string]: IMatchOptionInfo [] } = {} //ordered list of all horses by it's rank by kido - order list of object with extra info
+  private dailySearchOrder: SearchList //ordered list of all horses by it's rank by kido - order list of object with extra info
 
   /* --- Calculation results --- */
   //intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions
@@ -123,7 +104,7 @@ export default class MatchingEngine {
       return `Horses available: ${this.avaHorsos.length} is less then required: ${minHorsosReq}`
     }
 
-    /*  Update preferences and create index type  */
+    /*  Update preferences  */
     let kidosWithIncompletePrefs = await this.updateKidosPreferences()
     if (!!kidosWithIncompletePrefs.length) {
       return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} are incomplete or incorrect`
@@ -141,7 +122,7 @@ export default class MatchingEngine {
     this.kidosInQueryD = []
     this.kidosPrefs = {}
     this.dailyPenaltyIdx = {}
-    this.dailySearchOrder = {}
+    this.dailySearchOrder = new SearchList()
   }
 
   private async initAllHorsosInStables() {
@@ -254,7 +235,6 @@ export default class MatchingEngine {
 
     //Get the dailySearchOrder based on lowest dailyPenaltyIdx score
     Object.keys(this.dailyPenaltyIdx).forEach(kido => {
-      this.dailySearchOrder[kido] = []
       DataModel.incPrefCat.forEach(prefCat => {
         let sortedHorsos = this.kidosPrefs[kido][prefCat].sort((h1, h2) => {
           return this.dailyPenaltyIdx[kido][h2] - this.dailyPenaltyIdx[kido][h1]
@@ -265,41 +245,29 @@ export default class MatchingEngine {
         }).sort((match1, match2) => {
           return (match1.penalty - match2.penalty)
         })
-        this.dailySearchOrder[kido] = this.dailySearchOrder[kido].concat(kidosSearchOrder)
+        kidosSearchOrder.forEach(searchElem => {
+          this.dailySearchOrder.push(searchElem)
+        })
       })
     })
 
     console.log('---search order table for whole day:---')
+    console.log('THIS HAS TO BE FIXED CAUSE CHANGED DATA SCHEME..')
     tableHelper.tableSearchOrder(this.dailySearchOrder)
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
   private async hourlyMatching(hour: IHorseRidingHourQ, hourNo: number) {
 
-    // first part - create a kidoCallingOrder which allows to always get a correctly sorted calling order
-    // for next horse from searchOrders objects per each kid
-    let allKidosThisHour: string[] = []
-    hour.trainingsDetails.forEach(training => {
-      allKidosThisHour.push(training.kidName)
-    })
 
-    // plain (single level) search order of all kidos for this hour
-    let searchOrderForHour: IMatchOptionInfo[] = []
-    allKidosThisHour.forEach(kido => {
-      searchOrderForHour = searchOrderForHour.concat(this.dailySearchOrder[kido])
-    })
-    searchOrderForHour.sort((penaltyInfo1, penaltyInfo2) => {
-      return (penaltyInfo1.penalty - penaltyInfo2.penalty)
-    })
-
-    console.log(`---search order for hour--- (length: ${searchOrderForHour.length})`)
-    console.log(searchOrderForHour)
-
+    //todo allOptionsSoFar have to be changed to SearchList object i think
     let allOptionsSoFar: IMatchOptionInfo[] = []
+
+
     //firstly we have to make sure, that each kido have at least one horse (duplicates allowed) to start permutation generation
     let kidosIncludedInOptions: string[] = []
     while (true) {
-      let currentOption = searchOrderForHour[0]
+      let currentOption = this.dailySearchOrder
       if (!currentOption) {
         throw new Error(`Impossible happened: condition for calculation initialization are not sufficient:
          hourNo:${hourNo}; searchOrderForHour: ${JSON.stringify(searchOrderForHour)}`)
@@ -471,7 +439,7 @@ The condition for matching possibility should be evaluated Trainings <= all hour
 At first all the preferences are modified to remove all the dailyExcludes: from users pref. and from the operator input (some horses which are for examples injured that day)
 Calculation is divided in hourly parts - each hour is one calculation which are combined later on.
 Then all the horses included in the modified preferences are ranked (in hour scope). This rank represent a usability measure of each horse for each kido and for operator.
-The measure is calculated as follows: number of occurrence of horse on each kido's pref level, and higher levels  + (index level * (number of available horses in sables)^2)
+The measure is calculated as follows: number of occurrence of horse on each kido's pref level, and higher levels  + (globalIndex level * (number of available horses in sables)^2)
 
 #Hourly matching
 The goal of hourly matching is to create a sorted list of best possible solutions of matching problem
