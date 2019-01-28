@@ -61,6 +61,9 @@ export default class AppStub {
     dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : ''
     if (this.isInitialized) {
       let allHorsos: string[] = await this.db.find('horsos')
+      if (!allHorsos.length) {
+        allHorsos = ['Jolly Jumper', 'Sea Biscuit', 'Ruffion', 'Cheyenne', 'Star', 'Dixie']
+      }
       let dailyResultMock: IHorseRidingDay = {
         day: dailyQuery.day,
         remarks: dailyQuery.remarks,

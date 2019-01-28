@@ -119,7 +119,7 @@ let fillInDatabase = async () => {
 
 }
 
-console.log('database is aobut to be filled with some startup values')
+console.log('database is about to be filled with some startup values')
 console.log('database is about to be filled with simple mock values')
 try{
     fillInDatabase().then(() => {console.log('went smooth')})

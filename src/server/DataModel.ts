@@ -23,7 +23,7 @@ export interface ITrainingQ {
 }
 
 /*Horse Riding Day - RESULT*/
-interface IHorseRidingDay {
+export interface IHorseRidingDay {
   //_id: number, //mongo id
   day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
   remarks?: string // additional comments which would be
@@ -101,12 +101,12 @@ export interface IHorso {
 export interface IMatchOptionInfo {
   horso: string,
   kido: string,
-  penalty: number
+  cost: number
 }
 
 export interface IRankedHourlySolution {
   solutionDetails: ITrainingDetail[],
-  rank: number
+  cost: number
 }
 
 export interface IResultList {

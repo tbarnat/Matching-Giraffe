@@ -23,12 +23,13 @@ module.exports = {
 
       searchOrder[kido].forEach(searchEntry => {
         let item = {}
-        item.penalty = searchEntry.penalty
+        item.gIndex = searchEntry.globalIndex
+        item.cost = searchEntry.cost
         item[searchEntry.kido] = searchEntry.horso
         resultTable.push(item)
       })
     })
-    resultTable.sort((entry1, entry2) => {return entry1.penalty - entry2.penalty})
+    resultTable.sort((entry1, entry2) => {return entry1.gIndex - entry2.gIndex})
     console.table(resultTable)
     return resultTable
   }

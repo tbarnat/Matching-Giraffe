@@ -1,28 +1,34 @@
-import {IMatchOptionInfo} from "./DataModel";
+import {IMatchOptionInfo, IRankedHourlySolution} from "./DataModel";
 
 interface ISearchItem extends IMatchOptionInfo {
   globalIndex: number
 }
 
-/* Relation between kids and horses and associated penalty value for each pair are stored in list with separate ordering mechanism
+interface ISearchList {
+  [kidoName: string]: ISearchItem []
+}
+
+/* Relation between kids and horses and associated cost value for each pair are stored in list with separate ordering mechanism
  * globalIndex is an index of calling next matches across all kids. Term 'subIndex' is used to refer a index for a particular kid */
 export default class SearchList {
 
-  //ordered list of all horses by it's rank by kido - order list of object with extra info
-  private searchList: { [kidoName: string]: ISearchItem [] } = {}
+  //ordered list of all horses by it's cost by kido - order list of object with extra info
+  private orderedSearchList: { [kidoName: string]: ISearchItem [] } = {}
   private allKidosInList: string[]
   private lastIndex: number
 
-  constructor(searchList?: { [kidoName: string]: ISearchItem [] }) {
-    if(!searchList){
-      this.searchList = {}
+  constructor(searchList?: ISearchList) {
+    if (!searchList) {
+      this.orderedSearchList = {}
       this.allKidosInList = []
       this.lastIndex = -1 // this seems crude, but better then if - let's see how it develops
-    }else{ // I am not sure now it this would be needed anywhere
-      this.searchList = searchList
+    } else { // I am not sure now it this would be needed anywhere
+      this.orderedSearchList = searchList
       this.allKidosInList = Object.keys(searchList)
       this.lastIndex = -1
-        Object.keys(searchList).forEach(kidoName => {this.lastIndex += searchList[kidoName].length}) // check it?
+      Object.keys(searchList).forEach(kidoName => {
+        this.lastIndex += searchList[kidoName].length
+      }) // check it?
     }
   }
 
@@ -31,25 +37,30 @@ export default class SearchList {
   }
 
   public 'length'(kidoName: string): number {
-    return this.searchList[kidoName].length
+    return this.orderedSearchList[kidoName].length
   }
 
-  public 'push'(option: IMatchOptionInfo) {
+  public 'push'(option: IMatchOptionInfo): boolean {
     let kidoName: string = option.kido
     this.lastIndex++
-    if(!this.searchList[kidoName]){
-      this.searchList[kidoName] = []
+    if (!this.orderedSearchList[kidoName]) {
+      this.orderedSearchList[kidoName] = []
     }
-    this.searchList[kidoName].push(Object.assign(option, {globalIndex: this.lastIndex}))
-    if (!this.allKidosInList.includes(kidoName)) {
-      this.allKidosInList.push(kidoName)
+    let kidosWorstMatch = this.orderedSearchList[kidoName].length - 1
+    if ((this.orderedSearchList[kidoName].length == 0) || this.orderedSearchList[kidoName][kidosWorstMatch].cost < option.cost) {
+      this.orderedSearchList[kidoName].push(Object.assign(option, {globalIndex: this.lastIndex}))
+      if (!this.allKidosInList.includes(kidoName)) {
+        this.allKidosInList.push(kidoName)
+      }
+      return true
     }
+    return false
   }
 
   public 'shift'(): IMatchOptionInfo | null {  // getNext and remove elem
     let result = this.readNext()
     if (result) {
-      this.searchList[result.kido].shift()
+      this.orderedSearchList[result.kido].shift()
       this.lastIndex--
     }
     return result
@@ -58,8 +69,8 @@ export default class SearchList {
   /* Takes next elem with the lowest globalIndex*/
   private readNext(): IMatchOptionInfo | null {
     let headsShortList: ISearchItem[] = []
-    Object.keys(this.searchList).forEach(kidoName => {
-      let head = this.searchList[kidoName][0]
+    Object.keys(this.orderedSearchList).forEach(kidoName => {
+      let head = this.orderedSearchList[kidoName][0]
       if (head) {
         headsShortList.push(head)
       }
@@ -71,32 +82,132 @@ export default class SearchList {
       return elem2.globalIndex - elem1.globalIndex // check it
     })
     let next = headsShortList[0]
-    return {kido: next.kido, horso: next.horso, penalty: next.penalty}
+    return {kido: next.kido, horso: next.horso, cost: next.cost}
   }
 
   // used to reorder stuffin terms of globalIndex and subIndex for Dijkstra algorithm
-  public reversePriorityOrder(matchMovesDown: IMatchOptionInfo, matchMovesUp: IMatchOptionInfo) {
-    let item_D_subindex: number = this.searchList[matchMovesDown.kido].findIndex((match) => {
+  public reversePriorityOrder(matchMovesDown: IMatchOptionInfo, matchMovesUp: IMatchOptionInfo): boolean {
+    let item_D_subindex: number = this.orderedSearchList[matchMovesDown.kido].findIndex((match) => {
       return (match.horso === matchMovesDown.horso)
     })
-    let item_U_subindex = this.searchList[matchMovesUp.kido].findIndex((match) => {
+    let item_U_subindex = this.orderedSearchList[matchMovesUp.kido].findIndex((match) => {
       return (match.horso === matchMovesUp.horso)
     })
     if (item_D_subindex < 0 || item_U_subindex < 0) {
-      throw new Error(`reverting calling order error /${matchMovesDown} / ${matchMovesUp} / ${this.searchList}`)
+      throw new Error(`reverting calling order error /${matchMovesDown} / ${matchMovesUp} / ${this.orderedSearchList}`)
     }
     if (matchMovesDown.kido === matchMovesUp.kido) {
       let kidoName = matchMovesDown.kido
-      let intermediateItem = this.searchList[matchMovesDown.kido][item_D_subindex]
-      this.searchList[kidoName][item_D_subindex] = this.searchList[kidoName][item_U_subindex]
-      this.searchList[kidoName][item_U_subindex] = intermediateItem
+      let intermediateItem = this.orderedSearchList[matchMovesDown.kido][item_D_subindex]
+      this.orderedSearchList[kidoName][item_D_subindex] = this.orderedSearchList[kidoName][item_U_subindex]
+      this.orderedSearchList[kidoName][item_U_subindex] = intermediateItem
     }
-    let intermediateIndex = this.searchList[matchMovesDown.kido][item_D_subindex].globalIndex
-    this.searchList[matchMovesDown.kido][item_D_subindex].globalIndex = this.searchList[matchMovesUp.kido][item_U_subindex].globalIndex
-    this.searchList[matchMovesUp.kido][item_U_subindex].globalIndex = intermediateIndex
+    let intermediateIndex = this.orderedSearchList[matchMovesDown.kido][item_D_subindex].globalIndex
+    this.orderedSearchList[matchMovesDown.kido][item_D_subindex].globalIndex = this.orderedSearchList[matchMovesUp.kido][item_U_subindex].globalIndex
+    this.orderedSearchList[matchMovesUp.kido][item_U_subindex].globalIndex = intermediateIndex
+    return this.isInOrder(this.orderedSearchList)
   }
 
-  //getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[]{}
-  // helper: elem from sudIndex i = this.searchItem[kidoName][i]
+
+  //todo ↓↓↓
+  public getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[] | null {
+    // lets assume that the orderedSearchListCan be empty
+    // helper: elem from sudIndex i = this.searchItem[kidoName][i]
+    return null
+  }
+
+  /* PROTOTYPE:
+  // get new valid permutations generated by adding currentOption to allOptionsSoFar list and finally putting it to qInProc
+  // permutation are taken in order by kidoCallingOrder
+  private getHourlyPermutation(allOptionsSoFar: IMatchOptionInfo[], currentOption: IMatchOptionInfo): IRankedHourlySolution | null {
+
+    //nc2) we create all available permutations: this is similar to Dijkstra algorithm, if there is none return null
+
+    // 0 create new object (copy) of allOptionsSoFar  -> allOptionsFlexOrder -CHECKED
+    // 1 take a first kido from allOptionsSoFar (it has the lowest possible cost)
+    // 2 go one-by-one through allOptionsSoFar () and find the first valid solution () - assign it with total cost property
+    // if no solutions return null
+  // 3 take a second kido from allOptionsSoFar (second lowest cost), starting from the second, and going down
+  // 4 go through allOptionsSoFar and find the first solution () - assign it with total cost property (2)
+  // 5 if cost from 3 > 1 change order of elements 1 and 2 in allOptionsFlexOrder, and compare 2 and 3 (recursive procedure)
+  // 6 else validate (check if no repetitions), and add new lowest cost solution (newSolution)
+  // 7 get next solution from fixed allOptionsSoFar (as input take newSolution -> this gives new start point for search)
+  // 8 go to 3
+
+}*/
+
+
+  public getSubListObject(kidoNames: string[]): ISearchList {
+    let intersection = Object.keys(this.orderedSearchList).filter(item => -1 !== kidoNames.indexOf(item));
+    intersection = [...new Set(intersection)]
+
+    let newSearchList: ISearchList = {}
+    intersection.forEach(kidoName => {
+      newSearchList[kidoName] = this.orderedSearchList[kidoName]
+    })
+    this.isInOrder(newSearchList)
+    return newSearchList
+  }
+
+  public getFullListObject(){
+    return this.orderedSearchList
+  }
+
+  // helper method to test things out
+  private isInOrder(searchList: ISearchList): boolean {
+
+    let allGlobalIndices: number[] = []
+    let headsShortList: ISearchItem[] = []
+
+    while (true) {
+      Object.keys(searchList).forEach(kidoName => {
+        let head = searchList[kidoName][0]
+        if (head) {
+          headsShortList.push(head)
+        }
+      })
+      if (!headsShortList.length) {
+        break
+      }
+      headsShortList.sort((elem1, elem2) => {
+        return elem2.globalIndex - elem1.globalIndex // check it
+      })
+      let nextElem = searchList[headsShortList[0].kido].shift()
+      if (nextElem) {
+        allGlobalIndices.push(nextElem.globalIndex)
+      }
+    }
+    // check total length of searchList
+    let flatList: ISearchItem[] = []
+    Object.keys(searchList).forEach(kido => flatList.concat(searchList[kido]))
+    if (allGlobalIndices.length !== flatList.length) {
+      console.log('check list not ok - 1')
+      return false
+    }
+    // check if all the indices are sequential
+    allGlobalIndices.forEach((value1, i) => {
+      if (i + 1 <= allGlobalIndices.length) {
+        let value2 = allGlobalIndices[i + 1]
+        if (value2 - value1 !== 1) {
+          console.log('check list not ok - 2')
+          return false
+        }
+      }
+    })
+    // check if the indices are increasing for every kido
+    Object.keys(searchList).forEach(kido => {
+      searchList[kido].forEach((item, i) => {
+        if (i + 1 <= searchList[kido].length) {
+          if (searchList[kido][i].cost > searchList[kido][i + 1].cost) {
+            console.log('check list not ok - 3')
+            return false
+          }
+        }
+      })
+    })
+    console.log('check list ok')
+    return true
+  }
+
 
 }

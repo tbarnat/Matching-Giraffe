@@ -21,10 +21,7 @@ export default class MatchingEngine {
   private kidosInQueryD: string[] = [] //ACHTUNG! - those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
-  /* dailyPenaltyIdx: number of occurrence of horse on each kido's pref level (global), and higher levels(global)
-    + (globalIndex level (each kido) * (number of available horses in sables)^2) */
-  private dailyPenaltyIdx: { [kidoName: string]: { [horsoName: string]: number } } = {}
-  private dailySearchOrder: SearchList //ordered list of all horses by it's rank by kido - order list of object with extra info
+  private dailySearchOrder: SearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
 
   /* --- Calculation results --- */
   //intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions
@@ -36,6 +33,8 @@ export default class MatchingEngine {
 
   //exposed main method, asked from outside of class
   public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution> {
+
+    //todo - consider try-catch
 
     this.dailyQuery = dailyQuery
 
@@ -62,10 +61,6 @@ export default class MatchingEngine {
       console.log(this.qInProc[hourNo]) // todo rm
       hourNo++
     }
-
-
-    //update Ranks (juz nie pamietam o co chodzilo) - trzeba to sprawdzic chyba
-    //qInProc.forEach(hourList => hourList.forEach(hour => this.updateRanks(hour)))
 
     return this.mapResultsToISolution(dailyQuery, {results: []})
     //todo this is ok -> return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
@@ -97,12 +92,30 @@ export default class MatchingEngine {
       minHorsosReq++
     }))
     if (this.allHorsos.length < minHorsosReq) {
-      return `All horses in stable: ${this.allHorsos.length} is less then required: ${minHorsosReq}`
+      return `All horses in stable: ${this.allHorsos.length} is less than required: ${minHorsosReq}`
     }
     this.initAvailableHorses()
     if (this.avaHorsos.length < minHorsosReq) {
-      return `Horses available: ${this.avaHorsos.length} is less then required: ${minHorsosReq}`
+      return `Horses available: ${this.avaHorsos.length} is less than required: ${minHorsosReq}`
     }
+
+    /*  Checking if kidos for every particular hour are distinct  */
+    this.dailyQuery.hours.forEach((hour, hourNo) => {
+      let kidosThisHour: string[] = []
+      hour.trainingsDetails.forEach(training => {
+        kidosThisHour.push(training.kidName)
+      })
+      kidosThisHour.sort()
+      let duplicates = []
+      for (let i = 0; i < kidosThisHour.length; i++) {
+        if (kidosThisHour[i + 1] == kidosThisHour[i]) {
+          duplicates.push(kidosThisHour[i]);
+        }
+      }
+      if (duplicates.length) {
+        return `Training number: ${hourNo + 1} have duplicated kids: ${duplicates.join(', ')}`
+      }
+    })
 
     /*  Update preferences  */
     let kidosWithIncompletePrefs = await this.updateKidosPreferences()
@@ -110,8 +123,8 @@ export default class MatchingEngine {
       return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} are incomplete or incorrect`
     }
 
-    /*  Count penalty points for kido-horso combination, and set searching order*/
-    this.countPenaltyPointsAndOrder()
+    /*  Count cost points for kido-horso combination, and set searching order*/
+    this.countCostPointsAndOrder()
 
     return ''
   }
@@ -121,7 +134,6 @@ export default class MatchingEngine {
     this.avaHorsos = []
     this.kidosInQueryD = []
     this.kidosPrefs = {}
-    this.dailyPenaltyIdx = {}
     this.dailySearchOrder = new SearchList()
   }
 
@@ -159,7 +171,7 @@ export default class MatchingEngine {
     })
 
 
-    //todo - just for presentation
+    //this is just for presentation
     let kidosWithoutExcludedHorses: any[] = []
     Object.keys(this.kidosPrefs).forEach(kidoName => kidosWithoutExcludedHorses.push({
       name: kidoName,
@@ -201,189 +213,90 @@ export default class MatchingEngine {
     })
   }
 
-  private countPenaltyPointsAndOrder() {
+  private countCostPointsAndOrder() {
     this.initAllKidosInQuery()
     // Counts amount of occurrence for each horse in this and higher levels and store it in temporary object 'penaltForFreq'
-    let penaltyForFreq: { [prefCat: string]: { [horsoName: string]: number } } = {}
-    let penaltyFromUpperLevels: { [horsoName: string]: number } = {}
+    let costForFreq: { [prefCat: string]: { [horsoName: string]: number } } = {}
+    let costFromUpperLevels: { [horsoName: string]: number } = {}
 
     DataModel.incPrefCat.forEach(prefCat => {
-      penaltyForFreq[prefCat] = {}
+      costForFreq[prefCat] = {}
       this.allKidosInQuery.forEach(kidoName => {
         this.kidosPrefs[kidoName][prefCat].forEach(horso => {
-          penaltyFromUpperLevels[horso] = penaltyFromUpperLevels[horso] ? penaltyFromUpperLevels[horso] : 0
-          penaltyForFreq[prefCat][horso] = penaltyForFreq[prefCat][horso] ? penaltyForFreq[prefCat][horso] : 0
-          penaltyForFreq[prefCat][horso] += 1 + penaltyFromUpperLevels[horso]
+          costFromUpperLevels[horso] = costFromUpperLevels[horso] ? costFromUpperLevels[horso] : 0
+          costForFreq[prefCat][horso] = costForFreq[prefCat][horso] ? costForFreq[prefCat][horso] : 0
+          costForFreq[prefCat][horso] += 1 + costFromUpperLevels[horso]
         })
       })
-      Object.keys(penaltyForFreq[prefCat]).forEach(horso => {
-        penaltyFromUpperLevels[horso] = penaltyFromUpperLevels[horso] ? penaltyFromUpperLevels[horso] : 0
-        let storedValue: number = penaltyForFreq[prefCat][horso]
-        penaltyForFreq[prefCat][horso] += penaltyFromUpperLevels[horso]
-        penaltyFromUpperLevels[horso] += storedValue
+      Object.keys(costForFreq[prefCat]).forEach(horso => {
+        costFromUpperLevels[horso] = costFromUpperLevels[horso] ? costFromUpperLevels[horso] : 0
+        let storedValue: number = costForFreq[prefCat][horso]
+        costForFreq[prefCat][horso] += costFromUpperLevels[horso]
+        costFromUpperLevels[horso] += storedValue
       })
     })
-    // Get the full penalty points rank for each horse of each kido
+    /* Calcualte cost points and populate dailySearchOrder object*/
+    /* cost = number of occurrence of horse on each kido's pref level (global), and higher levels(global)
+              + (globalIndex level (each kido) * (number of available horses in sables)^2) */
+    let flatOptionList: IMatchOptionInfo[] = []
     this.kidosInQueryD.forEach(kido => {
-      this.dailyPenaltyIdx[kido] = {}
       DataModel.incPrefCat.forEach(prefCat => {
         this.kidosPrefs[kido][prefCat].forEach(horso => {
-          this.dailyPenaltyIdx[kido][horso] = penaltyForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
+          let cost = costForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
+          flatOptionList.push({kido, horso, cost})
         })
       })
     })
-
-    //Get the dailySearchOrder based on lowest dailyPenaltyIdx score
-    Object.keys(this.dailyPenaltyIdx).forEach(kido => {
-      DataModel.incPrefCat.forEach(prefCat => {
-        let sortedHorsos = this.kidosPrefs[kido][prefCat].sort((h1, h2) => {
-          return this.dailyPenaltyIdx[kido][h2] - this.dailyPenaltyIdx[kido][h1]
-        })
-
-        let kidosSearchOrder = sortedHorsos.map(horso => {
-          return {horso, kido, penalty: this.dailyPenaltyIdx[kido][horso]}
-        }).sort((match1, match2) => {
-          return (match1.penalty - match2.penalty)
-        })
-        kidosSearchOrder.forEach(searchElem => {
-          this.dailySearchOrder.push(searchElem)
-        })
-      })
+    flatOptionList.sort((item1, item2) => {return item1.cost - item2.cost})
+    flatOptionList.forEach(option => {
+      this.dailySearchOrder.push(option)
     })
-
     console.log('---search order table for whole day:---')
-    console.log('THIS HAS TO BE FIXED CAUSE CHANGED DATA SCHEME..')
-    tableHelper.tableSearchOrder(this.dailySearchOrder)
+    tableHelper.tableSearchOrder(this.dailySearchOrder.getFullListObject())
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
   private async hourlyMatching(hour: IHorseRidingHourQ, hourNo: number) {
 
+    let allKidosthisHour: string[] = []
+    hour.trainingsDetails.forEach(training => {
+      allKidosthisHour.push(training.kidName)
+    })
 
-    //todo allOptionsSoFar have to be changed to SearchList object i think
-    let allOptionsSoFar: IMatchOptionInfo[] = []
-
-
-    //firstly we have to make sure, that each kido have at least one horse (duplicates allowed) to start permutation generation
-    let kidosIncludedInOptions: string[] = []
-    while (true) {
-      let currentOption = this.dailySearchOrder
-      if (!currentOption) {
-        throw new Error(`Impossible happened: condition for calculation initialization are not sufficient:
-         hourNo:${hourNo}; searchOrderForHour: ${JSON.stringify(searchOrderForHour)}`)
-      }
-      if (!kidosIncludedInOptions.includes(currentOption.kido)) {
-        kidosIncludedInOptions.push(currentOption.kido)
-      }
-      if (kidosIncludedInOptions.length !== allKidosThisHour.length) {
-        allOptionsSoFar.push(currentOption)
-        searchOrderForHour.shift()
-      } else {
-        break
-      }
-    }
-    console.log('---allOptionsSoFar at the start---')
-    console.log(allOptionsSoFar)
-
-    //go back one step, so when getHourlyPermutation(..) will be call it will get first permutation
-    let allOptionsFlexOrder = JSON.parse(JSON.stringify(allOptionsSoFar))
+    /*this is a donor object, which will be shifted one at a time*/
+    let hourlySearchList: SearchList = new SearchList(this.dailySearchOrder.getSubListObject(allKidosthisHour))
+    /*this is a taker object, which will be pushed one at a time*/
+    let allOptionsSoFar: SearchList = new SearchList()
 
     let timeout = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let resultsLimit = 20 * timeout
-    /*generate new option, one by one and produce permutations as long as:
-       - there are options left
-       - the limit of result is not reached
-       - the timeout flag is not raised
-      if at least single solution is obtained will go until end, limit or timeout */
+    /*generate new option, one by one until at least single solution is obtained then (strongLogicalCondition) until end, limit or timeout (softLogicalCondition)*/
     await Utils.asyncWhile(
       () => {
-        return (!!searchOrderForHour.length && this.qInProc[hourNo].length < resultsLimit)
+        return (!!hourlySearchList.totalLength() && this.qInProc[hourNo].length < resultsLimit)
       },
       () => {
-        return (!!searchOrderForHour.length && this.qInProc[hourNo].length == 0)
+        return (!!hourlySearchList.totalLength() && this.qInProc[hourNo].length == 0)
       },
       async () => {
-        let currentOption = searchOrderForHour.shift()
+
+        console.log('---allOptionsSoFar at next iteration ---')
+        console.log(allOptionsSoFar)
+
+        let currentOption: IMatchOptionInfo | null = hourlySearchList.shift()
         if (currentOption) {
-          // Permutations can be generated and stored in qInProc for every hour (which is first level of array).
-          // For every new horse added to permutation set it gets combined with the other horses in order given by kidoCallingOrder
-          // And then its get validated: complete + no repetition
-          let permutation = this.getHourlyPermutation(allOptionsSoFar, allOptionsFlexOrder, currentOption, allKidosThisHour)
+          /*Every new kido-horse-cost (currentOption) added to permutation set (allOptionsSoFar) is generation new valid permutations or returns null*/
+          let permutations = allOptionsSoFar.getPermutations(currentOption)
           allOptionsSoFar.push(currentOption)
-          allOptionsFlexOrder.push(currentOption)
-          if (permutation) {
-            this.qInProc[hourNo].push(permutation)
+          if (permutations) {
+            this.qInProc[hourNo].concat(permutations)
           }
         }
-
         //todo rm
         console.log('   ...')
       }, timeout)
   }
 
-
-  // get new valid permutations generated by adding currentOption to allOptionsSoFar list and finally putting it to qInProc
-  // permutation are taken in order by kidoCallingOrder
-  private getHourlyPermutation(allOptionsSoFar: IMatchOptionInfo[], allOptionsFlexOrder: IMatchOptionInfo[],
-                               currentOption: IMatchOptionInfo, allKidosThisHour: string[]): IRankedHourlySolution | null {
-
-
-    //nc2) we create all available permutations: this is similar to Dijkstra algorithm, if there is none return null
-
-    // 0 create new object (copy) of allOptionsSoFar  -> allOptionsFlexOrder -CHECKED
-    // 1 take a first kido from allOptionsSoFar (it has the lowest possible penalty)
-    // 2 go one-by-one through allOptionsSoFar () and find the first valid solution () - assign it with total penalty property
-    // if no solutions return null
-
-
-    /*think about such exemplary cases of searchOrder:
-  ┌─────────┬─────────┬─────┬─────┬─────┐
-  │ (index) │ penalty │  C  │  A  │  B  │
-  ├─────────┼─────────┼─────┼─────┼─────┤
-  │    0    │    1    │ 'a' │     │     │
-  │    1    │    3    │ 'b' │     │     │
-  │    2    │    3    │     │     │ 'a' │
-  │    3    │    3    │     │ 'c' │     │
-  │    4    │   18    │ 'c' │     │     │
-  │    5    │   18    │     │     │ 'c' │
-  │    6    │   21    │     │     │ 'b' │
-  │    7    │   21    │     │ 'b' │     │
-  │    8    │   37    │     │ 'a' │     │
-  │    9    │   50    │     │     │ 'e' │
-  │   10    │   50    │ 'e' │     │     │
-  └─────────┴─────────┴─────┴─────┴─────┘
-
-  ┌─────────┬─────────┬─────┬─────┬─────┐
-  │ (index) │ penalty │  C  │  A  │  B  │
-  ├─────────┼─────────┼─────┼─────┼─────┤
-  │    0    │    1    │ 'b' │     │     │
-  │    1    │    3    │     │ 'a' │     │
-  │    2    │    3    │     │     │ 'a' │
-  │    3    │    3    │ 'a' │     │     │
-  │    4    │   18    │ 'c' │     │     │
-  │    5    │   18    │     │     │ 'c' │
-  │    6    │   21    │     │     │ 'b' │
-  │    7    │   21    │     │ 'b' │     │
-  │    8    │   37    │     │ 'c' │     │
-  │    9    │   50    │     │     │ 'e' │
-  │   10    │   50    │ 'e' │     │     │
-  └─────────┴─────────┴─────┴─────┴─────┘
-
-  */
-
-    // 3 take a second kido from allOptionsSoFar (second lowest penalty), starting from the second, and going down
-    // 4 go through allOptionsSoFar and find the first solution () - assign it with total penalty property (2)
-    // 5 if penalty from 3 > 1 change order of elements 1 and 2 in allOptionsFlexOrder, and compare 2 and 3 (recursive procedure)
-    // 6 else validate (check if no repetitions), and add new lowest penalty solution (newSolution)
-    // 7 get next solution from fixed allOptionsSoFar (as input take newSolution -> this gives new start point for search)
-    // 8 go to 3
-
-
-    return {
-      rank: Math.floor(Math.random() * 50),
-      solutionDetails: [{horse: 'a', kidName: 'A'}, {horse: 'b', kidName: 'B'}, {horse: 'c', kidName: 'C'}]
-    } //todo rm stub
-  }
 
   /*private updateRanks(oldRankedSolution: IRankedHourlySolution): IRankedHourlySolution {
     let updatedRankedSolution = {}
@@ -411,7 +324,7 @@ export default class MatchingEngine {
     }
   }*/
 
-  //todo search for permutation by expanding an input set by rank
+  //todo search for permutation by expanding an input set by cost
   /*private combineHoursWorker(limit: number) {
     //juxtapose qInProc object
 
@@ -438,12 +351,12 @@ For new kidos all the horses are added to the third group by default.
 The condition for matching possibility should be evaluated Trainings <= all hourses in sable * max hourse trainings per day
 At first all the preferences are modified to remove all the dailyExcludes: from users pref. and from the operator input (some horses which are for examples injured that day)
 Calculation is divided in hourly parts - each hour is one calculation which are combined later on.
-Then all the horses included in the modified preferences are ranked (in hour scope). This rank represent a usability measure of each horse for each kido and for operator.
+Then all the horses included in the modified preferences are ranked (in hour scope). This cost represent a usability measure of each horse for each kido and for operator.
 The measure is calculated as follows: number of occurrence of horse on each kido's pref level, and higher levels  + (globalIndex level * (number of available horses in sables)^2)
 
 #Hourly matching
 The goal of hourly matching is to create a sorted list of best possible solutions of matching problem
-The idea is to iterate over horses starting from those with lowest rank, and recursively add solutions to the list
+The idea is to iterate over horses starting from those with lowest cost, and recursively add solutions to the list
 The solutions is stored with solution score
 The calculation should be stopped after (50ms x number of trainings) or (100 x number of trainings) Traing = osobojazda
 The solution scores should be updated for sake of calculations usability important for next calculation stage:
