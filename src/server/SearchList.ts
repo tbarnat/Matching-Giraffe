@@ -113,6 +113,12 @@ export default class SearchList {
   public getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[] | null {
     // lets assume that the orderedSearchListCan be empty
     // helper: elem from sudIndex i = this.searchItem[kidoName][i]
+    //let subList = this.getSubListObject(this.allKidosInList.filter(kido => (kido !== newOption.kido))) //OPT. consider working on references instead
+
+
+
+
+    //sort na końcu
     return null
   }
 

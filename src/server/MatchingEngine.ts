@@ -247,12 +247,17 @@ export default class MatchingEngine {
         })
       })
     })
+
+    //todo !!!! to nie powinno być sortowane po najmniejszym koszcie, tylko, po najmniejszej różnicy kosztu z nastepnym elementem!!!
+    // and start with setting initial cost to the cost cost of first elem so firstly a single horso for each kido will be added
+
     flatOptionList.sort((item1, item2) => {return item1.cost - item2.cost})
     flatOptionList.forEach(option => {
       this.dailySearchOrder.push(option)
     })
     console.log('---search order table for whole day:---')
-    tableHelper.tableSearchOrder(this.dailySearchOrder.getFullListObject())
+    let tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
+    tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs

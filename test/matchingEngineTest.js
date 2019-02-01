@@ -47,6 +47,6 @@ prepApp().then(
 ).catch(
     (err) => {console.log(err,'outer catch')}
 )
-
+console.log('done-out')
 return 0
 
