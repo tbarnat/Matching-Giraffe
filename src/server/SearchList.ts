@@ -1,4 +1,5 @@
-import {IMatchOptionInfo, IRankedHourlySolution} from "./DataModel";
+import {IMatchOptionInfo, IRankedHourlySolution, ITrainingDetail} from "./DataModel";
+import Utils from "./Utils";
 
 interface ISearchItem extends IMatchOptionInfo {
   globalIndex: number
@@ -14,18 +15,25 @@ export default class SearchList {
 
   //ordered list of all horses by it's cost by kido - order list of object with extra info
   private orderedSearchList: { [kidoName: string]: ISearchItem [] } = {}
+  private totalMaxNumberOfKidos: number
   private allKidosInList: string[]
   private lastIndex: number
+  private isInitialized: boolean
 
-  constructor(searchList?: ISearchList) {
+  // numberOfKidos is irrelevant when searchList is passed
+  constructor(maxNumberOfKidos: number, searchList?: ISearchList) {
     if (!searchList) {
       this.orderedSearchList = {}
+      this.totalMaxNumberOfKidos = maxNumberOfKidos
       this.allKidosInList = []
       this.lastIndex = -1 // this seems crude, but better then if - let's see how it develops
-    } else { // I am not sure now it this would be needed anywhere
+      this.isInitialized = this.checkIfInitialized()
+    } else {
       this.orderedSearchList = searchList
+      this.totalMaxNumberOfKidos = maxNumberOfKidos
       this.allKidosInList = Object.keys(searchList)
       this.lastIndex = -1
+      this.isInitialized = this.checkIfInitialized()
       Object.keys(searchList).forEach(kidoName => {
         this.lastIndex += searchList[kidoName].length
       }) // check it?
@@ -51,6 +59,9 @@ export default class SearchList {
       this.orderedSearchList[kidoName].push(Object.assign(option, {globalIndex: this.lastIndex}))
       if (!this.allKidosInList.includes(kidoName)) {
         this.allKidosInList.push(kidoName)
+      }
+      if (!this.isInitialized) {
+        this.isInitialized = this.checkIfInitialized()
       }
       return true
     }
@@ -85,7 +96,8 @@ export default class SearchList {
     return {kido: next.kido, horso: next.horso, cost: next.cost}
   }
 
-  // used to reorder stuffin terms of globalIndex and subIndex for Dijkstra algorithm
+  // used to reorder stuff in terms of globalIndex and subIndex for combination algorithm
+  // possibly not needed now :/
   public reversePriorityOrder(matchMovesDown: IMatchOptionInfo, matchMovesUp: IMatchOptionInfo): boolean {
     let item_D_subindex: number = this.orderedSearchList[matchMovesDown.kido].findIndex((match) => {
       return (match.horso === matchMovesDown.horso)
@@ -108,17 +120,46 @@ export default class SearchList {
     return this.isInOrder(this.orderedSearchList)
   }
 
-
-  //todo ↓↓↓
+  /* A core method - make it as optimized as possible */
   public getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[] | null {
-    // lets assume that the orderedSearchListCan be empty
-    // helper: elem from sudIndex i = this.searchItem[kidoName][i]
-    //let subList = this.getSubListObject(this.allKidosInList.filter(kido => (kido !== newOption.kido))) //OPT. consider working on references instead
+    if (this.isInitialized) {
+      let subList = this.getSubListObject(this.allKidosInList.filter(kidosList => (kidosList !== newOption.kido)))
+      let subArr: IMatchOptionInfo[][] = []
+      Object.keys(subList).forEach(kidosList => {
+        subArr.push(subList.kidosList)
+      })
+      subArr.push([newOption])
+      let allCombinations = Utils.allArrComb(subArr)
 
+      // filtering the combinations with the duplicated kido
+      allCombinations = allCombinations.filter(comb => {
+        let allKidosInComb = comb.map((option: IMatchOptionInfo) => {return option.kido})
+        return Utils.hasDuplicates(allKidosInComb)
+      })
 
+      if (allCombinations.length > 0) {
+        let rankedSolutions = allCombinations.map(comb => {
+          let solutionDetails: ITrainingDetail[] = comb.map( (option: IMatchOptionInfo) => {
+            return {
+              kidName: option.kido,
+              horse: option.horso
+            }
+          })
+          /*let cost: number = comb.map((item: IMatchOptionInfo)=> item.cost)
+            .reduce((accCost: number, curCost: number) => {return accCost + curCost})*/
+          let cost: number = comb.reduce((accCost: number, curItem: IMatchOptionInfo) => {
+            return accCost + curItem.cost
+          })
 
+          return {solutionDetails, cost}
+        })
 
-    //sort na końcu
+        //ascending sort of the resulting solutions by its cost
+        rankedSolutions.sort((solution1, solution2) => {return solution1.cost - solution2.cost})
+
+        return rankedSolutions
+      }
+    }
     return null
   }
 
@@ -142,6 +183,17 @@ export default class SearchList {
 
 }*/
 
+  private checkIfInitialized(): boolean {
+    if (Object.keys(this.orderedSearchList).length !== this.totalMaxNumberOfKidos) {
+      return false // '<' meaning not initialized;  '>' means somethings messed up
+    }
+    Object.keys(this.orderedSearchList).forEach(kidosList => {
+      if (!kidosList.length) {
+        return false
+      }
+    })
+    return true
+  }
 
   public getSubListObject(kidoNames: string[]): ISearchList {
     let intersection = Object.keys(this.orderedSearchList).filter(item => -1 !== kidoNames.indexOf(item));
@@ -155,7 +207,7 @@ export default class SearchList {
     return newSearchList
   }
 
-  public getFullListObject(){
+  public getFullListObject() {
     return this.orderedSearchList
   }
 
@@ -214,6 +266,5 @@ export default class SearchList {
     console.log('check list ok')
     return true
   }
-
 
 }
