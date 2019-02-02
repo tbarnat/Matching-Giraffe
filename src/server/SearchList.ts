@@ -27,7 +27,7 @@ export default class SearchList {
       this.totalMaxNumberOfKidos = maxNumberOfKidos
       this.allKidosInList = []
       this.lastIndex = -1 // this seems crude, but better then if - let's see how it develops
-      this.isInitialized = this.checkIfInitialized()
+      this.isInitialized = false
     } else {
       this.orderedSearchList = searchList
       this.totalMaxNumberOfKidos = maxNumberOfKidos
@@ -38,6 +38,14 @@ export default class SearchList {
         this.lastIndex += searchList[kidoName].length
       }) // check it?
     }
+  }
+
+  public nuke(){
+    this.orderedSearchList = {}
+    // this.totalMaxNumberOfKidos - stays as is
+    this.allKidosInList = []
+    this.lastIndex = -1 // this seems crude, but better then if - let's see how it develops
+    this.isInitialized = false
   }
 
   public totalLength(): number {
@@ -90,7 +98,7 @@ export default class SearchList {
       return null
     }
     headsShortList.sort((elem1, elem2) => {
-      return elem2.globalIndex - elem1.globalIndex // check it
+      return elem1.globalIndex - elem2.globalIndex // check it
     })
     let next = headsShortList[0]
     return {kido: next.kido, horso: next.horso, cost: next.cost}

@@ -69,21 +69,10 @@ export default class MatchingEngine {
 
   }
 
-  private mapResultsToISolution(dailyQuery: IHorseRidingDayQ, results: IResultList): IBestSolution {
-    if (!results.results.length && !results.errorMsg) {
-      return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Rilly Wong`}
-    }
-    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : ''
-    if (!results.results.length && results.errorMsg) {
-      return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
-    }
-    return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: results.results}}
-  }
-
   private async initScopeVariables(): Promise<string> {
 
     /*  Drop calculation-wise cache  */
-    this.clearScopeVariables()
+    this.clearSomeScopeVariables()
 
     /*  Checking of global conditions - if there is enough horses  */
     await this.initAllHorsosInStables()
@@ -129,12 +118,11 @@ export default class MatchingEngine {
     return ''
   }
 
-  private clearScopeVariables() {
+  private clearSomeScopeVariables() {
     this.allHorsos = []
     this.avaHorsos = []
     this.kidosInQueryD = []
     this.kidosPrefs = {}
-    this.dailySearchOrder = new SearchList()
   }
 
   private async initAllHorsosInStables() {
@@ -153,7 +141,7 @@ export default class MatchingEngine {
     let allKidos = ((await this.db.find('kidos')) as IKido[])
 
 
-    //todo - just for presentation
+    //rm just for presentation
     console.log('---raw kido preferences:---')
     tableHelper.tablePreferences(allKidos)
 
@@ -203,8 +191,11 @@ export default class MatchingEngine {
         }
       })
     })
+    this.dailySearchOrder = new SearchList(this.kidosInQueryD.length)
   }
 
+
+  // Not sure but I think I made an assumptions that duplicates kidos (not distinct) are allowed here
   private initAllKidosInQuery() {
     this.dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
@@ -235,8 +226,8 @@ export default class MatchingEngine {
         costFromUpperLevels[horso] += storedValue
       })
     })
-    /* Calcualte cost points and populate dailySearchOrder object*/
-    /* cost = number of occurrence of horse on each kido's pref level (global), and higher levels(global)
+    /* Calculate cost points and populate dailySearchOrder object
+       cost = number of occurrence of horse on each kido's pref level (global), and higher levels(global)
               + (globalIndex level (each kido) * (number of available horses in sables)^2) */
     let flatOptionList: IMatchOptionInfo[] = []
     this.kidosInQueryD.forEach(kido => {
@@ -248,16 +239,39 @@ export default class MatchingEngine {
       })
     })
 
-    //todo !!!! to nie powinno być sortowane po najmniejszym koszcie, tylko, po najmniejszej różnicy kosztu z nastepnym elementem!!!
-    // and start with setting initial cost to the cost cost of first elem so firstly a single horso for each kido will be added
-
-    flatOptionList.sort((item1, item2) => {return item1.cost - item2.cost})
+    flatOptionList.sort((item1, item2) => {
+      return item1.cost - item2.cost
+    })
     flatOptionList.forEach(option => {
       this.dailySearchOrder.push(option)
     })
+    //dailySearchOrder have to be reordered, to be sorted by cost differences for each kido not by absolute cost
+    let transitionalSearchList = this.dailySearchOrder.getFullListObject()
+    this.dailySearchOrder.nuke()
+    let front: SearchItem[] = []
+    Object.keys(transitionalSearchList).forEach(kidosList => {front.push(transitionalSearchList.kidosList[0])})
+    // teraz wyciagac elementy z transitionalSearchList tak, zeby miec zawsze po jednym elemencie z kazdego dzieciaka, porownywac roznice
+    // i robic this.dailySearchList.push( )
+
+
+    //todo !!!! to nie powinno być sortowane po najmniejszym koszcie, tylko, po najmniejszej różnicy kosztu z nastepnym elementem!!!
+    // and start with setting initial cost eq. to the cost cost of first elem so firstly a single horso for each kido will be added
+
+
     console.log('---search order table for whole day:---')
     let tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
     tableHelper.tableSearchOrder(tempDailySearchOrder)
+  }
+
+  private mapResultsToISolution(dailyQuery: IHorseRidingDayQ, results: IResultList): IBestSolution {
+    if (!results.results.length && !results.errorMsg) {
+      return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Rilly Wong`}
+    }
+    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : ''
+    if (!results.results.length && results.errorMsg) {
+      return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
+    }
+    return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: results.results}}
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
@@ -269,9 +283,9 @@ export default class MatchingEngine {
     })
 
     /*this is a donor object, which will be shifted one at a time*/
-    let hourlySearchList: SearchList = new SearchList(this.dailySearchOrder.getSubListObject(allKidosthisHour))
+    let hourlySearchList: SearchList = new SearchList(allKidosthisHour.length, this.dailySearchOrder.getSubListObject(allKidosthisHour))
     /*this is a taker object, which will be pushed one at a time*/
-    let allOptionsSoFar: SearchList = new SearchList()
+    let allOptionsSoFar: SearchList = new SearchList(allKidosthisHour.length)
 
     let timeout = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let resultsLimit = 20 * timeout
@@ -298,7 +312,7 @@ export default class MatchingEngine {
           }
         }
         //todo rm
-        console.log('   ...')
+        console.log('   ... getting nex permutations')
       }, timeout)
   }
 
