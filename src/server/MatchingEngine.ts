@@ -245,21 +245,53 @@ export default class MatchingEngine {
     flatOptionList.forEach(option => {
       this.dailySearchOrder.push(option)
     })
+
+    console.log('---search order table for whole day: (initial sorting)---')
+    let tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
+    tableHelper.tableSearchOrder(tempDailySearchOrder)
+
+
     //dailySearchOrder have to be reordered, to be sorted by cost differences for each kido not by absolute cost
     let transitionalSearchList = this.dailySearchOrder.getFullListObject()
     this.dailySearchOrder.nuke()
-    let front: SearchItem[] = []
-    Object.keys(transitionalSearchList).forEach(kidosList => {front.push(transitionalSearchList.kidosList[0])})
-    // teraz wyciagac elementy z transitionalSearchList tak, zeby miec zawsze po jednym elemencie z kazdego dzieciaka, porownywac roznice
-    // i robic this.dailySearchList.push( )
 
+    console.log(transitionalSearchList, 'might me empty cause SearchList was nuked')
 
-    //todo !!!! to nie powinno być sortowane po najmniejszym koszcie, tylko, po najmniejszej różnicy kosztu z nastepnym elementem!!!
-    // and start with setting initial cost eq. to the cost cost of first elem so firstly a single horso for each kido will be added
+    let listHeads: { kidoName: string, headCost: number, diffToLast: number }[] = []
+    let newOption: IMatchOptionInfo | undefined
+    Object.keys(transitionalSearchList).forEach(kidoName => {
+      newOption = transitionalSearchList[kidoName].shift()
+      if(newOption){
+        listHeads.push({kidoName, headCost:newOption.cost, diffToLast: 0})
+      }
+    })
+    let currentOption = listHeads.shift()
+    let currentKido: string | null = currentOption ? currentOption.kidoName : null
 
+    console.log(listHeads, '++listHeads -initial')
 
-    console.log('---search order table for whole day:---')
-    let tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
+    while (currentKido) {
+      newOption = transitionalSearchList[currentKido].shift()
+
+      console.log(newOption,'**new option')
+      if (newOption) {
+        this.dailySearchOrder.push(newOption)
+        if(transitionalSearchList.nextKido.length && currentOption){ // current option is always true if in the loop
+          listHeads.push({kidoName: currentKido, headCost:newOption.cost, diffToLast: (newOption.cost - currentOption.headCost)})
+        }
+        listHeads.sort((item1, item2) => {
+          return (item1.diffToLast - item2.diffToLast)
+        })
+        console.log(listHeads, '++listHeads')
+      }
+      if(listHeads.length){
+        currentOption = listHeads.shift()
+        currentKido = currentOption ? currentOption.kidoName : null
+      }
+    }
+
+    console.log('---search order table for whole day: (corrected sorting)---')
+    tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
     tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 

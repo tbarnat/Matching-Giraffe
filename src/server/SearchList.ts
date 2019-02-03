@@ -162,7 +162,7 @@ export default class SearchList {
           return {solutionDetails, cost}
         })
 
-        //ascending sort of the resulting solutions by its cost
+        //ascending sort of the resulting solutions by its cost - probably not even necessary
         rankedSolutions.sort((solution1, solution2) => {return solution1.cost - solution2.cost})
 
         return rankedSolutions
