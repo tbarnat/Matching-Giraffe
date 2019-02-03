@@ -6,13 +6,13 @@ const config = {
 }
 
 let horses = [
-    {name:'Czejen'},
-    {name:'Parys'},
-    {name:'Bella'},
-    {name:'Jadzia'},
-    {name:'Dzidzia'},
-    {name:'Bracio'},
-    {name:'Lady'}]
+    {name: 'Czejen'},
+    {name: 'Parys'},
+    {name: 'Bella'},
+    {name: 'Jadzia'},
+    {name: 'Dzidzia'},
+    {name: 'Bracio'},
+    {name: 'Lady'}]
 
 let kids =
     [{
@@ -24,7 +24,7 @@ let kids =
             limp: ['Czejen', 'Bella'],
             excl: []
         }
-        },
+    },
         {
             name: 'Weronika',
             prefs: {
@@ -106,7 +106,7 @@ let kids =
             }
         }]
 
-let trainers = [{name:'Eva'},{name:'Paulina'},{name:'Inna'}]
+let trainers = [{name: 'Eva'}, {name: 'Paulina'}, {name: 'Inna'}]
 
 let fillInDatabase = async () => {
 
@@ -114,15 +114,17 @@ let fillInDatabase = async () => {
     await db.init()
 
     await db.insertMany('horsos', horses)
-    await db.insertMany('kidos',kids)
-    await db.insertMany('trainers',trainers)
+    await db.insertMany('kidos', kids)
+    await db.insertMany('trainers', trainers)
 
 }
 
 console.log('database is about to be filled with some startup values')
 console.log('database is about to be filled with simple mock values')
-try{
-    fillInDatabase().then(() => {console.log('went smooth')})
-}catch(err){
-    console.log(err,'filling error')
+try {
+    fillInDatabase().then(() => {
+        console.log('went smooth')
+    })
+} catch (err) {
+    console.log(err, 'filling error')
 }

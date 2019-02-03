@@ -30,7 +30,7 @@ export interface IHorseRidingDay {
   hours: IHorseRidingHour[]
 }
 
-interface IHorseRidingHour {
+export interface IHorseRidingHour {
   hour: string,
   trainer: string[],
   trainingsDetails: ITrainingDetail[]
@@ -110,7 +110,7 @@ export interface IRankedHourlySolution {
 }
 
 export interface IResultList {
-  results: IHorseRidingHour[]
+  results: IHorseRidingHour[] //array of a single result for every hour in daily query
   errorMsg?: string
 }
 

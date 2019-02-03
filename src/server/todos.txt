@@ -1,2 +1,4 @@
-0) check out why the asyncWhile loop is not being called
-1) SearchList implement getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[]{}
+2) move from hours to whole day assembly
+3) measure time
+4) test for kidos fixed in query
+4) test for edge cases

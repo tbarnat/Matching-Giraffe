@@ -1,6 +1,6 @@
 import {
   default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IHorso, IKido, PrefType,
-  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList
+  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour
 } from "./DataModel";
 import {Database} from "./Database";
 import Utils from "./Utils";
@@ -12,13 +12,16 @@ const tableHelper = require('../../test/tableHelper.js')
 
 export default class MatchingEngine {
 
+  /* --- Model settings --- */
+  private horsoMaxHoursPerDay: number = 3
+
   /* --- Source query --- */
   private dailyQuery: IHorseRidingDayQ
 
   /* --- Data structures --- */
   public allHorsos: string[] = []
   private avaHorsos: string[] = []
-  private kidosInQueryD: string[] = [] //ACHTUNG! - those are distinguishable kidos, not all kidos in query
+  private kidosInQueryD: string[] = [] //those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
   private dailySearchOrder: SearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
@@ -32,11 +35,12 @@ export default class MatchingEngine {
   }
 
   //exposed main method, asked from outside of class
-  public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution> {
+  public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution | void> {
 
     //todo - consider try-catch
 
     this.dailyQuery = dailyQuery
+    console.log('daily query:', JSON.stringify(this.dailyQuery))
 
     let errorMsg = await this.initScopeVariables()
     if (errorMsg) {
@@ -46,27 +50,23 @@ export default class MatchingEngine {
     /*  Finding solutions for every hour separately  */
     let hourNo: number = 0
 
-
     for (let hour of dailyQuery.hours) {
       //this.breakHourlyCalc = false
       this.qInProc[hourNo] = []
       await this.hourlyMatching(hour, hourNo)
-      if (!this.qInProc[hourNo]) {
+      if (!this.qInProc[hourNo].length) {
         return this.mapResultsToISolution(dailyQuery, {
           results: [],
-          errorMsg: `There were no solutions for hour no.: ${hourNo}`
+          errorMsg: `There were no solutions for hour No.: ${hourNo} (${hour.hour})`
         })
       }
 
-      console.log(this.qInProc[hourNo]) // todo rm
+      console.log(` -- number of soultions for hour no. ${hour.hour}: `, this.qInProc[hourNo].length) // todo rm
       hourNo++
     }
 
-    return this.mapResultsToISolution(dailyQuery, {results: []})
-    //todo this is ok -> return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
-    //return this.mapResultsToISolution(dailyQuery, this.combineHoursLimited(dailyQuery))
-    // -> formatting to IHorseRidingDay on client side
-
+    //return this.mapResultsToISolution(dailyQuery, {results: []})
+    return this.mapResultsToISolution(dailyQuery, this.combineHours())
   }
 
   private async initScopeVariables(): Promise<string> {
@@ -76,17 +76,28 @@ export default class MatchingEngine {
 
     /*  Checking of global conditions - if there is enough horses  */
     await this.initAllHorsosInStables()
-    let minHorsosReq: number = 0
+    let minHorsosReqHourly: number = 0
+    let minHorsosReqDaily: number = 0
+    this.dailyQuery.hours.forEach(hour => {
+      minHorsosReqHourly = Math.max(hour.trainingsDetails.length, minHorsosReqHourly)
+    })
     this.dailyQuery.hours.forEach(hour => hour.trainingsDetails.forEach(training => {
-      minHorsosReq++
+      minHorsosReqDaily++
     }))
-    if (this.allHorsos.length < minHorsosReq) {
-      return `All horses in stable: ${this.allHorsos.length} is less than required: ${minHorsosReq}`
+    if (this.allHorsos.length < minHorsosReqHourly) {
+      return `All horses in stable: ${this.allHorsos.length} is less than required ${minHorsosReqHourly} per single hour`
+    }
+    if (this.allHorsos.length * this.horsoMaxHoursPerDay < minHorsosReqDaily) {
+      return `All horses in stable: ${this.avaHorsos.length} is less than required: ${minHorsosReqDaily} for whole day`
     }
     this.initAvailableHorses()
-    if (this.avaHorsos.length < minHorsosReq) {
-      return `Horses available: ${this.avaHorsos.length} is less than required: ${minHorsosReq}`
+    if (this.avaHorsos.length < minHorsosReqHourly) {
+      return `Horses available: ${this.avaHorsos.length} is less than required ${minHorsosReqHourly} per single hour`
     }
+    if (this.avaHorsos.length * this.horsoMaxHoursPerDay < minHorsosReqDaily) {
+      return `Horses available: ${this.avaHorsos.length} is less than required ${minHorsosReqDaily} for whole day`
+    }
+
 
     /*  Checking if kidos for every particular hour are distinct  */
     this.dailyQuery.hours.forEach((hour, hourNo) => {
@@ -246,52 +257,8 @@ export default class MatchingEngine {
       this.dailySearchOrder.push(option)
     })
 
-    console.log('---search order table for whole day: (initial sorting)---')
+    console.log('---search order table for whole day: (sorted by cost)---')
     let tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
-    tableHelper.tableSearchOrder(tempDailySearchOrder)
-
-
-    //dailySearchOrder have to be reordered, to be sorted by cost differences for each kido not by absolute cost
-    let transitionalSearchList = this.dailySearchOrder.getFullListObject()
-    this.dailySearchOrder.nuke()
-
-    console.log(transitionalSearchList, 'might me empty cause SearchList was nuked')
-
-    let listHeads: { kidoName: string, headCost: number, diffToLast: number }[] = []
-    let newOption: IMatchOptionInfo | undefined
-    Object.keys(transitionalSearchList).forEach(kidoName => {
-      newOption = transitionalSearchList[kidoName].shift()
-      if(newOption){
-        listHeads.push({kidoName, headCost:newOption.cost, diffToLast: 0})
-      }
-    })
-    let currentOption = listHeads.shift()
-    let currentKido: string | null = currentOption ? currentOption.kidoName : null
-
-    console.log(listHeads, '++listHeads -initial')
-
-    while (currentKido) {
-      newOption = transitionalSearchList[currentKido].shift()
-
-      console.log(newOption,'**new option')
-      if (newOption) {
-        this.dailySearchOrder.push(newOption)
-        if(transitionalSearchList.nextKido.length && currentOption){ // current option is always true if in the loop
-          listHeads.push({kidoName: currentKido, headCost:newOption.cost, diffToLast: (newOption.cost - currentOption.headCost)})
-        }
-        listHeads.sort((item1, item2) => {
-          return (item1.diffToLast - item2.diffToLast)
-        })
-        console.log(listHeads, '++listHeads')
-      }
-      if(listHeads.length){
-        currentOption = listHeads.shift()
-        currentKido = currentOption ? currentOption.kidoName : null
-      }
-    }
-
-    console.log('---search order table for whole day: (corrected sorting)---')
-    tempDailySearchOrder = this.dailySearchOrder.getFullListObject()
     tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 
@@ -299,29 +266,39 @@ export default class MatchingEngine {
     if (!results.results.length && !results.errorMsg) {
       return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Rilly Wong`}
     }
-    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : ''
+    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : undefined
     if (!results.results.length && results.errorMsg) {
       return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
     }
+
+    //todo should be corrected -
     return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: results.results}}
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
   private async hourlyMatching(hour: IHorseRidingHourQ, hourNo: number) {
 
+    //console.log(`hourly matching for hour No. ${hour.hour}`)
+
     let allKidosthisHour: string[] = []
     hour.trainingsDetails.forEach(training => {
       allKidosthisHour.push(training.kidName)
     })
 
-    /*this is a donor object, which will be shifted one at a time*/
+    console.log('this.dailySearchOrder',this.dailySearchOrder.totalLength())
+
+    // this is a donor object, which will be shifted one at a time
     let hourlySearchList: SearchList = new SearchList(allKidosthisHour.length, this.dailySearchOrder.getSubListObject(allKidosthisHour))
-    /*this is a taker object, which will be pushed one at a time*/
+    console.log('hourlySearchList',hourlySearchList.totalLength())
+    // this is a taker object, which will be pushed one at a time
     let allOptionsSoFar: SearchList = new SearchList(allKidosthisHour.length)
+
+    console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
 
     let timeout = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let resultsLimit = 20 * timeout
-    /*generate new option, one by one until at least single solution is obtained then (strongLogicalCondition) until end, limit or timeout (softLogicalCondition)*/
+    // generate new option, one by one until at least single solution is obtained then (strongLogicalCondition) until end,
+    // limit or timeout (softLogicalCondition)
     await Utils.asyncWhile(
       () => {
         return (!!hourlySearchList.totalLength() && this.qInProc[hourNo].length < resultsLimit)
@@ -331,62 +308,69 @@ export default class MatchingEngine {
       },
       async () => {
 
-        console.log('---allOptionsSoFar at next iteration ---')
-        console.log(allOptionsSoFar)
+        // console.log('\n\n  --- allOptionsSoFar at next iteration ---  ')
 
         let currentOption: IMatchOptionInfo | null = hourlySearchList.shift()
         if (currentOption) {
-          /*Every new kido-horse-cost (currentOption) added to permutation set (allOptionsSoFar) is generation new valid permutations or returns null*/
+          // Every new kido-horse-cost (currentOption) added to permutation set (allOptionsSoFar)
+          // is generation new valid permutations or returns null
           let permutations = allOptionsSoFar.getPermutations(currentOption)
           allOptionsSoFar.push(currentOption)
           if (permutations) {
-            this.qInProc[hourNo].concat(permutations)
+            this.qInProc[hourNo] = this.qInProc[hourNo].concat(permutations)
           }
         }
-        //todo rm
-        console.log('   ... getting nex permutations')
+        // console.log('                                                          ............. getting next combinations')
       }, timeout)
+
+    //ascending sort of the resulting solutions by its cost
+    this.qInProc[hourNo].sort((solution1, solution2) => {
+      return solution1.cost - solution2.cost
+    })
+
   }
 
+  //todo
+  private combineHours(): IResultList {
 
-  /*private updateRanks(oldRankedSolution: IRankedHourlySolution): IRankedHourlySolution {
-    let updatedRankedSolution = {}
-    return updatedRankedSolution
-  }*/
-
-  /*private combineHoursLimited(dailyQuery: IHorseRidingDayQ): IResultList {
-    this.breakDailyCalc = false
-    let totalTrainings = 0
-    dailyQuery.hours.forEach(hour => {
-      totalTrainings += hour.trainingsDetails.length
-    })
-    let limitForTime = 100 * totalTrainings * this.avaHorsos.length // + max ~5s to juxtapose results
-    let limitForPossiblities = 20 * limitForTime
-
-    this.combineHoursWorker(limitForPossiblities)
-
-    setTimeout(() => {
-      this.breakDailyCalc = true
-    }, limitForTime)
-    if (this.resultList.results.length) {
-      return this.resultList
-    } else {
-      return {results: [], errorMsg: `Could not find any good results :(`}
+    //temporary assume, that 3 hour max
+    if (this.dailyQuery.hours.length <= this.horsoMaxHoursPerDay) {
+      let results: IHorseRidingHour[] = []
+      this.dailyQuery.hours.forEach((hourDetails, i) => {
+        results.push({
+          hour: hourDetails.hour,
+          trainer: hourDetails.trainer,
+          trainingsDetails: this.qInProc[i][0].solutionDetails
+        })
+      })
+      return {results}
     }
-  }*/
 
-  //todo search for permutation by expanding an input set by cost
-  /*private combineHoursWorker(limit: number) {
-    //juxtapose qInProc object
+    return {results: []}
 
-    /!*generate new option, one by one and produce permutations as long as:
-       - there are options left
-       - the limit of result is not reached
-       - the timeout flag is not raised *!/
-    while (true && this.resultList.results.length < limit && !this.breakDailyCalc) {
+    //this should generate solutions in asyncWhile with timeout, limits and stuff
+    //the results could be potentially stored
 
-    }
-  }*/
+    /*
+export interface IResultList {
+  results: {
+      hour: string,
+      trainer: string[],
+      trainingsDetails: ITrainingDetail[]
+    }[] //array of a single result for every hour in daily query
+  errorMsg?: string
+}
+
+
+export interface IRankedHourlySolution {
+  solutionDetails: ITrainingDetail[],
+  cost: number
+}
+
+
+
+    */
+  }
 
 
 }
