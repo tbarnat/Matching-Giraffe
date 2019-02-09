@@ -58,36 +58,26 @@ export default class AppStub {
   }
 
   public async generateMockSolution(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution> {
-    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : ''
-    if (this.isInitialized) {
-      let allHorsos: string[] = await this.db.find('horsos')
-      if (!allHorsos.length) {
-        allHorsos = ['Jolly Jumper', 'Sea Biscuit', 'Ruffion', 'Cheyenne', 'Star', 'Dixie']
-      }
-      let dailyResultMock: IHorseRidingDay = {
-        day: dailyQuery.day,
-        remarks: dailyQuery.remarks,
-        hours: dailyQuery.hours.map(hourDetails => {
-          return {
-            hour: hourDetails.hour,
-            trainer: hourDetails.trainer,
-            trainingsDetails: hourDetails.trainingsDetails.map(training => {
-              return {
-                kidName: training.kidName,
-                horse: allHorsos[Math.floor(Math.random() * allHorsos.length)],
-                remarks: training.remarks
-              }
-            })
-          }
-        })
-      }
-      return {solution: dailyResultMock}
-    }
-    return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: []}, errorMsg: 'db not initialized'}
-  }
 
-  public async getNextSolution(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution> {
-    return this.generateMockSolution(dailyQuery)
+    let allHorsos = ['Jolly Jumper', 'Sea Biscuit', 'Ruffion', 'Cheyenne', 'Star', 'Dixie']
+    let dailyResultMock: IHorseRidingDay = {
+      day: dailyQuery.day,
+      remarks: dailyQuery.remarks,
+      hours: dailyQuery.hours.map(hourDetails => {
+        return {
+          hour: hourDetails.hour,
+          trainer: hourDetails.trainer,
+          trainingsDetails: hourDetails.trainingsDetails.map(training => {
+            return {
+              kidName: training.kidName,
+              horse: allHorsos[Math.floor(Math.random() * allHorsos.length)],
+              remarks: training.remarks
+            }
+          })
+        }
+      })
+    }
+    return {solution: dailyResultMock}
   }
 
 }

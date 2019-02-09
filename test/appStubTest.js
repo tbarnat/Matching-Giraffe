@@ -1,18 +1,5 @@
-const Database = require('../dist/server/Database').Database;
-const MatchingEngine = require('../dist/server/MatchingEngine').default
-const config = {
-    uri: 'mongodb://localhost:27017',
-    dbName: 'hmDev'
-}
-let db
-let me
-let prepApp = async () => {
-    db = new Database(config);
-    await db.init()
-    // make sure db has test data (db_test.js)
-    me = new MatchingEngine(db)
-}
-
+const AppStub = require('../dist/AppStub').default
+let me = new AppStub()
 
 let dayTestQuery = {
     day: '20190314',
@@ -52,26 +39,18 @@ let dayTestQuery = {
     dailyExcludes: ['Czejen'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
 }
 
-prepApp().then(
-    () => {
-        me.getMatches(dayTestQuery).then(
-            (bestResult) => {
-                console.log('*** Reported result: ***')
-                console.log(JSON.stringify(bestResult, undefined, 2))
-            }
-        ).catch(
-            (err) => {
-                console.log(err, 'inner catch')
-            }
-        ).finally(() => {
-            console.log('done and out')
-            process.exit()
-        })
+me.generateMockSolution(dayTestQuery).then(
+    (bestResult) => {
+        console.log('*** Reported result: ***')
+        console.log(JSON.stringify(bestResult, undefined, 2))
     }
 ).catch(
     (err) => {
-        console.log(err, 'outer catch')
+        console.log(err, 'inner catch')
     }
-)
+).finally(() => {
+    console.log('done and out')
+    process.exit()
+})
 
 
