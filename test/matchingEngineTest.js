@@ -24,8 +24,8 @@ let dayTestQuery = {
             trainingsDetails: [
                 {kidName: 'Julka Mala'},
                 {kidName: 'Maja'},
-                {kidName: 'Julka Lonza'},
-                {kidName: 'Ola C'},
+                {kidName: 'Julka Lonza', horse:'Bracio'},
+                {kidName: 'Ola C', horse:'Bella'},
             ]
         },
         {

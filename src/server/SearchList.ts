@@ -107,7 +107,7 @@ export default class SearchList {
   /* A core method - make it as optimized as possible */
   public getPermutations(newOption: IMatchOptionInfo): IRankedHourlySolution[] | null {
     if (this.isInitialized) {
-      let subList = this.getSubListObject(this.allKidosInList.filter(kidosList => (kidosList !== newOption.kido)))
+      let subList = this.getSubListForKidos(this.allKidosInList.filter(kidosList => (kidosList !== newOption.kido)))
 
 
       let subArr: IMatchOptionInfo[][] = []
@@ -163,16 +163,23 @@ export default class SearchList {
     return true
   }
 
-  public getSubListObject(kidoNames: string[]): ISearchList {
+  public getSubListForKidos(kidoNames: string[]): ISearchList {
     let copySearchList = JSON.parse(JSON.stringify(this.orderedSearchList))
-    let intersection = Object.keys(copySearchList).filter(item => -1 !== kidoNames.indexOf(item));
-    intersection = [...new Set(intersection)]
 
+    let intersection = Utils.intersection(Object.keys(copySearchList), kidoNames)
     let newSearchList: ISearchList = {}
     intersection.forEach(kidoName => {
       newSearchList[kidoName] = copySearchList[kidoName]
     })
     this.isInOrder(newSearchList)
+    return newSearchList
+  }
+
+  public getSubListWithoutHorsos(horsos: string[]): ISearchList {
+    let newSearchList: ISearchList = {}
+    this.allKidosInList.forEach(kido => {
+      newSearchList[kido] = this.orderedSearchList[kido].filter(item => {return !horsos.includes(item.horso)})
+    })
     return newSearchList
   }
 

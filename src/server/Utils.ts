@@ -29,4 +29,8 @@ export default class Utils {
     return true
   }
 
+  public static intersection(arr1: any[], arr2: any[]): any[]{
+    let intersection = arr1.filter(item => -1 !== arr2.indexOf(item));
+    return [...new Set(intersection)]
+  }
 }

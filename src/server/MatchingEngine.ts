@@ -1,6 +1,6 @@
 import {
   default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IHorso, IKido, PrefType,
-  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour
+  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, ITrainingDetail
 } from "./DataModel";
 import {Database} from "./Database";
 import Utils from "./Utils";
@@ -36,7 +36,7 @@ export default class MatchingEngine {
 
   //exposed main method, asked from outside of class
   public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution | void> {
-    try{
+    try {
       let startTime = Date.now()
       this.dailyQuery = dailyQuery
       console.log('daily query:', JSON.stringify(this.dailyQuery))
@@ -67,18 +67,18 @@ export default class MatchingEngine {
       console.log(`Total time: ${workTime} [ms]`)
 
       return this.mapResultsToISolution(this.combineHours())
-    }catch (err) {
+    } catch (err) {
       let str: string = err.stack
-      return this.mapResultsToISolution({results: [], errorMsg: `${str.substring(0,150)} ...`})
+      return this.mapResultsToISolution({results: [], errorMsg: `${str.substring(0, 170)} ...`})
     }
   }
 
   private async initScopeVariables(): Promise<string> {
 
-    /*  Drop calculation-wise cache  */
+    //  Drop calculation-wise cache
     this.clearSomeScopeVariables()
 
-    /*  Checking of global conditions - if there is enough horses  */
+    //  Checking of global conditions - if there is enough horses
     await this.initAllHorsosInStables()
     let minHorsosReqHourly: number = 0
     let minHorsosReqDaily: number = 0
@@ -102,8 +102,35 @@ export default class MatchingEngine {
       return `Horses available: ${this.avaHorsos.length} is less than required ${minHorsosReqDaily} for whole day`
     }
 
+    //  Checking if two horses are not preselected for the same hour
+    //  Checking if no horses are preselected and excluded
+    let allPreselectedHorses: string[] = []
+    let preselectCollision: string | undefined
+    this.dailyQuery.hours.forEach(hour => {
+      let preselectedThisHour: string[] = []
+      hour.trainingsDetails.forEach(training => {
+        let currentHorso = training.horse
+        if(currentHorso){
+          if(preselectedThisHour.includes(currentHorso)){
+            preselectCollision = `Horse: ${currentHorso} was preselected twice at ${hour.hour}`
+            return
+          }
+          preselectedThisHour.push(currentHorso)
+          if(!allPreselectedHorses.includes(currentHorso)){
+            allPreselectedHorses.push(currentHorso)
+          }
+        }
+      })
+    })
+    if(preselectCollision){
+      return preselectCollision
+    }
+    let intersection = Utils.intersection(this.dailyQuery.dailyExcludes,allPreselectedHorses)
+    if(intersection.length){
+      return `Horse(s): ${intersection.join(',')} were both excluded and preselected`
+    }
 
-    /*  Checking if kidos for every particular hour are distinct  */
+    //  Checking if kidos for every particular hour are distinct
     this.dailyQuery.hours.forEach((hour, hourNo) => {
       let kidosThisHour: string[] = []
       hour.trainingsDetails.forEach(training => {
@@ -121,13 +148,13 @@ export default class MatchingEngine {
       }
     })
 
-    /*  Update preferences  */
+    //  Update preferences
     let kidosWithIncompletePrefs = await this.updateKidosPreferences()
     if (!!kidosWithIncompletePrefs.length) {
       return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} are incomplete or incorrect`
     }
 
-    /*  Count cost points for kido-horso combination, and set searching order*/
+    // Count cost points for kido-horso combination, and set searching order
     this.countCostPointsAndOrder()
 
     return ''
@@ -271,13 +298,18 @@ export default class MatchingEngine {
       return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Wong`}
     }
     if (!results.results.length && results.errorMsg) {
-      return {solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
+      return {
+        solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: []},
+        errorMsg: results.errorMsg
+      }
     }
 
     results.results.forEach(result => {
-      let queryHour = this.dailyQuery.hours.find(hour => {return hour.hour === result.hour})
-      if(queryHour && queryHour.remarks){
-        Object.assign(result,{remarks:queryHour.remarks})
+      let queryHour = this.dailyQuery.hours.find(hour => {
+        return hour.hour === result.hour
+      })
+      if (queryHour && queryHour.remarks) {
+        Object.assign(result, {remarks: queryHour.remarks})
       }
     })
     return {solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: results.results}}
@@ -288,20 +320,32 @@ export default class MatchingEngine {
 
     //console.log(`hourly matching for hour No. ${hour.hour}`)
 
-    let allKidosthisHour: string[] = []
+    let allUnmatchedKidosThisHour: string[] = []
+    let allSelectedMatches: ITrainingDetail[] = []
+    let horsosMatchedInQuery: string[] = []
     hour.trainingsDetails.forEach(training => {
-      allKidosthisHour.push(training.kidName)
+      if (!training.horse) {
+        allUnmatchedKidosThisHour.push(training.kidName)
+      } else {
+        allSelectedMatches.push({kidName: training.kidName, horse: training.horse})
+        horsosMatchedInQuery.push(training.horse)
+      }
     })
 
-    console.log('this.dailySearchOrder',this.dailySearchOrder.totalLength())
+    //console.log('this.dailySearchOrder',this.dailySearchOrder.totalLength())
+
+    // this is an unfiltered donor object, form which horses of preselected matches have to be removed
+    let hourlySearchListUnfiltered: SearchList = new SearchList(allUnmatchedKidosThisHour.length, this.dailySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
 
     // this is a donor object, which will be shifted one at a time
-    let hourlySearchList: SearchList = new SearchList(allKidosthisHour.length, this.dailySearchOrder.getSubListObject(allKidosthisHour))
-    console.log('hourlySearchList',hourlySearchList.totalLength())
-    // this is a taker object, which will be pushed one at a time
-    let allOptionsSoFar: SearchList = new SearchList(allKidosthisHour.length)
+    let hourlySearchList: SearchList = new SearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
 
-    console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
+    //console.log('hourlySearchList',hourlySearchList.totalLength())
+
+    // this is a taker object, which will be pushed one at a time
+    let allOptionsSoFar: SearchList = new SearchList(allUnmatchedKidosThisHour.length)
+
+    //console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
 
     let timeout = 50 * hour.trainingsDetails.length // + max 0,5 sec per hour scheduled for that day
     let resultsLimit = 20 * timeout
@@ -325,6 +369,12 @@ export default class MatchingEngine {
           allOptionsSoFar.push(currentOption)
           let permutations = allOptionsSoFar.getPermutations(currentOption)
           if (permutations) {
+            //complete solutions with matches predefined in query
+            permutations = permutations.map(permutation => {
+              let completedSolution = permutation.solutionDetails.concat(allSelectedMatches)
+              return {solutionDetails: completedSolution, cost: permutation.cost}
+            })
+            //store the solutions
             this.qInProc[hourNo] = this.qInProc[hourNo].concat(permutations)
           }
         }
