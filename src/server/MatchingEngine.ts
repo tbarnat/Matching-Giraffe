@@ -228,7 +228,7 @@ export default class MatchingEngine {
   private initDistKidosInQuery() {
     this.dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
-        if (this.kidosInQueryD.indexOf(training.kidName) < 0) {
+        if (this.kidosInQueryD.indexOf(training.kidName) < 0 && !training.horse) { //todo watch out
           this.kidosInQueryD.push(training.kidName)
         }
       })
@@ -241,7 +241,9 @@ export default class MatchingEngine {
   private initAllKidosInQuery() {
     this.dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
-        this.allKidosInQuery.push(training.kidName)
+        if(!training.horse){
+          this.allKidosInQuery.push(training.kidName)
+        }
       })
     })
   }
