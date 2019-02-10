@@ -228,7 +228,7 @@ export default class MatchingEngine {
   private initDistKidosInQuery() {
     this.dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
-        if (this.kidosInQueryD.indexOf(training.kidName) < 0 && !training.horse) { //todo watch out
+        if (this.kidosInQueryD.indexOf(training.kidName) < 0 && !training.horse) {
           this.kidosInQueryD.push(training.kidName)
         }
       })
