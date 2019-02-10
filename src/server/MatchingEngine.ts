@@ -36,37 +36,41 @@ export default class MatchingEngine {
 
   //exposed main method, asked from outside of class
   public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution | void> {
+    try{
+      let startTime = Date.now()
+      this.dailyQuery = dailyQuery
+      console.log('daily query:', JSON.stringify(this.dailyQuery))
 
-    //todo - consider try-catch
-
-    this.dailyQuery = dailyQuery
-    console.log('daily query:', JSON.stringify(this.dailyQuery))
-
-    let errorMsg = await this.initScopeVariables()
-    if (errorMsg) {
-      return this.mapResultsToISolution(dailyQuery, {results: [], errorMsg: `${errorMsg}`})
-    }
-
-    /*  Finding solutions for every hour separately  */
-    let hourNo: number = 0
-
-    for (let hour of dailyQuery.hours) {
-      //this.breakHourlyCalc = false
-      this.qInProc[hourNo] = []
-      await this.hourlyMatching(hour, hourNo)
-      if (!this.qInProc[hourNo].length) {
-        return this.mapResultsToISolution(dailyQuery, {
-          results: [],
-          errorMsg: `There were no solutions for hour No.: ${hourNo} (${hour.hour})`
-        })
+      let errorMsg = await this.initScopeVariables()
+      if (errorMsg) {
+        return this.mapResultsToISolution({results: [], errorMsg: `${errorMsg}`})
       }
 
-      console.log(` -- number of soultions for hour no. ${hour.hour}: `, this.qInProc[hourNo].length) // todo rm
-      hourNo++
-    }
+      /*  Finding solutions for every hour separately  */
+      let hourNo: number = 0
 
-    //return this.mapResultsToISolution(dailyQuery, {results: []})
-    return this.mapResultsToISolution(dailyQuery, this.combineHours())
+      for (let hour of this.dailyQuery.hours) {
+        //this.breakHourlyCalc = false
+        this.qInProc[hourNo] = []
+        await this.hourlyMatching(hour, hourNo)
+        if (!this.qInProc[hourNo].length) {
+          return this.mapResultsToISolution({
+            results: [],
+            errorMsg: `There were no solutions for hour No.: ${hourNo} (${hour.hour})`
+          })
+        }
+
+        console.log(`   -- number of solutions for hour no. ${hour.hour}: `, this.qInProc[hourNo].length)
+        hourNo++
+      }
+      let workTime = Date.now() - startTime
+      console.log(`Total time: ${workTime} [ms]`)
+
+      return this.mapResultsToISolution(this.combineHours())
+    }catch (err) {
+      let str: string = err.stack
+      return this.mapResultsToISolution({results: [], errorMsg: `${str.substring(0,150)} ...`})
+    }
   }
 
   private async initScopeVariables(): Promise<string> {
@@ -262,17 +266,21 @@ export default class MatchingEngine {
     tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 
-  private mapResultsToISolution(dailyQuery: IHorseRidingDayQ, results: IResultList): IBestSolution {
+  private mapResultsToISolution(results: IResultList): IBestSolution {
     if (!results.results.length && !results.errorMsg) {
-      return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Rilly Wong`}
+      return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Wong`}
     }
-    dailyQuery.remarks = dailyQuery.remarks ? dailyQuery.remarks : undefined
     if (!results.results.length && results.errorMsg) {
-      return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
+      return {solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: []}, errorMsg: results.errorMsg}
     }
 
-    //todo should be corrected -
-    return {solution: {day: dailyQuery.day, remarks: dailyQuery.remarks, hours: results.results}}
+    results.results.forEach(result => {
+      let queryHour = this.dailyQuery.hours.find(hour => {return hour.hour === result.hour})
+      if(queryHour && queryHour.remarks){
+        Object.assign(result,{remarks:queryHour.remarks})
+      }
+    })
+    return {solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: results.results}}
   }
 
   //recursively find solutions by dailySearchOrder and excluding horses from prefs
@@ -351,62 +359,5 @@ export default class MatchingEngine {
     //this should generate solutions in asyncWhile with timeout, limits and stuff
     //the results could be potentially stored
 
-    /*
-export interface IResultList {
-  results: {
-      hour: string,
-      trainer: string[],
-      trainingsDetails: ITrainingDetail[]
-    }[] //array of a single result for every hour in daily query
-  errorMsg?: string
-}
-
-
-export interface IRankedHourlySolution {
-  solutionDetails: ITrainingDetail[],
-  cost: number
-}
-
-
-
-    */
   }
-
-
 }
-
-/*Horse Matcher algorithm engine:
-
-#Assumptions:
-There are five levels of preferences for each kido. The last one is special level - excludes.
-THe levels are: Best / Nice / Ok / Rather not / Excludes
-For new kidos all the horses are added to the third group by default.
-
-#Data preparation:
-The condition for matching possibility should be evaluated Trainings <= all hourses in sable * max hourse trainings per day
-At first all the preferences are modified to remove all the dailyExcludes: from users pref. and from the operator input (some horses which are for examples injured that day)
-Calculation is divided in hourly parts - each hour is one calculation which are combined later on.
-Then all the horses included in the modified preferences are ranked (in hour scope). This cost represent a usability measure of each horse for each kido and for operator.
-The measure is calculated as follows: number of occurrence of horse on each kido's pref level, and higher levels  + (globalIndex level * (number of available horses in sables)^2)
-
-#Hourly matching
-The goal of hourly matching is to create a sorted list of best possible solutions of matching problem
-The idea is to iterate over horses starting from those with lowest cost, and recursively add solutions to the list
-The solutions is stored with solution score
-The calculation should be stopped after (50ms x number of trainings) or (100 x number of trainings) Traing = osobojazda
-The solution scores should be updated for sake of calculations usability important for next calculation stage:
-
-let scoreUpdateablePart = score % availableHourses ** 2
-scoreUpdateablePart = scoreUpdateablePart / (numberOfTrainingInThisHour ** 2)
-let newScore = score - score % availableHourses ** 2 + scoreUpdateablePart
-
-this is kinf of correction allowing comparison of hours with any and few kidos
-Sort the hourly sollutions by updated score
-
-#JunxtaposeHours
-At this point you have a hourly arrays of solutions which you have to permute
-Create permutation in a increasing manner (look for lower 'newScore' value for any hour and find all new permutation with this element)
-If the new permutation does not fulfill the max three hours condition for any hourse - discard it.
-The calculation should be stopped after (100ms x number of hours x available horses) or (1000 x number of hours x total hourses in stables)
-The result is already sorted it can be returned to the frontend, scores can be discarded
-*/

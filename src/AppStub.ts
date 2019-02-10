@@ -67,11 +67,11 @@ export default class AppStub {
         return {
           hour: hourDetails.hour,
           trainer: hourDetails.trainer,
+          remarks: hourDetails.remarks,
           trainingsDetails: hourDetails.trainingsDetails.map(training => {
             return {
               kidName: training.kidName,
               horse: allHorsos[Math.floor(Math.random() * allHorsos.length)],
-              remarks: training.remarks
             }
           })
         }

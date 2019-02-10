@@ -16,11 +16,11 @@ let prepApp = async () => {
 
 let dayTestQuery = {
     day: '20190314',
-    remarks: 'przyjade o 13stej',
     hours: [
         {
             hour: '1230',
             trainer: ['Paulina'],
+            remarks: 'Maja ma zrobić ćwiczenie 3',
             trainingsDetails: [
                 {kidName: 'Julka Mala'},
                 {kidName: 'Maja'},

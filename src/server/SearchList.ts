@@ -114,9 +114,10 @@ export default class SearchList {
       Object.keys(subList).forEach(kidosList => {
         subArr.push(subList[kidosList])
       })
+      subArr.push([newOption])
+
       //console.log('-> new Opt: ',newOption)
       //console.log('-> subList: ',subArr,'\n')
-      //subArr.push([newOption])
 
       let allCombinations = Utils.allArrComb(subArr)
       // filtering the combinations with the duplicated kido

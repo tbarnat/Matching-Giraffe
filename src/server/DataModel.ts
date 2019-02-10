@@ -13,13 +13,13 @@ export interface IHorseRidingDayQ {
 export interface IHorseRidingHourQ {
   hour: string,
   trainer: string[],
+  remarks?: string
   trainingsDetails: ITrainingQ[]
 }
 
 export interface ITrainingQ {
   kidName: string,
-  horse?: string, // undefined is default - matcher engine will handle it
-  remarks?: string
+  horse?: string, //rewritten to result if predefined. Matched by engine if undefined
 }
 
 /*Horse Riding Day - RESULT*/
@@ -33,13 +33,13 @@ export interface IHorseRidingDay {
 export interface IHorseRidingHour {
   hour: string,
   trainer: string[],
+  remarks?: string,
   trainingsDetails: ITrainingDetail[]
 }
 
 export interface ITrainingDetail {
   kidName: string,
   horse: string, // undefined is default - matcher engine will handle it
-  remarks?: string
 }
 
 /*Archive */
