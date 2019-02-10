@@ -49,7 +49,7 @@ let dayTestQuery = {
         },
 
     ],
-    dailyExcludes: ['Czejen'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
+    dailyExcludes: ['Parys'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
 }
 
 prepApp().then(

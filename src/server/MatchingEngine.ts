@@ -314,8 +314,8 @@ export default class MatchingEngine {
         if (currentOption) {
           // Every new kido-horse-cost (currentOption) added to permutation set (allOptionsSoFar)
           // is generation new valid permutations or returns null
-          let permutations = allOptionsSoFar.getPermutations(currentOption)
           allOptionsSoFar.push(currentOption)
+          let permutations = allOptionsSoFar.getPermutations(currentOption)
           if (permutations) {
             this.qInProc[hourNo] = this.qInProc[hourNo].concat(permutations)
           }

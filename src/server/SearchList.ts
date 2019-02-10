@@ -114,10 +114,9 @@ export default class SearchList {
       Object.keys(subList).forEach(kidosList => {
         subArr.push(subList[kidosList])
       })
-      //console.log('-> subList: ',subArr)
-      subArr.push([newOption])
       //console.log('-> new Opt: ',newOption)
-      //console.log('')
+      //console.log('-> subList: ',subArr,'\n')
+      //subArr.push([newOption])
 
       let allCombinations = Utils.allArrComb(subArr)
       // filtering the combinations with the duplicated kido
@@ -128,6 +127,7 @@ export default class SearchList {
         return Utils.hasDuplicates(allHorsosInComb)
       })
       //console.log('-> result: ',allCombinations)
+      //console.log('\n ------------------------------------------------------ \n')
 
       if (allCombinations.length > 0) {
         let rankedSolutions = allCombinations.map(comb => {
