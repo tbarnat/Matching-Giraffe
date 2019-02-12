@@ -1,1 +1,7 @@
+Backend
 1) move from hours to whole day assembly
+
+WS fra-bck
+1) update db
+2) built websocket client
+3) test

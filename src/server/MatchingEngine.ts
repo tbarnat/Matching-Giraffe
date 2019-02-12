@@ -1,8 +1,7 @@
 import {
-  default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IHorso, IKido, PrefType,
+  default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IKido, PrefType,
   IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, ITrainingDetail
 } from "./DataModel";
-import {Database} from "./Database";
 import Utils from "./Utils";
 import SearchList from "./SearchList";
 
@@ -19,7 +18,6 @@ export default class MatchingEngine {
   private dailyQuery: IHorseRidingDayQ
 
   /* --- Data structures --- */
-  public allHorsos: string[] = []
   private avaHorsos: string[] = []
   private kidosInQueryD: string[] = [] //those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
@@ -31,11 +29,11 @@ export default class MatchingEngine {
   private qInProc: IRankedHourlySolution[][] = []
 
 
-  constructor(protected db: Database) {
+  constructor(protected allHorsos: string[], protected allKidos: IKido[]) {
   }
 
   //exposed main method, asked from outside of class
-  public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution | void> {
+  public async getMatches(dailyQuery: IHorseRidingDayQ): Promise<IBestSolution> {
     try {
       let startTime = Date.now()
       this.dailyQuery = dailyQuery
@@ -79,7 +77,6 @@ export default class MatchingEngine {
     this.clearSomeScopeVariables()
 
     //  Checking of global conditions - if there is enough horses
-    await this.initAllHorsosInStables()
     let minHorsosReqHourly: number = 0
     let minHorsosReqDaily: number = 0
     this.dailyQuery.hours.forEach(hour => {
@@ -110,23 +107,23 @@ export default class MatchingEngine {
       let preselectedThisHour: string[] = []
       hour.trainingsDetails.forEach(training => {
         let currentHorso = training.horse
-        if(currentHorso){
-          if(preselectedThisHour.includes(currentHorso)){
+        if (currentHorso) {
+          if (preselectedThisHour.includes(currentHorso)) {
             preselectCollision = `Horse: ${currentHorso} was preselected twice at ${hour.hour}`
             return
           }
           preselectedThisHour.push(currentHorso)
-          if(!allPreselectedHorses.includes(currentHorso)){
+          if (!allPreselectedHorses.includes(currentHorso)) {
             allPreselectedHorses.push(currentHorso)
           }
         }
       })
     })
-    if(preselectCollision){
+    if (preselectCollision) {
       return preselectCollision
     }
-    let intersection = Utils.intersection(this.dailyQuery.dailyExcludes,allPreselectedHorses)
-    if(intersection.length){
+    let intersection = Utils.intersection(this.dailyQuery.dailyExcludes, allPreselectedHorses)
+    if (intersection.length) {
       return `Horse(s): ${intersection.join(',')} were both excluded and preselected`
     }
 
@@ -161,14 +158,9 @@ export default class MatchingEngine {
   }
 
   private clearSomeScopeVariables() {
-    this.allHorsos = []
     this.avaHorsos = []
     this.kidosInQueryD = []
     this.kidosPrefs = {}
-  }
-
-  private async initAllHorsosInStables() {
-    this.allHorsos = ((await this.db.find('horsos')) as IHorso[]).map(horso => horso.name)
   }
 
   private initAvailableHorses() {
@@ -180,15 +172,12 @@ export default class MatchingEngine {
   private async updateKidosPreferences(): Promise<string[]> {
     this.initDistKidosInQuery()
 
-    let allKidos = ((await this.db.find('kidos')) as IKido[])
-
-
     //rm just for presentation
     console.log('---raw kido preferences:---')
-    tableHelper.tablePreferences(allKidos)
+    tableHelper.tablePreferences(this.allKidos)
 
 
-    allKidos.filter(kido => {
+    this.allKidos.filter(kido => {
       return (this.kidosInQueryD.includes(kido.name))
     }).forEach(kido => {
       //filter the daily excludes
@@ -241,7 +230,7 @@ export default class MatchingEngine {
   private initAllKidosInQuery() {
     this.dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
-        if(!training.horse){
+        if (!training.horse) {
           this.allKidosInQuery.push(training.kidName)
         }
       })
