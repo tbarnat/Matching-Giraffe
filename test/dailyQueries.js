@@ -1,18 +1,15 @@
-const AppStub = require('../dist/AppStub').default
-let me = new AppStub()
-
-let dayTestQuery = {
+exports.dailyQuery1 = {
     day: '20190314',
-    remarks: 'przyjade o 13stej',
     hours: [
         {
             hour: '1230',
             trainer: ['Paulina'],
+            remarks: 'Maja ma zrobić ćwiczenie 3',
             trainingsDetails: [
                 {kidName: 'Julka Mala'},
                 {kidName: 'Maja'},
-                {kidName: 'Julka Lonza'},
-                {kidName: 'Ola C'},
+                {kidName: 'Julka Lonza', horse:'Bracio'},
+                {kidName: 'Ola C', horse:'Bella'},
             ]
         },
         {
@@ -36,21 +33,6 @@ let dayTestQuery = {
         },
 
     ],
-    dailyExcludes: ['Czejen'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
+    dailyExcludes: ['Parys'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
 }
-
-me.generateMockSolution(dayTestQuery).then(
-    (bestResult) => {
-        console.log('*** Reported result: ***')
-        console.log(JSON.stringify(bestResult, undefined, 2))
-    }
-).catch(
-    (err) => {
-        console.log(err, 'inner catch')
-    }
-).finally(() => {
-    console.log('done and out')
-    process.exit()
-})
-
 

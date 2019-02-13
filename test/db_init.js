@@ -5,7 +5,7 @@ const config = {
     dbName: 'hmDev'
 }
 
-let horses = [
+let horsos = [
     {name: 'Czejen'},
     {name: 'Parys'},
     {name: 'Bella'},
@@ -14,7 +14,7 @@ let horses = [
     {name: 'Bracio'},
     {name: 'Lady'}]
 
-let kids =
+let kidos =
     [{
         name: 'Emilka',
         prefs: {
@@ -113,17 +113,26 @@ let fillInDatabase = async () => {
     const db = new Database(config);
     await db.init()
 
-    await db.insertMany('horsos', horses)
-    await db.insertMany('kidos', kids)
-    await db.insertMany('trainers', trainers)
-
+    let collections = {horsos, kidos, trainers}
+    for(let collName of Object.keys(collections)){
+        let data = await db.find(collName)
+        if(data.length){
+            await db.drop(collName)
+        }
+        await db.insertMany(collName, collections[collName])
+        await db.updateMany(collName,{},{$set : {"userName":"qwe"}})
+    }
+    let data = await db.find('users')
+    if(data.length){
+        await db.drop('users')
+    }
+    await db.insertOne('users', {userName:'qwe',password:'7815696ecbf1c96e6894b779456d330e'})
 }
 
-console.log('database is about to be filled with some startup values')
-console.log('database is about to be filled with simple mock values')
+console.log('database will be repopulated with some start-up values')
 try {
     fillInDatabase().then(() => {
-        console.log('went smooth')
+        console.log('--- everything went smooth :)) ---')
     })
 } catch (err) {
     console.log(err, 'filling error')

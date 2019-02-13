@@ -1,7 +1,6 @@
 Backend
 1) move from hours to whole day assembly
+2) onClientMessageReceived
 
 WS fra-bck
-1) update db
-2) built websocket client
-3) test
+1) add error handling on invalid

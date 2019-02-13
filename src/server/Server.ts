@@ -3,10 +3,12 @@ import WebSocket = require('ws')
 import {Database} from "./Database";
 import {IHorso, IKido} from "./DataModel";
 import MatchingEngine from "./MatchingEngine";
+
 const crypto = require('crypto');
 
+//const uuidv4 = require('uuid/v4');
+
 interface IServerConfig {
-  key: string
   port: number
   db: {
     uri: string  //'mongodb://localhost:27017'
@@ -15,11 +17,13 @@ interface IServerConfig {
 }
 
 interface IFrontendMsg {
+  id: string
   action: 'login' | 'getMatches' | 'saveMatches' | 'deleteDay' | 'newHorse' | 'editHorse' | 'newKid' | 'editKid'
   data: any
 }
 
 interface IBackendMsg {
+  replyTo?: string //id of incoming message
   success: boolean
   data: any
 }
@@ -61,13 +65,6 @@ export default class Server {
 
 
     console.log(`client (${ip}) connected`);
-    setTimeout(() => {
-      if (!userName) {
-        console.log(`AUTH-FAILED: Disconnecting client ${ip}`);
-        ws.terminate()
-      }
-    }, 1000);
-    //todo setTimeout for heartbeat
 
     ws.on('close', () => {
       console.log(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
@@ -78,25 +75,33 @@ export default class Server {
     });
 
     ws.on('message', async (msg) => {
-      console.log(`message received: ${msg}`);
+      console.log(`message received: ${msg} \n`);
       try {
-        let contents = JSON.parse(msg.toString());
+        let request = JSON.parse(msg.toString());
+        if (request === 'ping') {
+          ws.send('"pong"')
+        }
+        request = request as IFrontendMsg
         if (userName) {
-          if (contents === 'ping') {
-            ws.send('pong')
-          } else {
-            await this.onClientMessageReceived(ws, userName, contents)
+          await this.onClientMessageReceived(ws, userName, request)
+        } else if(request.action == 'login'){
+
+          //request: {userName:string,password:string}
+          let reply: IBackendMsg = {success: false, data: 'Invalid login or password'}
+          console.log('0',request.data.userName)
+          let loginInfo = (await this.db.findOne('users', {userName: request.data.userName}) as ILoginInfo)
+          console.log('A',loginInfo)
+          if (loginInfo) {
+            console.log('B')
+            let hash = crypto.createHash('md5').update(request.data.password).digest('hex');
+            if (loginInfo.password === hash) {
+              console.log('C')
+              userName = loginInfo.userName
+              console.log(`  -- > user: ${userName}, ip: ${ip} : auth ok`);
+              reply = {success:true, data:{}}
+            }
           }
-        } else {
-          //{userName:string,key:string}
-          // take user from db -> check pswd -> if ok save variable userName
-          let loginInfo = (await this.db.find('users', {userName: contents.userName}) as ILoginInfo[])
-          //todo update db with aproperiate entries and hashes
-          let hash = crypto.createHash('md5').update(contents.password).digest('hex');
-          if (loginInfo[0].password === hash) {
-            userName = loginInfo[0].userName
-            console.log(`user: ${userName}, ip: ${ip} : auth ok`);
-          }
+          this.sendMsg(ws, request, reply)
         }
       } catch (error) {
         console.log(error, 'Incorrect data type')
@@ -104,14 +109,13 @@ export default class Server {
     });
   }
 
-  public async onClientMessageReceived(ws: WebSocket, userName: string, msg: IFrontendMsg) {
-    console.log(msg, 'received')
-    let data = msg.data
-    switch (msg.action) {
-      case 'login':
-        break;
+  public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
+    console.log(request, 'received')
+    switch (request.action) {
+      /*case 'login': <- this is handled somewhere else
+        break;*/
       case 'getMatches':
-        this.getMatches(ws, userName, data);
+        this.getMatches(ws, userName, request);
       case 'saveMatches':
         break;
       case 'deleteDay':
@@ -129,30 +133,32 @@ export default class Server {
     }
   }
 
-  public async getMatches(ws: WebSocket, userName: string, data: any) {
-    // todo change db entries - add userName field
+  public async getMatches(ws: WebSocket, userName: string, request: IFrontendMsg) {
 
     let promiseArr: any[] = []
-    promiseArr.push(this.db.find('horsos',{userName}))
-    promiseArr.push(await this.db.find('kidos',{userName}))
+    promiseArr.push(this.db.find('horsos', {userName}))
+    promiseArr.push(await this.db.find('kidos', {userName}))
     let resolvedArr = await Promise.all(promiseArr)
     let allHorsos = (resolvedArr[0] as IHorso[]).map(horso => horso.name)
     let allKidos = resolvedArr[1] as IKido[]
 
-    //before
     /*let allHorsos = ((await this.db.find('horsos',{userName})) as IHorso[]).map(horso => horso.name)
-    let allKidos = ((await this.db.find('kidos',{userName})) as IKido[])*/
+    let allKidos = ((await this.db.find('kidos',{userName})) as IKido[])*/ //<-as it was before
 
 
     let engine = new MatchingEngine(allHorsos, allKidos)
-    let result = await engine.getMatches(data)
-    let msg: IBackendMsg
+    let result = await engine.getMatches(request.data)
+    let reply: IBackendMsg
     if (!result.errorMsg) {
-      msg = {success: true, data: result.solution}
+      reply = {replyTo: request.id, success: true, data: result.solution}
     } else {
-      msg = {success: false, data: result.errorMsg}
+      reply = {success: false, data: result.errorMsg}
     }
-    ws.send(JSON.stringify(msg))
+    this.sendMsg(ws, request, reply)
   }
 
+  public sendMsg(ws: WebSocket, request: IFrontendMsg, reply: IBackendMsg) {
+    Object.assign(reply, {replyTo: request.id})
+    ws.send(JSON.stringify(reply))
+  }
 }
