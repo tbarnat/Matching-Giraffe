@@ -1,8 +1,8 @@
 import http = require('http')
 import WebSocket = require('ws')
 import {Database} from "./Database";
-import {IHorso, IKido} from "./DataModel";
-import MatchingEngine from "./MatchingEngine";
+import Dispatch from "./Dispatch";
+import {BackendData} from "./DataModel";
 
 const crypto = require('crypto');
 
@@ -16,16 +16,17 @@ interface IServerConfig {
   }
 }
 
-interface IFrontendMsg {
+export interface IFrontendMsg {
   id: string
-  action: 'login' | 'getMatches' | 'saveMatches' | 'deleteDay' | 'newHorse' | 'editHorse' | 'newKid' | 'editKid'
+  action: 'login' | 'getMatches' | 'saveMatches' | 'deleteDay' | 'newHorse' | 'editHorse' | 'deleteHorse'
+    | 'newKid' | 'editKid' | 'deleteKid' | 'newTrainer' | 'editTrainer' | 'deleteTrainer'
   data: any
 }
 
-interface IBackendMsg {
+export interface IBackendMsg {
   replyTo?: string //id of incoming message
   success: boolean
-  data: any
+  data: any | BackendData
 }
 
 interface ILoginInfo {
@@ -36,12 +37,14 @@ interface ILoginInfo {
 export default class Server {
 
   protected db: Database
-  protected httpServer: http.Server;
-  protected wss: WebSocket.Server;
-  protected wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
+  private httpServer: http.Server;
+  private wss: WebSocket.Server;
+  private wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
+  private dispatch: Dispatch
 
   constructor(config: IServerConfig) {
     this.initDb(config).then(() => {
+      this.dispatch = new Dispatch(this.db)
       this.httpServer = http.createServer();
       this.wss = new WebSocket.Server({server: this.httpServer});
       this.wss.on('connection', this.onWssServerConnection.bind(this));
@@ -111,48 +114,49 @@ export default class Server {
 
   public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
     console.log(request, 'received')
+    let reply: IBackendMsg
     switch (request.action) {
       /*case 'login': <- this is handled somewhere else
         break;*/
       case 'getMatches':
-        this.getMatches(ws, userName, request);
+        reply = await this.dispatch.getMatches(userName, request);
+        break;
       case 'saveMatches':
+        reply = await this.dispatch.saveMatches(userName, request)
         break;
       case 'deleteDay':
+        reply = await this.dispatch.deleteDay(userName, request)
         break;
       case 'newHorse':
+        reply = await this.dispatch.newDbEntry(userName, request, 'horsos')
         break;
       case 'editHorse':
+        reply = await this.dispatch.editDbEntry(userName, request, 'horsos')
+        break;
+      case 'deleteHorse':
+        reply = await this.dispatch.deleteDbEntry(userName, request, 'horsos')
         break;
       case 'newKid':
+        reply = await this.dispatch.newDbEntry(userName, request, 'kidos')
         break;
       case 'editKid':
+        reply = await this.dispatch.editDbEntry(userName, request, 'kidos')
+        break;
+      case 'deleteKid':
+        reply = await this.dispatch.deleteDbEntry(userName, request, 'kidos')
+        break;
+      case 'newTrainer':
+        reply = await this.dispatch.newDbEntry(userName, request, 'trainers')
+        break;
+      case 'editTrainer':
+        reply = await this.dispatch.editDbEntry(userName, request, 'trainers')
+        break;
+      case 'deleteTrainer':
+        reply = await this.dispatch.deleteDbEntry(userName, request, 'trainers')
         break;
       default:
+        reply = {success:false,data:{errorMsg:'unknown request'}}
         break;
-    }
-  }
-
-  public async getMatches(ws: WebSocket, userName: string, request: IFrontendMsg) {
-
-    let promiseArr: any[] = []
-    promiseArr.push(this.db.find('horsos', {userName}))
-    promiseArr.push(await this.db.find('kidos', {userName}))
-    let resolvedArr = await Promise.all(promiseArr)
-    let allHorsos = (resolvedArr[0] as IHorso[]).map(horso => horso.name)
-    let allKidos = resolvedArr[1] as IKido[]
-
-    /*let allHorsos = ((await this.db.find('horsos',{userName})) as IHorso[]).map(horso => horso.name)
-    let allKidos = ((await this.db.find('kidos',{userName})) as IKido[])*/ //<-as it was before
-
-
-    let engine = new MatchingEngine(allHorsos, allKidos)
-    let result = await engine.getMatches(request.data)
-    let reply: IBackendMsg
-    if (!result.errorMsg) {
-      reply = {replyTo: request.id, success: true, data: result.solution}
-    } else {
-      reply = {success: false, data: result.errorMsg}
     }
     this.sendMsg(ws, request, reply)
   }

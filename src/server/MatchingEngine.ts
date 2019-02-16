@@ -3,7 +3,7 @@ import {
   IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, ITrainingDetail
 } from "./DataModel";
 import Utils from "./Utils";
-import SearchList from "./SearchList";
+import MatchSearchList from "./MatchSearchList";
 
 //just for tests  todo rm
 const tableHelper = require('../../test/tableHelper.js')
@@ -22,7 +22,7 @@ export default class MatchingEngine {
   private kidosInQueryD: string[] = [] //those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
-  private dailySearchOrder: SearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
+  private dailySearchOrder: MatchSearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
 
   /* --- Calculation results --- */
   //intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions
@@ -222,7 +222,7 @@ export default class MatchingEngine {
         }
       })
     })
-    this.dailySearchOrder = new SearchList(this.kidosInQueryD.length)
+    this.dailySearchOrder = new MatchSearchList(this.kidosInQueryD.length)
   }
 
 
@@ -326,15 +326,15 @@ export default class MatchingEngine {
     //console.log('this.dailySearchOrder',this.dailySearchOrder.totalLength())
 
     // this is an unfiltered donor object, form which horses of preselected matches have to be removed
-    let hourlySearchListUnfiltered: SearchList = new SearchList(allUnmatchedKidosThisHour.length, this.dailySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
+    let hourlySearchListUnfiltered: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length, this.dailySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
 
     // this is a donor object, which will be shifted one at a time
-    let hourlySearchList: SearchList = new SearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
+    let hourlySearchList: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
 
     //console.log('hourlySearchList',hourlySearchList.totalLength())
 
     // this is a taker object, which will be pushed one at a time
-    let allOptionsSoFar: SearchList = new SearchList(allUnmatchedKidosThisHour.length)
+    let allOptionsSoFar: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length)
 
     //console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
 

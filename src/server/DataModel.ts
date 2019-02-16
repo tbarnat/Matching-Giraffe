@@ -25,7 +25,7 @@ export interface ITrainingQ {
 /*Horse Riding Day - RESULT*/
 export interface IHorseRidingDay {
   //_id: number, //mongo id
-  day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
+  day: string //the same as 'name', will be part of an url ie.: '2018-10-12', '2018-10-11-a' (domain.com/diary/2018-10-11-b)
   remarks?: string // additional comments which would be
   hours: IHorseRidingHour[]
 }
@@ -109,12 +109,14 @@ export interface IRankedHourlySolution {
   cost: number
 }
 
-export interface IResultList {
+export interface IResultList extends BackendData{
   results: IHorseRidingHour[] //array of a single result for every hour in daily query
-  errorMsg?: string
 }
 
-export interface IBestSolution {
+export interface IBestSolution extends BackendData{
   solution: IHorseRidingDay
+}
+
+export interface BackendData {
   errorMsg?: string
 }

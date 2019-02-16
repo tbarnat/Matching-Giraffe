@@ -27,7 +27,6 @@ export default class Client extends BaseClient {
   private sendRequest(action: Action, data: any): string {
     let id = uuidv4()
     if (this.deferreds[id]) {
-      console.log('uuidv4 collision')
       return ''
     }
     this.deferreds[id] = new Deferred()

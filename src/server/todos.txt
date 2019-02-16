@@ -1,6 +1,7 @@
 Backend
 1) move from hours to whole day assembly
 2) onClientMessageReceived
+3) start on AWS
 
-WS fra-bck
+WS frn-bck
 1) add error handling on invalid
