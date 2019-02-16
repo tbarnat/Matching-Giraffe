@@ -1,9 +1,10 @@
 import {
   default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IKido, PrefType,
-  IMatchOptionInfo, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, ITrainingDetail
+  IKidHorseOption, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, IKidHorse
 } from "./DataModel";
 import Utils from "./Utils";
-import MatchSearchList from "./MatchSearchList";
+import HourlySearchList from "./searchLists/HourlySearchList";
+import {IMatchOption} from "./searchLists/SearchList";
 
 //just for tests  todo rm
 const tableHelper = require('../../test/tableHelper.js')
@@ -22,7 +23,7 @@ export default class MatchingEngine {
   private kidosInQueryD: string[] = [] //those are distinguishable kidos, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
-  private dailySearchOrder: MatchSearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
+  private dailySearchOrder: HourlySearchList //ordered list of all horses by it's cost by kido - order list of object with extra info
 
   /* --- Calculation results --- */
   //intermediate solution - sorted list of solutions for every hour, so first level are hours 1-8, and second level are solutions
@@ -82,7 +83,7 @@ export default class MatchingEngine {
     this.dailyQuery.hours.forEach(hour => {
       minHorsosReqHourly = Math.max(hour.trainingsDetails.length, minHorsosReqHourly)
     })
-    this.dailyQuery.hours.forEach(hour => hour.trainingsDetails.forEach(training => {
+    this.dailyQuery.hours.forEach(hour => hour.trainingsDetails.forEach(() => {
       minHorsosReqDaily++
     }))
     if (this.allHorsos.length < minHorsosReqHourly) {
@@ -222,7 +223,7 @@ export default class MatchingEngine {
         }
       })
     })
-    this.dailySearchOrder = new MatchSearchList(this.kidosInQueryD.length)
+    this.dailySearchOrder = new HourlySearchList(this.kidosInQueryD.length)
   }
 
 
@@ -262,12 +263,12 @@ export default class MatchingEngine {
     /* Calculate cost points and populate dailySearchOrder object
        cost = number of occurrence of horse on each kido's pref level (global), and higher levels(global)
               + (globalIndex level (each kido) * (number of available horses in sables)^2) */
-    let flatOptionList: IMatchOptionInfo[] = []
+    let flatOptionList: IKidHorseOption[] = []
     this.kidosInQueryD.forEach(kido => {
       DataModel.incPrefCat.forEach(prefCat => {
         this.kidosPrefs[kido][prefCat].forEach(horso => {
           let cost = costForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
-          flatOptionList.push({kido, horso, cost})
+          flatOptionList.push({kidName:kido, horse:horso, cost})
         })
       })
     })
@@ -276,7 +277,8 @@ export default class MatchingEngine {
       return item1.cost - item2.cost
     })
     flatOptionList.forEach(option => {
-      this.dailySearchOrder.push(option)
+      let optionGeneric = this.dailySearchOrder.mapOptionFrom(option)
+      this.dailySearchOrder.push(optionGeneric)
     })
 
     console.log('---search order table for whole day: (sorted by cost)---')
@@ -312,7 +314,7 @@ export default class MatchingEngine {
     //console.log(`hourly matching for hour No. ${hour.hour}`)
 
     let allUnmatchedKidosThisHour: string[] = []
-    let allSelectedMatches: ITrainingDetail[] = []
+    let allSelectedMatches: IKidHorse[] = []
     let horsosMatchedInQuery: string[] = []
     hour.trainingsDetails.forEach(training => {
       if (!training.horse) {
@@ -326,15 +328,15 @@ export default class MatchingEngine {
     //console.log('this.dailySearchOrder',this.dailySearchOrder.totalLength())
 
     // this is an unfiltered donor object, form which horses of preselected matches have to be removed
-    let hourlySearchListUnfiltered: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length, this.dailySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
+    let hourlySearchListUnfiltered: HourlySearchList = new HourlySearchList(allUnmatchedKidosThisHour.length, this.dailySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
 
     // this is a donor object, which will be shifted one at a time
-    let hourlySearchList: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
+    let hourlySearchList: HourlySearchList = new HourlySearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
 
     //console.log('hourlySearchList',hourlySearchList.totalLength())
 
     // this is a taker object, which will be pushed one at a time
-    let allOptionsSoFar: MatchSearchList = new MatchSearchList(allUnmatchedKidosThisHour.length)
+    let allOptionsSoFar: HourlySearchList = new HourlySearchList(allUnmatchedKidosThisHour.length)
 
     //console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
 
@@ -353,7 +355,7 @@ export default class MatchingEngine {
 
         // console.log('\n\n  --- allOptionsSoFar at next iteration ---  ')
 
-        let currentOption: IMatchOptionInfo | null = hourlySearchList.shift()
+        let currentOption: IMatchOption | null = hourlySearchList.shift()
         if (currentOption) {
           // Every new kido-horse-cost (currentOption) added to permutation set (allOptionsSoFar)
           // is generation new valid permutations or returns null
@@ -362,8 +364,8 @@ export default class MatchingEngine {
           if (permutations) {
             //complete solutions with matches predefined in query
             permutations = permutations.map(permutation => {
-              let completedSolution = permutation.solutionDetails.concat(allSelectedMatches)
-              return {solutionDetails: completedSolution, cost: permutation.cost}
+              let completedSolution = permutation.solution.concat(allSelectedMatches)
+              return {solution: completedSolution, cost: permutation.cost}
             })
             //store the solutions
             this.qInProc[hourNo] = this.qInProc[hourNo].concat(permutations)
@@ -389,7 +391,7 @@ export default class MatchingEngine {
         results.push({
           hour: hourDetails.hour,
           trainer: hourDetails.trainer,
-          trainingsDetails: this.qInProc[i][0].solutionDetails
+          trainingsDetails: this.qInProc[i][0].solution
         })
       })
       return {results}

@@ -25,7 +25,7 @@ module.exports = {
         let item = {}
         item.gIndex = searchEntry.globalIndex
         item.cost = searchEntry.cost
-        item[searchEntry.kido] = searchEntry.horso
+        item[searchEntry.category] = searchEntry.item
         resultTable.push(item)
       })
     })

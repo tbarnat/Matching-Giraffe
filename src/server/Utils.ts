@@ -19,7 +19,7 @@ export default class Utils {
     return arr.reduce((a, b) => a.reduce((r: any, v: any) => r.concat(b.map((w: any) => [].concat(v, w))), []));
   }
 
-  public static hasDuplicates(strArr: string[]): boolean {
+  public static strArrHasDuplicates(strArr: string[]): boolean {
     strArr.sort()
     for (let i = 0; i < strArr.length - 1; i++) {
       if (strArr[i + 1] == strArr[i]) {
