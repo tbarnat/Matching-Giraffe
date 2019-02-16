@@ -54,6 +54,7 @@ export default abstract class BaseClient {
 
       this.webSocket.on('close', () => {
         console.log('ws was closed')
+        clearInterval(this.pingTimer);
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(() => {
           this.reconnect()

@@ -1,7 +1,9 @@
 Backend
 1) move from hours to whole day assembly
-2) onClientMessageReceived
-3) start on AWS
+2) start on AWS
+----later on----
+3) and new_user/edit_user/remove_user
+4) add logger
+5) conformation email handling
 
 WS frn-bck
-1) add error handling on invalid

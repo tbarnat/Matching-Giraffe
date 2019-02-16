@@ -47,6 +47,12 @@ export interface IHorso {
   remarks?: string
 }
 
+export interface IUser extends ILoginAttempt{
+  email: string
+  lastVisit: number,
+  allVisits: number
+}
+
 
 /* ---------- Horse Riding Day - QUERY ---------- */
 
@@ -109,7 +115,19 @@ export interface IRankedHourlySolution {
 }
 
 
-/* ---------- Server responses ---------- */
+/* ---------- Server messages ---------- */
+
+export interface IFrontendMsg {
+  id: string
+  action: ActionInMsg
+  data: any
+}
+
+export interface IBackendMsg {
+  replyTo?: string //id of incoming message
+  success: boolean
+  data: any | BackendData
+}
 
 export interface IResultList extends BackendData {
   results: IHorseRidingHour[] //array of a single result for every hour in daily query
@@ -121,4 +139,15 @@ export interface IBestSolution extends BackendData {
 
 export interface BackendData {
   errorMsg?: string
+}
+
+export type ActionInMsg = 'login' | 'get_matches'  | 'save_matches' | 'remove_day' |
+  'new_user'    | 'edit_user'    | 'remove_user'  |
+  'new_horse'   | 'edit_horse'   | 'remove_horse' |
+  'new_kid'     | 'edit_kid'     | 'remove_kid'   |
+  'new_trainer' | 'edit_trainer' | 'remove_trainer'
+
+export interface ILoginAttempt {
+  userName: string // unique
+  password: string // #
 }

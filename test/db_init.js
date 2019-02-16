@@ -126,7 +126,7 @@ let fillInDatabase = async () => {
     if(data.length){
         await db.drop('users')
     }
-    await db.insertOne('users', {userName:'qwe',password:'7815696ecbf1c96e6894b779456d330e'})
+    await db.insertOne('users', {userName:'qwe', email:'qwe@wp.pl', password:'7815696ecbf1c96e6894b779456d330e', lastVisit:Date.now(), allVisits: 0})
 }
 
 console.log('database will be repopulated with some start-up values')
