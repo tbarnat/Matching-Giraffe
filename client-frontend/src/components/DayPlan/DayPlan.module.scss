@@ -1,0 +1,15 @@
+.DayPlan {
+  .OneHourQuery {
+    display: flex;
+    margin-bottom: 30px;
+
+    .Hours,
+    .Kids,
+    .Trainers,
+    .Horses {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+}

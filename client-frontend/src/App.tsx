@@ -1,11 +1,22 @@
 import * as React from 'react';
-import './App.css';
+import { Switch, Route } from "react-router-dom";
+
+import './App.scss';
+import AppMenu from './components/AppMenu/AppMenu';
+import DayPlan from './components/DayPlan/DayPlan';
 
 class App extends React.Component {
-  public render() {
+  render() {
     return (
       <div className="App">
-        tes applicatio
+        <AppMenu />
+
+        <div className="Content">
+          <Switch>
+            <Route path="/dayplan" component={DayPlan} />
+          </Switch>
+        </div>
+
       </div>
     );
   }
