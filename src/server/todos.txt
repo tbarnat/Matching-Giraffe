@@ -1,5 +1,5 @@
 Backend
-1) MILESTONE 2 - move from hours to whole day assembly
+1) query validation on backend!!!!!! - horse kido names and hours ahave to be unique and or matching db entires
 2) start on AWS
 ----later on----
 2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
@@ -8,3 +8,4 @@ Backend
 5) conformation email handling
 
 WS frn-bck
+1) client should not disconnect

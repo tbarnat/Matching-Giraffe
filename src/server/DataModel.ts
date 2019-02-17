@@ -47,11 +47,11 @@ export interface IHorso {
   remarks?: string
 }
 
-export interface IUser extends ILoginAttempt{
+/*export interface IUser extends ILoginAttempt{
   email: string
   lastVisit: number,
   allVisits: number
-}
+}*/
 
 
 /* ---------- Horse Riding Day - QUERY ---------- */
@@ -117,7 +117,7 @@ export interface IRankedHourlySolution {
 
 /* ---------- DailySearchList helpers ---------- */
 export interface IHourlySolution {
-  hour: string
+  hourName: string
   solution: IKidHorse[]
 }
 
@@ -145,7 +145,7 @@ export interface IBackendMsg {
   data: any | BackendData
 }
 
-export interface IResultList extends BackendData {
+export interface IResult extends BackendData {
   results: IHorseRidingHour[] //array of a single result for every hour in daily query
 }
 

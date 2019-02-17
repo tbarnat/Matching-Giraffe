@@ -17,11 +17,7 @@ export default class Dispatch {
     let allKidos = resolvedArr[1] as IKido[]
     let result = await (new MatchingEngine(allHorsos, allKidos)).getMatches(request.data)
     let reply: IBackendMsg
-    if (!result.errorMsg) {
-      reply = {replyTo: request.id, success: true, data: result.solution}
-    } else {
-      reply = {success: false, data: result.errorMsg}
-    }
+    reply = {replyTo: request.id, success: !result.errorMsg, data: result}
     return reply
   }
 

@@ -8,14 +8,26 @@ export default class Utils {
   }
 
   //if strongLogicalCondition is true, loop will continue even in case of timeout
-  public static async asyncWhile( softLogicalCondition: () => boolean, strongLogicalCondition: () => boolean, inWhileBody: () => any, timeout: number){
+  public static async asyncWhile(softLogicalCondition: () => boolean, strongLogicalCondition: () => boolean, inWhileBody: () => any, timeout: number) {
     let isTimedOut: boolean = false
-    setTimeout(() => {isTimedOut = true},timeout)
-    await this.asyncWhileRecursive(()=> {return (softLogicalCondition() && !isTimedOut) || strongLogicalCondition() },inWhileBody)
+    setTimeout(() => {
+      isTimedOut = true
+    }, timeout)
+    await this.asyncWhileRecursive(() => {
+      return (softLogicalCondition() && !isTimedOut) || strongLogicalCondition()
+    }, inWhileBody)
   }
 
-  // this magic function returns array of combinations of elements form different arrays - one from each, no matter the type
-  public static allArrComb(arr: any[]): any[] {
+  // this is a magic, stack-taken, and adjusted function, and it works like this:
+  // [ [1], [2,3] ] -> [ [ 1, 2 ], [ 1, 3 ] ]
+  // [ [1], [2] ]   -> [ [ 1, 2 ] ]
+  // [ [1,2] ]      -> [ [ 1, 2 ] ]
+  // [ [1] ]        -> [ [ 1 ] ]
+  // 'With Great Power Comes Great Responsibility'
+  public static allArrComb(arr: any[][]): any[] {
+    if (arr.length == 1 && arr[0].length == 1) {
+      return arr
+    }
     return arr.reduce((a, b) => a.reduce((r: any, v: any) => r.concat(b.map((w: any) => [].concat(v, w))), []));
   }
 
@@ -29,7 +41,7 @@ export default class Utils {
     return true
   }
 
-  public static intersection(arr1: any[], arr2: any[]): any[]{
+  public static intersection(arr1: any[], arr2: any[]): any[] {
     let intersection = arr1.filter(item => -1 !== arr2.indexOf(item));
     return [...new Set(intersection)]
   }

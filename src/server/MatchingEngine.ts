@@ -1,11 +1,22 @@
 import {
-  default as DataModel, IHorseRidingDayQ, IHorseRidingHourQ, IKido, PrefType,
-  IKidHorseOption, IRankedHourlySolution, IBestSolution, IResultList, IHorseRidingHour, IKidHorse
+  default as DataModel,
+  IHorseRidingDayQ,
+  IHorseRidingHourQ,
+  IKido,
+  PrefType,
+  IKidHorseOption,
+  IRankedHourlySolution,
+  IBestSolution,
+  IResult,
+  IHorseRidingHour,
+  IKidHorse,
+  IRankedDailySolution,
+  IHourlySolution
 } from "./DataModel";
 import Utils from "./Utils";
 import {IMatchOption} from "./searchLists/SearchList";
 import HourlySearchList from "./searchLists/HourlySearchList";
-//import DailySearchList from "./searchLists/DailySearchList";
+import DailySearchList from "./searchLists/DailySearchList";
 
 //just for tests  todo rm
 const tableHelper = require('../../test/tableHelper.js')
@@ -65,7 +76,7 @@ export default class MatchingEngine {
       let workTime = Date.now() - startTime
       console.log(`Total time: ${workTime} [ms]`)
 
-      return this.mapResultsToISolution(this.combineHours())
+      return this.mapResultsToISolution(await this.combineHours())
     } catch (err) {
       let str: string = err.stack
       return this.mapResultsToISolution({results: [], errorMsg: `${str.substring(0, 170)} ...`})
@@ -286,9 +297,12 @@ export default class MatchingEngine {
     tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 
-  private mapResultsToISolution(results: IResultList): IBestSolution {
+  private mapResultsToISolution(results: IResult): IBestSolution {
     if (!results.results.length && !results.errorMsg) {
-      return {solution: {day: '', remarks: '', hours: []}, errorMsg: `Som Ting Wong`}
+      return {
+        solution: {day: '', remarks: '', hours: []},
+        errorMsg: `Checked everything, and could not find a single result :(`
+      }
     }
     if (!results.results.length && results.errorMsg) {
       return {
@@ -359,10 +373,10 @@ export default class MatchingEngine {
 
         let currentOption: IMatchOption | null = hourlySearchList.shift()
         if (currentOption) {
-          // Every new kido-horse-cost (currentOption) added to permutation set (allHourlyOptionsSoFar)
-          // is generation new valid permutations or returns null
+          // Every new kido-horse-cost (currentOption) added to combination set (allHourlyOptionsSoFar)
+          // results in generation new valid combinations or null
           allHourlyOptionsSoFar.push(currentOption)
-          let permutations = allHourlyOptionsSoFar.getCombinations(currentOption)
+          let permutations: IRankedHourlySolution[] | null = allHourlyOptionsSoFar.getCombinations(currentOption)
           if (permutations) {
             //complete solutions with matches predefined in query
             permutations = permutations.map(permutation => {
@@ -383,15 +397,14 @@ export default class MatchingEngine {
 
   }
 
-  //todo
-  private combineHours(): IResultList {
+  private async combineHours(): Promise<IResult> {
 
     let allHoursCount = this.dailyQuery.hours.length
 
     //temporary assume, that 3 hour max
     if (allHoursCount <= this.horsoMaxHoursPerDay) {
       let results: IHorseRidingHour[] = []
-      this.dailyQuery.hours.forEach((hourDetails, i) => {
+      this.dailyQuery.hours.forEach((hourDetails) => {
         let hourName = hourDetails.hour
         results.push({
           hour: hourName,
@@ -402,42 +415,79 @@ export default class MatchingEngine {
       return {results}
     }
 
-    //Sketch _____________________________________________________
+    let dailySearchList: DailySearchList =
+      new DailySearchList(allHoursCount, this.horsoMaxHoursPerDay)
 
-    /* let dailySearchList: DailySearchList =
-       new DailySearchList(allHoursCount, this.horsoMaxHoursPerDay)
+    // convert to IMatch, and flatten list then push one-by-one to DailySearchList
+    let flatHoursSolutions: IMatchOption[] = []
+    Object.keys(this.qInProc).forEach((hourName) => {
+      this.qInProc[hourName].map((rankedHourlySol) => {
+        return {item: rankedHourlySol.solution, category: hourName, cost: rankedHourlySol.cost}
+      }).forEach(elem => {
+        flatHoursSolutions.push(elem)
+      })
+    })
+    flatHoursSolutions.sort((elem1, elem2) => {
+      return elem1.cost - elem2.cost
+    })
+    flatHoursSolutions.forEach(elem => {
+      dailySearchList.push(elem)
+    })
 
-     // append each item with hour info
+    // this is a taker object, which will be pushed one at a time
+    let allDailyOptionsSoFar: DailySearchList = new DailySearchList(allHoursCount, this.horsoMaxHoursPerDay)
 
-     // flat qInProc
-     let transHoursSolutions: any[]
-     this.qInProc.forEach((hour, i) => {
-       transHoursSolutions.push(this.qInProc[i].map((rankedHourlySol)=> {
-         return Object.assign(rankedHourlySol,{})
-       }))
-     })
-     // sort qInProc
-     //push one-by-one
+    let timeout = 200 * allHoursCount
+    let resultsLimit = 20 * timeout
 
-     this.dailyQuery.hours.forEach((hour, i) => {
-       searchListPrototype[hour.hour] = this.qInProc[i]
-     })
+    let resultsList: IRankedDailySolution[] = []
 
+    await Utils.asyncWhile(
+      () => {
+        return (!!dailySearchList.totalLength() && resultsList.length < resultsLimit)
+      },
+      () => {
+        return (!!dailySearchList.totalLength() && resultsList.length == 0)
+      },
+      async () => {
+        let currentOption: IMatchOption | null = dailySearchList.shift()
+        if (currentOption) {
+          // Every new hour-solution-cost (currentOption) added to combination set (allDailyOptionsSoFar)
+          // results in generation new valid combinations or null
+          allDailyOptionsSoFar.push(currentOption)
+          let permutations = allDailyOptionsSoFar.getCombinations(currentOption)
+          if (permutations) {
+            //store the solutions
+            resultsList = resultsList.concat(permutations)
+          }
+        }
+        //console.log('                                                          ............. getting next combinations')
+      }, timeout)
 
-     //console.log('hourlySearchList',hourlySearchList.totalLength())
+    if (resultsList && resultsList.length) {
+      //ascending sort of the resulting solutions by its cost
+      resultsList.sort((solution1, solution2) => {
+        return solution1.cost - solution2.cost
+      })
+      let bestDailySolution = resultsList[0].solutions
 
-     // this is a taker object, which will be pushed one at a time
-     let allDailyOptionsSoFar: DailySearchList = new DailySearchList(allHoursCount,this.horsoMaxHoursPerDay)
-
-     //console.log('allOptionsSoFar',allOptionsSoFar.totalLength())
-
-     let timeout = 200 * allHoursCount
-     let resultsLimit = 20 * timeout*/
+      let result: IHorseRidingHour[] = []
+      this.dailyQuery.hours.forEach((hourDetails) => {
+        let hourName = hourDetails.hour
+        let trainingDetails: IHourlySolution | undefined = bestDailySolution.find(elem => {
+          return elem.hourName == hourName
+        })
+        if (trainingDetails) {
+          result.push({
+            hour: hourDetails.hour,
+            trainer: hourDetails.trainer,
+            trainingsDetails: trainingDetails.solution
+          })
+        }
+      })
+      return {results: result}
+    }
 
     return {results: []}
-
-    //this should generate solutions in asyncWhile with timeout, limits and stuff
-    //the results could be potentially stored
-
   }
 }

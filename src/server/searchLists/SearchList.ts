@@ -72,7 +72,7 @@ export default abstract class SearchList {
       this.searchListHeart[catName] = []
     }
     let kidosWorstMatch = this.searchListHeart[catName].length - 1
-    if ((this.searchListHeart[catName].length == 0) || this.searchListHeart[catName][kidosWorstMatch].cost < option.cost) {
+    if ((this.searchListHeart[catName].length == 0) || this.searchListHeart[catName][kidosWorstMatch].cost <= option.cost) {
       this.searchListHeart[catName].push(Object.assign(option, {globalIndex: this.lastIndex}))
       if (!this.allCategoriesInList.includes(catName)) {
         this.allCategoriesInList.push(catName)
@@ -219,11 +219,11 @@ export default abstract class SearchList {
     this.initialized = false
   }*/
 
-  protected getAllCatInList(): string[]{
+  protected getAllCatInList(): string[] {
     return this.allCategoriesInList
   }
 
-  protected isInitialized(): boolean{
+  protected isInitialized(): boolean {
     return this.initialized
   }
 

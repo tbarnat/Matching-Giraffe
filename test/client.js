@@ -2,8 +2,11 @@ const Client = require('../client-frontend/build/dist/Client').default;
 
 let client = new Client()
 
-const dailyQuery = require('./dailyQueries').dailyQuery3h
-//const dailyQuery = require('./dailyQueries').dailyQuery4h
+// const dailyQuery = require('./dailyQueries').dailyQuery3h
+// const dailyQuery = require('./dailyQueries').dailyQuery3h_2
+const dailyQuery = require('./dailyQueries').dailyQuery4h
+// const dailyQuery = require('./dailyQueries').dailyQuery4h_2
+// const dailyQuery = require('./dailyQueries').dailyQuery4h_simple
 
 let getSomeInteraction = async () => {
 

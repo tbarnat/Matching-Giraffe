@@ -21,9 +21,6 @@ export default class HourlySearchList extends SearchList{
       })
       subArr.push([newOption])
 
-      //console.log('-> new Opt: ',newOption)
-      //console.log('-> subList: ',subArr,'\n')
-
       let allCombinations = Utils.allArrComb(subArr)
       // filtering the combinations by the duplicated kido
       allCombinations = allCombinations.filter(comb => {
@@ -32,8 +29,6 @@ export default class HourlySearchList extends SearchList{
         })
         return Utils.strArrHasDuplicates(allItemsInComb)
       })
-      //console.log('-> result: ',allCombinations)
-      //console.log('\n ------------------------------------------------------ \n')
 
       if (allCombinations.length > 0) {
         return allCombinations.map(comb => {
