@@ -111,7 +111,23 @@ export interface IKidHorseOption extends IKidHorse {
 
 export interface IRankedHourlySolution {
   solution: IKidHorse[],
+  cost: number //sum of all costs included
+}
+
+
+/* ---------- DailySearchList helpers ---------- */
+export interface IHourlySolution {
+  hour: string
+  solution: IKidHorse[]
+}
+
+export interface IHourlySolOption extends IHourlySolution {
   cost: number
+}
+
+export interface IRankedDailySolution {
+  solutions: IHourlySolution[],
+  cost: number //sum of all costs included
 }
 
 

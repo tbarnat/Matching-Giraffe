@@ -18,7 +18,7 @@ export interface IMatchOption extends IMatch {
 // A possible match between category and item defined in object without any SearchList ballast
 export interface IMatch {
   category: string,
-  item: string
+  item: any
 }
 
 // A return-type interface: bunch of matches and associated overall cost
@@ -114,7 +114,7 @@ export default abstract class SearchList {
   }
 
   /* A core method - needs to be lighting fast */
-  public abstract getPermutations(newOption: IMatchOption): ISolution[] | any[] | null
+  public abstract getCombinations(newOption: IMatchOption): ISolution[] | any[] | null
 
 
   private checkIfInitialized(): boolean {
@@ -227,7 +227,7 @@ export default abstract class SearchList {
     return this.initialized
   }
 
-  public abstract mapOptionTo(option: IMatchOption): any
+  public abstract mapOptionTo(option: IMatch): any
 
   public abstract mapOptionFrom(option: any): IMatchOption
 }

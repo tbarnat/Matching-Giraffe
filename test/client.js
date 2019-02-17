@@ -2,7 +2,8 @@ const Client = require('../client-frontend/build/dist/Client').default;
 
 let client = new Client()
 
-const dailyQuery = require('./dailyQueries').dailyQuery1
+const dailyQuery = require('./dailyQueries').dailyQuery3h
+//const dailyQuery = require('./dailyQueries').dailyQuery4h
 
 let getSomeInteraction = async () => {
 
@@ -18,11 +19,11 @@ let getSomeInteraction = async () => {
         console.log('ERROR: could not log in')
     }
 
-    /*requestId = client.sendRequest('get_matches',dailyQuery)
+    requestId = client.sendRequest('get_matches',dailyQuery)
     let result = await client.waitFor(requestId)
     console.log('INFO:  got results')
     console.log('--------------------------------')
-    console.log(JSON.stringify(result,null,2))*/
+    console.log(JSON.stringify(result,null,2))
 
     /*let newTrainer = {name:'newGuy',remarks:'temp'}
     requestId = client.sendRequest('new_trainer',newTrainer)

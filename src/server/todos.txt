@@ -1,7 +1,8 @@
 Backend
-1) move from hours to whole day assembly
+1) MILESTONE 2 - move from hours to whole day assembly
 2) start on AWS
 ----later on----
+2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
 3) and new_user/edit_user/remove_user
 4) add logger
 5) conformation email handling

@@ -1,5 +1,5 @@
 import SearchList, {IMatch, IMatchOption, ISearchList} from "./SearchList";
-import {IKidHorseOption, IRankedHourlySolution, ITrainingDetail} from "../DataModel";
+import {IKidHorse, IKidHorseOption, IRankedHourlySolution, ITrainingDetail} from "../DataModel";
 import Utils from "../Utils";
 
 /* SearchList for generating permutations for an hour of training and finding different kid-horse matches with associated total cost */
@@ -9,7 +9,7 @@ export default class HourlySearchList extends SearchList{
     super(maxNumberOfCategories, searchList)
   }
 
-  public getPermutations(newOption: IMatchOption): IRankedHourlySolution[] | null {
+  public getCombinations(newOption: IMatchOption): IRankedHourlySolution[] | null {
     if (this.isInitialized()) {
       let categoryNames = this.getAllCatInList().filter(catName => (catName !== newOption.category))
       let subList = this.getSubListForCategories(categoryNames)
@@ -25,7 +25,7 @@ export default class HourlySearchList extends SearchList{
       //console.log('-> subList: ',subArr,'\n')
 
       let allCombinations = Utils.allArrComb(subArr)
-      // filtering the combinations with the duplicated kido
+      // filtering the combinations by the duplicated kido
       allCombinations = allCombinations.filter(comb => {
         let allItemsInComb = comb.map((option: IMatchOption) => {
           return option.item
@@ -38,10 +38,7 @@ export default class HourlySearchList extends SearchList{
       if (allCombinations.length > 0) {
         return allCombinations.map(comb => {
           let solution: ITrainingDetail[] = comb.map((option: IMatch) => {
-            return {
-              kidName: option.category,
-              horse: option.item
-            }
+            return this.mapOptionTo(option)
           })
           let cost: number = comb.map((item: IKidHorseOption)=> item.cost)
             .reduce((accCost: number, curCost: number) => {return accCost + curCost})
@@ -64,8 +61,8 @@ export default class HourlySearchList extends SearchList{
     return this.getSubListWithoutItems(horsos)
   }
 
-  public mapOptionTo(option: IMatchOption): IKidHorseOption{
-    return {kidName:option.category, horse:option.item, cost:option.cost}
+  public mapOptionTo(option: IMatch): IKidHorse{
+    return {kidName:option.category, horse:option.item}
   }
 
   public mapOptionFrom(option: IKidHorseOption): IMatchOption{
