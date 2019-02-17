@@ -1,5 +1,6 @@
 Backend
 1) query validation on backend!!!!!! - horse kido names and hours ahave to be unique and or matching db entires
+1b) validator checks if all kidos have all horses in prefs
 2) start on AWS
 ----later on----
 2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy

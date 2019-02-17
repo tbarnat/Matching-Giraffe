@@ -1,6 +1,7 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {IBackendMsg, IFrontendMsg, IHorseRidingDay, IHorso, IKido} from "./DataModel";
+import {IBackendMsg, IFrontendMsg, IHorseRidingDay} from "./DataModel";
+import QueryValidator from "./QueryValidator";
 
 export default class Dispatch {
 
@@ -9,16 +10,14 @@ export default class Dispatch {
 
   // request.data: IHorseRidingDayQ
   public async getMatches(userName: string, request: IFrontendMsg): Promise<IBackendMsg> {
-    let promiseArr: any[] = []
-    promiseArr.push(this.db.find('horsos', {userName}))
-    promiseArr.push(await this.db.find('kidos', {userName}))
-    let resolvedArr = await Promise.all(promiseArr)
-    let allHorsos = (resolvedArr[0] as IHorso[]).map(horso => horso.name)
-    let allKidos = resolvedArr[1] as IKido[]
-    let result = await (new MatchingEngine(allHorsos, allKidos)).getMatches(request.data)
-    let reply: IBackendMsg
-    reply = {replyTo: request.id, success: !result.errorMsg, data: result}
-    return reply
+    let QV = new QueryValidator(userName, this.db)
+    let errorMsg = QV.validateDailyQuery(request.data)
+    if(errorMsg){
+      return ({replyTo: request.id, success: false, data: {errorMsg}} as IBackendMsg)
+    }
+    let result = await (new MatchingEngine(QV.allHorsosString, QV.allKidos)).getMatches(request.data)
+    return ({replyTo: request.id, success: !result.errorMsg, data: result} as IBackendMsg)
+
   }
 
   // request.data: IHorseRidingDay
