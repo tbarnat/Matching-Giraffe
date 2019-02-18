@@ -1,12 +1,14 @@
 Backend
-1) query validation on backend!!!!!! - horse kido names and hours ahave to be unique and or matching db entires
+1a) query validation on backend!!!!!! - horse kido names and hours have to be unique and or matching db entires
 1b) validator checks if all kidos have all horses in prefs
-2) start on AWS
+2) add logger with rotating filesystem
+2b) convert dailyResult to table in table helper
+2b) create log parsing script, and reply parsing script
+3) start on AWS
 ----later on----
-2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
-3) and new_user/edit_user/remove_user
-4) add logger
-5) conformation email handling
+4) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
+5) add handling of new_user/edit_user/remove_user messages
+6) conformation email handling when registering
 
 WS frn-bck
-1) client should not disconnect
+1) should client disconnect (?)

@@ -154,7 +154,7 @@ export interface IBestSolution extends BackendData {
 }
 
 export interface BackendData {
-  errorMsg?: string
+  errorMsg?: string  // max 200 chars
 }
 
 export type ActionInMsg = 'login' | 'get_matches'  | 'save_matches' | 'remove_day' |

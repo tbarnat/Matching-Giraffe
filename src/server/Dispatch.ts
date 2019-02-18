@@ -11,6 +11,7 @@ export default class Dispatch {
   // request.data: IHorseRidingDayQ
   public async getMatches(userName: string, request: IFrontendMsg): Promise<IBackendMsg> {
     let QV = new QueryValidator(userName, this.db)
+    await QV.init()
     let errorMsg = QV.validateDailyQuery(request.data)
     if(errorMsg){
       return ({replyTo: request.id, success: false, data: {errorMsg}} as IBackendMsg)
