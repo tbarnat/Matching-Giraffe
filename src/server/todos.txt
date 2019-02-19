@@ -1,4 +1,5 @@
 Backend
+0) add commons for typings
 1a) query validation on backend!!!!!! - horse kido names and hours have to be unique and or matching db entires
 1b) validator checks if all kidos have all horses in prefs
 2) add logger with rotating filesystem
