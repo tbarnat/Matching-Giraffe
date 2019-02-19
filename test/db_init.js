@@ -104,9 +104,30 @@ let kidos =
                 limp: ['Czejen', 'Parys'],
                 excl: []
             }
-        }]
+        },
+        {
+            name: 'IncompletePreferences',
+            prefs: {
+                best: ['Bella'],
+                nice: ['Bracio'],
+                isok: ['Lady', 'Czejen'],
+                limp: ['Parys'],
+                excl: ['Dzidzia']
+            }
+        },
+        {
+            name: 'InvalidPreferences',
+            prefs: {
+                best: ['Bella'],
+                nice: ['Bracio', 'Bug-bug-bug'],
+                isok: ['Lady', 'Czejen'],
+                limp: ['Parys'],
+                excl: ['Dzidzia']
+            }
+        },
+    ]
 
-let trainers = [{name: 'Eva'}, {name: 'Paulina'}, {name: 'Inna'}]
+let trainers = [{name: 'Ja'}, {name: 'Paulina'}, {name: 'Inna'}]
 
 let fillInDatabase = async () => {
 
@@ -114,19 +135,44 @@ let fillInDatabase = async () => {
     await db.init()
 
     let collections = {horsos, kidos, trainers}
-    for(let collName of Object.keys(collections)){
+    for (let collName of Object.keys(collections)) {
         let data = await db.find(collName)
-        if(data.length){
+        if (data.length) {
             await db.drop(collName)
         }
         await db.insertMany(collName, collections[collName])
-        await db.updateMany(collName,{},{$set : {"userName":"qwe"}})
+        await db.updateMany(collName, {}, {$set: {"userName": "qwe"}})
     }
     let data = await db.find('users')
-    if(data.length){
+    if (data.length) {
         await db.drop('users')
     }
-    await db.insertOne('users', {userName:'qwe', email:'qwe@wp.pl', password:'7815696ecbf1c96e6894b779456d330e', lastVisit:Date.now(), allVisits: 0})
+    await db.insertOne('users', {
+        userName: 'qwe',
+        email: 'qwe@wp.pl',
+        password: '7815696ecbf1c96e6894b779456d330e',
+        lastVisit: Date.now(),
+        allVisits: 0
+    })
+    data = await db.find('diary')
+    if (data.length) {
+        await db.drop('diary')
+    }
+    await db.insertOne('diary', {
+        day: '2019-01-01',
+        hours: [
+            {
+                hour: '1230',
+                trainer: ['Ja'],
+                remarks: '',
+                trainingsDetails: [
+                    {kidName: 'Ola C', horse: 'Bella'},
+                ]
+            },
+        ],
+        dailyExcludes: [],
+        userName: "qwe"
+    })
 }
 
 console.log('database will be repopulated with some start-up values')

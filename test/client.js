@@ -2,11 +2,12 @@ const Client = require('../client-frontend/build/dist/Client').default;
 
 let client = new Client()
 
-// const dailyQuery = require('./dailyQueries').dailyQuery3h
-// const dailyQuery = require('./dailyQueries').dailyQuery3h_2
-const dailyQuery = require('./dailyQueries').dailyQuery4h
-// const dailyQuery = require('./dailyQueries').dailyQuery4h_2
-// const dailyQuery = require('./dailyQueries').dailyQuery4h_simple
+// const dailyQuery = require('./zDailyQueriesValid').dailyQueryBasic
+// const dailyQuery = require('./zDailyQueriesValid').dailyQuery3h
+// const dailyQuery = require('./zDailyQueriesValid').dailyQuery3h_2
+ const dailyQuery = require('./zDailyQueriesValid').dailyQuery4h
+// const dailyQuery = require('./zDailyQueriesValid').dailyQuery4h_2
+// const dailyQuery = require('./zDailyQueriesValid').dailyQuery4h_simple
 
 let getSomeInteraction = async () => {
 

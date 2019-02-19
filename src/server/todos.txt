@@ -1,7 +1,6 @@
 Backend
+0) fix bug - workload check does not work <- add % in console
 0) add commons for typings
-1a) query validation on backend!!!!!! - horse kido names and hours have to be unique and or matching db entires
-1b) validator checks if all kidos have all horses in prefs
 2) add logger with rotating filesystem
 2b) convert dailyResult to table in table helper
 2b) create log parsing script, and reply parsing script
@@ -13,3 +12,7 @@ Backend
 
 WS frn-bck
 1) should client disconnect (?)
+
+Frontend
+1) login
+2) default trainer for user

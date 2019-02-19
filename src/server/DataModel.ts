@@ -13,11 +13,11 @@ last (5th) level of prefs is excludes - horses which mustn't be selected for any
 export type PrefType = { [prefCategory: string]: string[] }
 //export type PrefCategory = 'best' | 'nice' | 'isok' | 'limp' | 'excl' <- cannot be use in index type signature (?)
 
-export default class DataModel {
+export default class Preferences {
   static readonly allPrefCat = ['best', 'nice', 'isok', 'limp', 'excl']
   static readonly incPrefCat = ['best', 'nice', 'isok', 'limp']
-  static readonly incPrefCatRev = ['limp', 'isok', 'nice', 'best']
-  static readonly excPrefCat = ['excl']
+  //static readonly incPrefCatRev = ['limp', 'isok', 'nice', 'best']
+  //static readonly excPrefCat = ['excl']
 
   public static getPrefCatValue(prefCat: string): number {
     switch (prefCat) {
@@ -33,12 +33,29 @@ export default class DataModel {
         return -1  //'excl'
     }
   }
+
+  public static countItemsInPrefType(prefs: PrefType): number{
+    let totalLength: number = 0
+    Object.keys(prefs).forEach(level => {
+      totalLength += prefs[level].length
+    })
+    return totalLength
+  }
+
+  public static flatListForAllLevels(prefs: PrefType): string[]{
+    let flatList: string[] = []
+    Object.keys(prefs).forEach(level => {
+      flatList = flatList.concat(prefs[level])
+    })
+    return flatList
+  }
 }
 
 export interface IInstructo {
   name: string // unique!!!
   descr?: string
   remarks?: string
+  isDefault: boolean
 }
 
 export interface IHorso {
@@ -58,7 +75,7 @@ export interface IHorso {
 
 export interface IHorseRidingDayQ {
 //_id: number, //mongo id
-  day: string //the same as 'name', will be part of an url ie.: '20181011' (domain.pl/schedule20181011)
+  day: string //the same as 'name', will be part of an url format: YYYY-MM-DDxxxxx (xxxxx is optional value) ie.: '2018-10-11' (domain.pl/schedule2018-10-11) or
   remarks?: string // additional comments which would be rewritten
   hours: IHorseRidingHourQ[]
   dailyExcludes: string[] //unavailable horses 4e. injured

@@ -16,7 +16,10 @@ export default class Dispatch {
     if(errorMsg){
       return ({replyTo: request.id, success: false, data: {errorMsg}} as IBackendMsg)
     }
-    let result = await (new MatchingEngine(QV.allHorsosString, QV.allKidos)).getMatches(request.data)
+    if(QV.checkIfQueryIsAlreadySolved(request.data)){
+      return ({replyTo: request.id, success: true, data: {solution: request.data}} as IBackendMsg)
+    }
+    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos())).getMatches(request.data)
     return ({replyTo: request.id, success: !result.errorMsg, data: result} as IBackendMsg)
 
   }

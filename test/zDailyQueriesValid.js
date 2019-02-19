@@ -1,5 +1,20 @@
-exports.dailyQuery3h = {
+exports.dailyQueryBasic = {
     day: '20190314',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina'],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+            ],
+        },
+    ],
+    dailyExcludes: []
+}
+
+exports.dailyQuery3h = {
+    day: '2019-03-14',
     hours: [
         {
             hour: '1230',
@@ -37,7 +52,7 @@ exports.dailyQuery3h = {
 }
 
 exports.dailyQuery3h_2 = {
-    day: '20190314',
+    day: '2019-03-14',
     hours: [
         {
             hour: '1230',
@@ -75,7 +90,7 @@ exports.dailyQuery3h_2 = {
 }
 
 exports.dailyQuery4h = { //PROBLEM
-    day: '20190314',
+    day: '2019-03-14',
     hours: [
         {
             hour: '1230',
@@ -90,7 +105,7 @@ exports.dailyQuery4h = { //PROBLEM
         },
         {
             hour: '1430',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Ola C'},
                 {kidName: 'Weronika'},
@@ -101,7 +116,7 @@ exports.dailyQuery4h = { //PROBLEM
         },
         {
             hour: '1530',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Paula'},
                 {kidName: 'Kalina'},
@@ -123,7 +138,7 @@ exports.dailyQuery4h = { //PROBLEM
 }
 
 exports.dailyQuery4h_2 = { //??
-    day: '20190314',
+    day: '2019-03-14',
     hours: [
         {
             hour: '1230',
@@ -138,7 +153,7 @@ exports.dailyQuery4h_2 = { //??
         },
         {
             hour: '1430',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Ola C'},
                 {kidName: 'Weronika'},
@@ -149,7 +164,7 @@ exports.dailyQuery4h_2 = { //??
         },
         {
             hour: '1530',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Paula'},
                 {kidName: 'Kalina'},
@@ -171,18 +186,18 @@ exports.dailyQuery4h_2 = { //??
 }
 
 exports.dailyQuery4h_simple = { //??
-    day: '20190314',
+    day: '2019-03-14',
     hours: [
         {
             hour: '1330',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Julka Mala'},
             ]
         },
         {
             hour: '1430',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Ola C'},
 
@@ -190,7 +205,7 @@ exports.dailyQuery4h_simple = { //??
         },
         {
             hour: '1530',
-            trainer: ['Eva'],
+            trainer: ['Ja'],
             trainingsDetails: [
                 {kidName: 'Paula'},
 

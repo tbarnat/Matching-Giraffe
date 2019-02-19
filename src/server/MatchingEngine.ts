@@ -1,5 +1,5 @@
 import {
-  default as DataModel,
+  default as Preferences,
   IHorseRidingDayQ,
   IHorseRidingHourQ,
   IKido,
@@ -156,10 +156,7 @@ export default class MatchingEngine {
     })
 
     //  Update preferences
-    let kidosWithIncompletePrefs = await this.updateKidosPreferences()
-    if (!!kidosWithIncompletePrefs.length) {
-      return `Preferences for: ${kidosWithIncompletePrefs.join(', ')} are incomplete or incorrect`
-    }
+    await this.updateKidosPreferences()
 
     // Count cost points for kido-horso combination, and set searching order
     this.countCostPointsAndOrder()
@@ -179,7 +176,7 @@ export default class MatchingEngine {
     })
   }
 
-  private async updateKidosPreferences(): Promise<string[]> {
+  private async updateKidosPreferences() {
     this.initDistKidosInQuery()
 
     console.log('Raw kido preferences: ',JSON.stringify(this.allKidos))
@@ -191,8 +188,8 @@ export default class MatchingEngine {
     }).forEach(kido => {
       //filter the daily excludes
       this.kidosPrefs[kido.name] = {}
-      Object.keys(kido.prefs).forEach(category => {
-        this.kidosPrefs[kido.name][category] = kido.prefs[category].filter(horso => {
+      Object.keys(kido.prefs).forEach(level => {
+        this.kidosPrefs[kido.name][level] = kido.prefs[level].filter(horso => {
           return !this.dailyQuery.dailyExcludes.includes(horso)
         })
       })
@@ -207,20 +204,6 @@ export default class MatchingEngine {
     }))
     console.log('Preferences after filtering of excluded horses: ',JSON.stringify(kidosWithoutExcludedHorses))
     //tableHelper.tablePreferences(kidosWithoutExcludedHorses)
-
-
-    // check if each kidosPref table comprise exactly the number available horses
-    let kidosWithIncompletePrefs: string[] = []
-    Object.keys(this.kidosPrefs).forEach(kido => {
-      let kidosHorsesInPrefs: number = 0
-      DataModel.allPrefCat.forEach(prefCat => {
-        kidosHorsesInPrefs += this.kidosPrefs[kido][prefCat].length
-      })
-      if (kidosHorsesInPrefs != this.avaHorsos.length) {
-        kidosWithIncompletePrefs.push(kido)
-      }
-    })
-    return kidosWithIncompletePrefs
   }
 
   private initDistKidosInQuery() {
@@ -252,19 +235,19 @@ export default class MatchingEngine {
     let costForFreq: { [prefCat: string]: { [horsoName: string]: number } } = {}
     let costFromUpperLevels: { [horsoName: string]: number } = {}
 
-    DataModel.incPrefCat.forEach(prefCat => {
-      costForFreq[prefCat] = {}
+    Preferences.incPrefCat.forEach(level => {
+      costForFreq[level] = {}
       this.allKidosInQuery.forEach(kidoName => {
-        this.kidosPrefs[kidoName][prefCat].forEach(horso => {
+        this.kidosPrefs[kidoName][level].forEach(horso => {
           costFromUpperLevels[horso] = costFromUpperLevels[horso] ? costFromUpperLevels[horso] : 0
-          costForFreq[prefCat][horso] = costForFreq[prefCat][horso] ? costForFreq[prefCat][horso] : 0
-          costForFreq[prefCat][horso] += 1 + costFromUpperLevels[horso]
+          costForFreq[level][horso] = costForFreq[level][horso] ? costForFreq[level][horso] : 0
+          costForFreq[level][horso] += 1 + costFromUpperLevels[horso]
         })
       })
-      Object.keys(costForFreq[prefCat]).forEach(horso => {
+      Object.keys(costForFreq[level]).forEach(horso => {
         costFromUpperLevels[horso] = costFromUpperLevels[horso] ? costFromUpperLevels[horso] : 0
-        let storedValue: number = costForFreq[prefCat][horso]
-        costForFreq[prefCat][horso] += costFromUpperLevels[horso]
+        let storedValue: number = costForFreq[level][horso]
+        costForFreq[level][horso] += costFromUpperLevels[horso]
         costFromUpperLevels[horso] += storedValue
       })
     })
@@ -273,9 +256,9 @@ export default class MatchingEngine {
               + (globalIndex level (each kido) * (number of available horses in sables)^2) */
     let flatOptionList: IKidHorseOption[] = []
     this.kidosInQueryD.forEach(kido => {
-      DataModel.incPrefCat.forEach(prefCat => {
-        this.kidosPrefs[kido][prefCat].forEach(horso => {
-          let cost = costForFreq[prefCat][horso] + DataModel.getPrefCatValue(prefCat) * this.avaHorsos.length ** 2
+      Preferences.incPrefCat.forEach(level => {
+        this.kidosPrefs[kido][level].forEach(horso => {
+          let cost = costForFreq[level][horso] + Preferences.getPrefCatValue(level) * this.avaHorsos.length ** 2
           flatOptionList.push({kidName: kido, horse: horso, cost})
         })
       })
