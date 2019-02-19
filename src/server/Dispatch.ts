@@ -77,7 +77,6 @@ export default class Dispatch {
   }
 
   public async registerVisit(userName: string){
-    let reply = await this.db.updateOne('users',{userName},{ $set: {'lastVisit': Date.now()},'$inc': {'allVisits': 1}}) //
-    console.log(reply.result)
+    await this.db.updateOne('users',{userName},{ $set: {'lastVisit': Date.now()},'$inc': {'allVisits': 1}}) //
   }
 }

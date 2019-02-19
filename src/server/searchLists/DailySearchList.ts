@@ -4,6 +4,9 @@ import Utils from "../Utils";
 
 export default class DailySearchList extends SearchList {
 
+  private allCombinations: number = 0
+  private combCorrWorkload: number = 0
+
   public constructor(maxNumberOfCategories: number, private readonly maxWorkHours: number, searchList?: ISearchList) {
     super(maxNumberOfCategories, searchList)
   }
@@ -46,7 +49,9 @@ export default class DailySearchList extends SearchList {
     return null
   }
 
+  // todo this is buggy, but must be efficient af
   private isWorkLoadOk(combination: IMatch[]): boolean {
+    this.allCombinations++
     let usageStat: { [horse: string]: number } = {}
     combination.forEach(solutions => {
       solutions.item.forEach((kidHorse: IKidHorse) => {
@@ -58,7 +63,12 @@ export default class DailySearchList extends SearchList {
         }
       })
     })
+    this.combCorrWorkload++
     return true
+  }
+
+  public getWorkloadOkStat(): string{
+    return Math.round((this.combCorrWorkload/this.allCombinations)*1000)/10+'%'
   }
 
   public mapOptionTo(option: IMatch): IHourlySolution {

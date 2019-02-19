@@ -468,6 +468,7 @@ export default class MatchingEngine {
 
     let procTime = Date.now() - startTime
     console.log(`   Daily matching for:  ${this.dailyQuery.day} ->  time[ms]: ${procTime} / ${timeout}   comb.: ${resultsList.length} / ${resultsLimit}`)
+    console.log(`   Combinations with correct workload: ${allDailyOptionsSoFar.getWorkloadOkStat()}`)
 
     return result
   }

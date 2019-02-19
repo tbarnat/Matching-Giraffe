@@ -1,6 +1,6 @@
 Backend
-0) fix bug - workload check does not work <- add % in console
-0) add commons for typings
+0) fix bug with workload
+1) add commons for typings
 2) add logger with rotating filesystem
 2b) convert dailyResult to table in table helper
 2b) create log parsing script, and reply parsing script
