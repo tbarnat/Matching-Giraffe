@@ -1,4 +1,5 @@
 import Utils from "../utils/Utils";
+import {Logger} from "../utils/Logger";
 
 // SearchList interface - main structure
 export interface ISearchList {
@@ -38,7 +39,7 @@ export default abstract class SearchList {
   private lastIndex: number
   private initialized: boolean
 
-  protected constructor(maxNumberOfCategories: number, searchList?: ISearchList) {
+  protected constructor(private log:Logger, maxNumberOfCategories: number, searchList?: ISearchList) {
     if (!searchList) {
       this.searchListHeart = {}
       this.totalMaxNumberOfCategories = maxNumberOfCategories
@@ -155,7 +156,7 @@ export default abstract class SearchList {
     return this.searchListHeart
   }
 
-  // helper method to test things out
+  // kinda validator
   private isInOrder(searchList: ISearchList): boolean {
 
     let copySearchList = JSON.parse(JSON.stringify(searchList))
@@ -186,23 +187,14 @@ export default abstract class SearchList {
       flatList = flatList.concat(searchList[kido])
     })
     if (allGlobalIndices.length !== flatList.length) {
-      console.log('ERROR: length/global index not ok')
+      this.log.error('ERROR: length/global index not ok')
       return false
     }
-    allGlobalIndices.forEach((value1, i) => {
-      if (i < allGlobalIndices.length - 1) {
-        let value2 = allGlobalIndices[i + 1]
-        if (value2 - value1 !== 1) {
-          //console.log('INFO: sublist not sequential')
-          return false
-        }
-      }
-    })
     Object.keys(searchList).forEach(kido => {
       searchList[kido].forEach((item, i) => {
         if (i + 1 < searchList[kido].length) {
           if (searchList[kido][i].cost > searchList[kido][i + 1].cost) {
-            console.log('ERROR: cost is increasing with index')
+            this.log.error('ERROR: cost is increasing with index')
             return false
           }
         }

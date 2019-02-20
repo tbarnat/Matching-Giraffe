@@ -1,14 +1,15 @@
 import SearchList, {IMatch, IMatchOption, ISearchList} from "./SearchList";
 import {IHourlySolOption, IHourlySolution, IRankedDailySolution} from "../DataModel";
 import Utils from "../utils/Utils";
+import {Logger} from "../utils/Logger";
 
 export default class DailySearchList extends SearchList {
 
   private allCombinations: number = 0
   private combCorrWorkload: number = 0
 
-  public constructor(maxNumberOfCategories: number, private readonly maxWorkHours: number, searchList?: ISearchList) {
-    super(maxNumberOfCategories, searchList)
+  public constructor(log: Logger, maxNumberOfCategories: number, private readonly maxWorkHours: number, searchList?: ISearchList) {
+    super(log, maxNumberOfCategories, searchList)
   }
 
   public getCombinations(newOption: IMatchOption): IRankedDailySolution[] | null {

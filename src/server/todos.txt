@@ -1,10 +1,10 @@
 Backend
 0) timeout in asyncWhile does not work (?)
-1) add commons for typings
-2) add logger with rotating filesystem
+1) add commons for typings (mess around with package.json)
 2b) convert dailyResult to table in table helper
-2b) create log parsing script, and reply parsing script
-3) start on AWS
+2b) create log parsing script, and reply parsing script move tableHelper to src then
+3) add handling for list hints
+4) start on AWS
 ----later on----
 4) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
 5) add handling of new_user/edit_user/remove_user messages

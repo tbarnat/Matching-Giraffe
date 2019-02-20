@@ -216,7 +216,7 @@ export default class MatchingEngine {
         }
       })
     })
-    this.hourlySearchOrder = new HourlySearchList(this.kidosInQueryD.length)
+    this.hourlySearchOrder = new HourlySearchList(this.log, this.kidosInQueryD.length)
   }
 
 
@@ -325,14 +325,14 @@ export default class MatchingEngine {
 
     // this is an unfiltered donor object, form which horses of preselected matches have to be removed
     let hourlySearchListUnfiltered: HourlySearchList =
-      new HourlySearchList(allUnmatchedKidosThisHour.length, this.hourlySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
+      new HourlySearchList(this.log, allUnmatchedKidosThisHour.length, this.hourlySearchOrder.getSubListForKidos(allUnmatchedKidosThisHour))
 
     // this is a donor object, which will be shifted one at a time
     let hourlySearchList: HourlySearchList =
-      new HourlySearchList(allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
+      new HourlySearchList(this.log, allUnmatchedKidosThisHour.length, hourlySearchListUnfiltered.getSubListWithoutHorsos(horsosMatchedInQuery))
 
     // this is a taker object, which will be pushed one at a time
-    let allHourlyOptionsSoFar: HourlySearchList = new HourlySearchList(allUnmatchedKidosThisHour.length)
+    let allHourlyOptionsSoFar: HourlySearchList = new HourlySearchList(this.log, allUnmatchedKidosThisHour.length)
 
     let timeout = 50 * hour.trainingsDetails.length // + max 0,2 sec per hour scheduled for that day
     let resultsLimit = 20 * timeout
@@ -394,7 +394,7 @@ export default class MatchingEngine {
     }
 
     let dailySearchList: DailySearchList =
-      new DailySearchList(allHoursCount, this.horsoMaxHoursPerDay)
+      new DailySearchList(this.log, allHoursCount, this.horsoMaxHoursPerDay)
 
     // convert to IMatch, and flatten list then push one-by-one to DailySearchList
     let flatHoursSolutions: IMatchOption[] = []
@@ -413,7 +413,7 @@ export default class MatchingEngine {
     })
 
     // this is a taker object, which will be pushed one at a time
-    let allDailyOptionsSoFar: DailySearchList = new DailySearchList(allHoursCount, this.horsoMaxHoursPerDay)
+    let allDailyOptionsSoFar: DailySearchList = new DailySearchList(this.log, allHoursCount, this.horsoMaxHoursPerDay)
 
     let timeout = 200 * allHoursCount
     let resultsLimit = 50 * timeout

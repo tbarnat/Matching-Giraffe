@@ -6,6 +6,7 @@ import {
   InsertWriteOpResult,
   DeleteWriteOpResultObject
 } from 'mongodb'
+import {Logger} from "./utils/Logger";
 
 export interface IDatabase {
   init(): Promise<void>
@@ -28,13 +29,12 @@ export class Database implements IDatabase {
 
   protected db: Db;
 
-  constructor(protected config: DbConfig) {}
+  constructor(protected config: DbConfig, private log: Logger) {}
 
   async init() {
     let client = await MongoClient.connect(this.config.uri);
-    console.log(`client uses ${this.config.uri}`)
     this.db = client.db(this.config.dbName);
-    console.log(`connected to database: ${this.config.uri}`)
+    this.log.info(`Successfully connected to database: ${this.config.uri}`)
   }
 
 

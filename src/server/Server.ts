@@ -32,6 +32,7 @@ export default class Server {
 
   constructor(config: IServerConfig) {
 
+    console.log('-> Started <-')
     if (!fs.existsSync(config.logger.pathLog)) {
       fs.mkdirSync(config.logger.pathLog)
     }
@@ -50,7 +51,7 @@ export default class Server {
   }
 
   private async initDb(config: IServerConfig) {
-    this.db = new Database(config.db);
+    this.db = new Database(config.db, this.log);
     await this.db.init()
   }
 

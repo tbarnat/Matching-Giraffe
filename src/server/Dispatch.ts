@@ -83,4 +83,30 @@ export default class Dispatch {
   public async registerVisit(userName: string) {
     await this.db.updateOne('users', {userName}, {$set: {'lastVisit': Date.now()}, '$inc': {'allVisits': 1}}) //
   }
+
+  // correct hints
+  /*public async getHintsForKido(query: string, taken: string[]): Promise<string[]> {
+    return await this.getHintsForQuery('kidos', query, taken)
+  }
+
+  public async getHintsForHorsos(query: string, taken: string[]): Promise<string[]> {
+    return await this.getHintsForQuery('horsos', query, taken)
+  }
+
+  public async getHintsForTrainers(query: string): Promise<string[]> {
+    return await this.getHintsForQuery('trainers', query)
+  }
+
+  /!*  Get 10 first hints of select-one-menu for entry name by query string in ex. 'Nata', plus filter for all names that were already taken  *!/
+  public async getHintsForQuery(collection: string, query: string, taken?: string[]): Promise<string[]> {
+    let entries = await this.db.find(collection)
+    if (taken) {
+      entries = entries.filter(entry => {
+        return -taken.indexOf(entry)
+      })
+    }
+    return entries.filter(entry => {
+      return (entry.substr(0, query.length) === query)
+    }).sort().slice(0, 9)
+  }*/
 }

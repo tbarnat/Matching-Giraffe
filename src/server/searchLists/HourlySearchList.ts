@@ -1,12 +1,13 @@
 import SearchList, {IMatch, IMatchOption, ISearchList} from "./SearchList";
 import {IKidHorse, IKidHorseOption, IRankedHourlySolution, ITrainingDetail} from "../DataModel";
 import Utils from "../utils/Utils";
+import {Logger} from "../utils/Logger";
 
 /* SearchList for generating permutations for an hour of training and finding different kid-horse matches with associated total cost */
 export default class HourlySearchList extends SearchList{
 
-  public constructor(maxNumberOfCategories: number, searchList?: ISearchList){
-    super(maxNumberOfCategories, searchList)
+  public constructor(log: Logger, maxNumberOfCategories: number, searchList?: ISearchList){
+    super(log, maxNumberOfCategories, searchList)
   }
 
   public getCombinations(newOption: IMatchOption): IRankedHourlySolution[] | null {
@@ -41,7 +42,6 @@ export default class HourlySearchList extends SearchList{
           return {solution, cost}
         })
         // no point in sorting, cause sort will be done, when all combinations are gathered
-        //console.log('-> finally: ',rankedSolutions)
         //return rankedSolutions
       }
     }
