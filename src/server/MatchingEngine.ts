@@ -13,10 +13,11 @@ import {
   IRankedDailySolution,
   IHourlySolution
 } from "./DataModel";
-import Utils from "./Utils";
+import Utils from "./utils/Utils";
 import {IMatchOption} from "./searchLists/SearchList";
 import HourlySearchList from "./searchLists/HourlySearchList";
 import DailySearchList from "./searchLists/DailySearchList";
+import {Logger} from "./utils/Logger";
 
 export default class MatchingEngine {
 
@@ -38,7 +39,7 @@ export default class MatchingEngine {
   private qInProc: { [hour: string]: IRankedHourlySolution[] } = {}
 
 
-  constructor(protected allHorsos: string[], protected allKidos: IKido[]) {
+  constructor(protected allHorsos: string[], protected allKidos: IKido[], private log: Logger) {
   }
 
   //exposed main method, asked from outside of class
@@ -48,7 +49,9 @@ export default class MatchingEngine {
 
       this.dailyQuery = dailyQuery
 
-      console.log('New daily query:', JSON.stringify(this.dailyQuery))
+      this.log.info(this.dailyQuery,'New daily query')
+      this.log.debug(this.allHorsos,'All horses as string')
+      this.log.debug(this.allKidos,'All kidos')
 
       let errorMsg = await this.initScopeVariables()
       if (errorMsg) {
@@ -72,7 +75,7 @@ export default class MatchingEngine {
       let hoursCombined = await this.combineHours()
 
       let workTime = Date.now() - startTime
-      console.log(`Calc done with total time: ${workTime} [ms]`)
+      this.log.info(`Calc done with total time: ${workTime} [ms]`)
 
       return this.mapResultsToISolution(hoursCombined)
     } catch (err) {
@@ -179,9 +182,8 @@ export default class MatchingEngine {
   private async updateKidosPreferences() {
     this.initDistKidosInQuery()
 
-    console.log('Raw kido preferences: ',JSON.stringify(this.allKidos))
+    this.log.debug(this.allKidos,'Raw kido preferences: ')
     //tableHelper.tablePreferences(this.allKidos) // todo add script
-
 
     this.allKidos.filter(kido => {
       return (this.kidosInQueryD.includes(kido.name))
@@ -202,7 +204,7 @@ export default class MatchingEngine {
       name: kidoName,
       prefs: this.kidosPrefs[kidoName]
     }))
-    console.log('Preferences after filtering of excluded horses: ',JSON.stringify(kidosWithoutExcludedHorses))
+    this.log.debug(kidosWithoutExcludedHorses,'Preferences after filtering of excluded horses')
     //tableHelper.tablePreferences(kidosWithoutExcludedHorses)
   }
 
@@ -273,7 +275,7 @@ export default class MatchingEngine {
     })
 
     let tempDailySearchOrder = this.hourlySearchOrder.getFullListObject()
-    console.log('Search order table for whole day: (sorted by cost): ',JSON.stringify(tempDailySearchOrder))
+    this.log.debug(tempDailySearchOrder,'Search order table for whole day (sorted by cost)')
     //tableHelper.tableSearchOrder(tempDailySearchOrder)
   }
 
@@ -300,7 +302,7 @@ export default class MatchingEngine {
       })
       message = {solution: {day: this.dailyQuery.day, remarks: this.dailyQuery.remarks, hours: results.results}}
     }
-    console.log('Returned object: ',JSON.stringify(message))
+    this.log.info(message,'Returned object')
     return message
   }
 
@@ -368,7 +370,7 @@ export default class MatchingEngine {
     })
 
     let procTime = Date.now() - startTime
-    console.log(`   Hourly matching for: ${hourName}     ->  time[ms]: ${procTime} / ${timeout}   comb.: ${this.qInProc[hourName].length} / ${resultsLimit}`)
+    this.log.info(`   Hourly matching for: ${hourName}     ->  time[ms]: ${procTime} / ${timeout}   comb.: ${this.qInProc[hourName].length} / ${resultsLimit}`)
 
   }
 
@@ -467,8 +469,8 @@ export default class MatchingEngine {
     }
 
     let procTime = Date.now() - startTime
-    console.log(`   Daily matching for:  ${this.dailyQuery.day} ->  time[ms]: ${procTime} / ${timeout}   comb.: ${resultsList.length} / ${resultsLimit}`)
-    console.log(`   Combinations with correct workload: ${allDailyOptionsSoFar.getWorkloadOkStat()}`)
+    this.log.info(`   Daily matching for:  ${this.dailyQuery.day} ->  time[ms]: ${procTime} / ${timeout}   comb.: ${resultsList.length} / ${resultsLimit}`)
+    this.log.info(`   Combinations with correct workload: ${allDailyOptionsSoFar.getWorkloadOkStat()}`)
 
     return result
   }

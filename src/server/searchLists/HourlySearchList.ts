@@ -1,6 +1,6 @@
 import SearchList, {IMatch, IMatchOption, ISearchList} from "./SearchList";
 import {IKidHorse, IKidHorseOption, IRankedHourlySolution, ITrainingDetail} from "../DataModel";
-import Utils from "../Utils";
+import Utils from "../utils/Utils";
 
 /* SearchList for generating permutations for an hour of training and finding different kid-horse matches with associated total cost */
 export default class HourlySearchList extends SearchList{

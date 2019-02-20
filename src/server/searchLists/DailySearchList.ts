@@ -1,6 +1,6 @@
 import SearchList, {IMatch, IMatchOption, ISearchList} from "./SearchList";
-import {IHourlySolOption, IHourlySolution, IKidHorse, IRankedDailySolution} from "../DataModel";
-import Utils from "../Utils";
+import {IHourlySolOption, IHourlySolution, IRankedDailySolution} from "../DataModel";
+import Utils from "../utils/Utils";
 
 export default class DailySearchList extends SearchList {
 
@@ -43,26 +43,25 @@ export default class DailySearchList extends SearchList {
           return {solutions, cost}
         })
         // no point in sorting, cause sort will be done, when all combinations are gathered
-        //console.log('-> finally: ',rankedSolutions)
       }
     }
     return null
   }
 
-  // todo this is buggy, but must be efficient af
-  private isWorkLoadOk(combination: IMatch[]): boolean {
+  private isWorkLoadOk(combination: IMatch[]) {
     this.allCombinations++
     let usageStat: { [horse: string]: number } = {}
-    combination.forEach(solutions => {
-      solutions.item.forEach((kidHorse: IKidHorse) => {
-        usageStat[kidHorse.horse] ? usageStat[kidHorse.horse] += 1 : usageStat[kidHorse.horse] = 1
-      })
-      Object.keys(usageStat).forEach(horse => {
-        if (usageStat[horse] > this.maxWorkHours) {
-          return false
+    for (const solutions of combination) {
+      for (const kidHorse of solutions.item) {
+        if (usageStat[kidHorse.horse]) {
+          if (++usageStat[kidHorse.horse] > this.maxWorkHours) {
+            return false
+          }
+        } else {
+          usageStat[kidHorse.horse] = 1
         }
-      })
-    })
+      }
+    }
     this.combCorrWorkload++
     return true
   }

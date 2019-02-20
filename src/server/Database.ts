@@ -19,16 +19,16 @@ export interface IDatabase {
   drop(collectionName: string): Promise<any>
 }
 
-export interface Config {
-  uri: string
-  dbName: string
+export interface DbConfig {
+  uri: string //'mongodb://localhost:27017'
+  dbName: string //'hmDev'
 }
 
 export class Database implements IDatabase {
 
   protected db: Db;
 
-  constructor(protected config: Config) {}
+  constructor(protected config: DbConfig) {}
 
   async init() {
     let client = await MongoClient.connect(this.config.uri);

@@ -4,7 +4,7 @@
 *.iml
 *.log
 dist
-temp
+tmp
 README.md
 
 # dependencies

@@ -2,10 +2,11 @@ import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
 import {IBackendMsg, IFrontendMsg, IHorseRidingDay} from "./DataModel";
 import QueryValidator from "./QueryValidator";
+import {Logger} from "./utils/Logger";
 
 export default class Dispatch {
 
-  constructor(protected db: Database) {
+  constructor(protected db: Database, private log: Logger) {
   }
 
   // request.data: IHorseRidingDayQ
@@ -13,13 +14,13 @@ export default class Dispatch {
     let QV = new QueryValidator(userName, this.db)
     await QV.init()
     let errorMsg = await QV.validateDailyQuery(request.data)
-    if(errorMsg){
+    if (errorMsg) {
       return ({replyTo: request.id, success: false, data: {errorMsg}} as IBackendMsg)
     }
-    if(QV.checkIfQueryIsAlreadySolved(request.data)){
+    if (QV.checkIfQueryIsAlreadySolved(request.data)) {
       return ({replyTo: request.id, success: true, data: {solution: request.data}} as IBackendMsg)
     }
-    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos())).getMatches(request.data)
+    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos(), this.log.child({msgId: request.id}))).getMatches(request.data)
     return ({replyTo: request.id, success: !result.errorMsg, data: result} as IBackendMsg)
 
   }
@@ -59,7 +60,10 @@ export default class Dispatch {
   // request.data: IHorse / IKido / IInstructo
   public async editDbEntry(userName: string, request: IFrontendMsg, collName: string): Promise<IBackendMsg> {
     let name = request.data.name
-    let mongoUpdObj = await this.db.updateOne(collName, {userName, name}, { $set:Object.assign({userName}, request.data)})
+    let mongoUpdObj = await this.db.updateOne(collName, {
+      userName,
+      name
+    }, {$set: Object.assign({userName}, request.data)})
     if (!mongoUpdObj.modifiedCount) {
       return {success: false, data: {errorMsg: `Edited none by the name: ${name}`}}
     }
@@ -76,7 +80,7 @@ export default class Dispatch {
     return {success: true, data: {}}
   }
 
-  public async registerVisit(userName: string){
-    await this.db.updateOne('users',{userName},{ $set: {'lastVisit': Date.now()},'$inc': {'allVisits': 1}}) //
+  public async registerVisit(userName: string) {
+    await this.db.updateOne('users', {userName}, {$set: {'lastVisit': Date.now()}, '$inc': {'allVisits': 1}}) //
   }
 }

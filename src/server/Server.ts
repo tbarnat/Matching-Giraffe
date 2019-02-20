@@ -1,8 +1,10 @@
 import http = require('http')
+import fs = require('fs')
 import WebSocket = require('ws')
-import {Database} from "./Database";
+import {Database, DbConfig} from "./Database";
 import Dispatch from "./Dispatch";
 import {IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
+import {Logger, LoggerConfig} from "./utils/Logger";
 
 const crypto = require('crypto');
 
@@ -10,14 +12,15 @@ const crypto = require('crypto');
 
 interface IServerConfig {
   port: number
-  db: {
-    uri: string  //'mongodb://localhost:27017'
-    dbName: string  //'hmDev'
-  }
+  path: string
+  logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent',
+  db: DbConfig,
+  logger: LoggerConfig
 }
 
 export default class Server {
 
+  protected log: Logger
   protected db: Database
   private httpServer: http.Server;
   private wss: WebSocket.Server;
@@ -28,15 +31,21 @@ export default class Server {
   private readonly actionSuffixes = ['user', 'horse', 'kid', 'trainer']
 
   constructor(config: IServerConfig) {
+
+    if (!fs.existsSync(config.logger.pathLog)) {
+      fs.mkdirSync(config.logger.pathLog)
+    }
+    this.log = new Logger(config.logger)
+
     this.initDb(config).then(() => {
-      this.dispatch = new Dispatch(this.db)
+      this.dispatch = new Dispatch(this.db, this.log)
       this.httpServer = http.createServer();
       this.wss = new WebSocket.Server({server: this.httpServer});
       this.wss.on('connection', this.onWssServerConnection.bind(this));
       this.httpServer.listen(config.port)
-      console.log('server started')
-    }).catch(() => {
-      console.log('db init failed')
+      this.log.info('Server started')
+    }).catch((err) => {
+      this.log.error('Db init failed', err)
     })
   }
 
@@ -51,11 +60,10 @@ export default class Server {
     this.wsClients.push(ws);
     const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
-
-    console.log(`client (${ip}) connected`);
+    this.log.info(`client (${ip}) connected`);
 
     ws.on('close', () => {
-      console.log(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
+      this.log.info(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
       const idx = this.wsClients.indexOf(ws);
       if (idx != -1) {
         this.wsClients.splice(idx, 1)
@@ -63,7 +71,7 @@ export default class Server {
     });
 
     ws.on('message', async (msg) => {
-      console.log(`message received: ${msg} \n`);
+      this.log.debug(`message received: ${msg} \n`);
       try {
         if (msg === '"ping"') {
           ws.send('"pong"')
@@ -73,7 +81,7 @@ export default class Server {
         request = request as IFrontendMsg
         if (userName) {
           await this.onClientMessageReceived(ws, userName, request)
-        } else if(request.action == 'login'){
+        } else if (request.action == 'login') {
           //request: {userName:string,password:string}
           let reply: IBackendMsg = {success: false, data: 'Invalid login or password'}
           let loginInfo = (await this.db.findOne('users', {userName: request.data.userName}) as ILoginAttempt)
@@ -82,20 +90,19 @@ export default class Server {
             if (loginInfo.password === hash) {
               userName = loginInfo.userName
               this.dispatch.registerVisit(userName)
-              console.log(`  -- > user: ${userName}, ip: ${ip} : auth ok`);
-              reply = {success:true, data:{}}
+              this.log.info(`Authenticated connection for user: \'${userName}\', ip: ${ip}`);
+              reply = {success: true, data: {}}
             }
           }
           this.sendMsg(ws, request, reply)
         }
       } catch (error) {
-        console.log(error, 'Incorrect data type')
+        this.log.warn(error, 'Incorrect data type')
       }
     });
   }
 
   public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
-    //console.log(request, 'received')
     let reply: IBackendMsg
     switch (request.action) {
       /*case 'login': <- this is handled somewhere else
@@ -103,7 +110,7 @@ export default class Server {
       case 'new_user':
       case 'edit_user':
       case 'remove_user':
-        reply = {success:false,data:{errorMsg:'not implemented yet'}}
+        reply = {success: false, data: {errorMsg: 'not implemented yet'}}
         break
       case 'get_matches':
         reply = await this.dispatch.getMatches(userName, request);
@@ -115,23 +122,23 @@ export default class Server {
         reply = await this.dispatch.deleteDay(userName, request)
         break;
       default:
-        if(request.action){
+        if (request.action) {
           let msgArr = request.action.split('_')
-          if(msgArr && msgArr.length == 2){
+          if (msgArr && msgArr.length == 2) {
             let prefix = msgArr[0]
             let suffix = msgArr[1]
-            if(this.actionPrefixes.includes(prefix) && this.actionSuffixes.includes(suffix)){
+            if (this.actionPrefixes.includes(prefix) && this.actionSuffixes.includes(suffix)) {
               let collectionName = this.actionSuffixToCollection(suffix)
               let method = this.actionPrefixToMethod(prefix)
-              reply = await method.bind(this)(userName,request,collectionName)
+              reply = await method.bind(this)(userName, request, collectionName)
               break
             }
           }
         }
-        reply = {success:false,data:{errorMsg:'unknown request'}}
+        reply = {success: false, data: {errorMsg: 'unknown request'}}
         break;
     }
-    console.log('reply for: ',request.action,'  ->  ', JSON.stringify(reply))
+    this.log.debug(reply, `reply for: action: ${request.action}  (${request.id})`)
     this.sendMsg(ws, request, reply)
   }
 
@@ -141,20 +148,28 @@ export default class Server {
   }
 
   private actionPrefixToMethod(actionPrefix: string): ((userName: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
-    switch (actionPrefix){
-      case 'edit': return this.dispatch.editDbEntry
-      case 'remove': return this.dispatch.removeDbEntry
-      default: return this.dispatch.newDbEntry //'new'
+    switch (actionPrefix) {
+      case 'edit':
+        return this.dispatch.editDbEntry
+      case 'remove':
+        return this.dispatch.removeDbEntry
+      default:
+        return this.dispatch.newDbEntry //'new'
     }
   }
 
-  private actionSuffixToCollection(actionSuffix: string):string{
+  private actionSuffixToCollection(actionSuffix: string): string {
     switch (actionSuffix) {
-      case 'horse': return 'horsos'
-      case 'kid': return 'kidos'
-      case 'trainer': return 'trainers'
-      case 'user': return 'users'
-      default: return 'undefined_collection'
+      case 'horse':
+        return 'horsos'
+      case 'kid':
+        return 'kidos'
+      case 'trainer':
+        return 'trainers'
+      case 'user':
+        return 'users'
+      default:
+        return 'undefined_collection'
     }
   }
 }

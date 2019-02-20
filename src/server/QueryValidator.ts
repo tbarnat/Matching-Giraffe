@@ -49,7 +49,6 @@ export default class QueryValidator {
       }
       toBeDailyQuery.hours.forEach((hour: any) => {
         validStructure = validStructure && (_.isEqual(Object.keys(hour).sort(), hourKeys1) || _.isEqual(Object.keys(hour).sort(), hourKeys2))
-        //console.log(Object.keys(hour).sort(), hourKeys, 'lvl1')
         if (!Array.isArray(hour.trainer)) {
           return `Trainers for hour: \'${toBeDailyQuery.hours}\' is not an array.`
         }
@@ -59,7 +58,6 @@ export default class QueryValidator {
           }
           hour.trainingsDetails.forEach((training: any) => {
             validStructure = validStructure && (_.isEqual(Object.keys(training).sort(), trainingKeys1) || _.isEqual(Object.keys(training).sort(), trainingKeys2))
-            //console.log(Object.keys(training).sort(), trainingKeys1, 'lvl2')
           })
         } else {
           return `Training details for hour: \'${toBeDailyQuery.hours}\' is not an array.`
