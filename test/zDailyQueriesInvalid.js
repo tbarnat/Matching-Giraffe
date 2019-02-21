@@ -12,6 +12,26 @@ exports.dailyQuery0 = {
                 {kidName: 'Julka Mala'},
             ],
         },
+        {
+            hour: '1330',
+            trainer: ['Ja'],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+                {kidName: 'Kalina', horse:'Dzidzia'},
+                {kidName: 'Ola C', horse:''},
+                {kidName: 'Maja', horse:''},
+            ],
+        },
+        {
+            hour: '1430',
+            trainer: [],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Paula',horse:'Dzidzia'},
+                {kidName: 'Kalina'},
+            ],
+        },
     ],
     dailyExcludes: []
 }
@@ -271,8 +291,76 @@ exports.dailyQuery15 = {
     dailyExcludes: ['Bug horse'] // <-INCORRECT
 }
 
-//case:16 incomplete preferences
+//case:16 repeated data - trainers
 exports.dailyQuery16 = {
+    day: '2019-03-14',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina','Paulina'],// <-INCORRECT
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+            ],
+        },
+    ],
+    dailyExcludes: ['Parys']
+}
+
+//case:17 repeated data - kids
+exports.dailyQuery17 = {
+    day: '2019-03-14',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina'],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+                {kidName: 'Julka Mala',horse:'Dzidzia'},// <-INCORRECT
+            ],
+        },
+    ],
+    dailyExcludes: ['Parys']
+}
+
+
+//case:18 repeated data - predefined horses
+exports.dailyQuery18 = {
+    day: '2019-03-14',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina'],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Julka Mala',horse:'Dzidzia'},
+                {kidName: 'Paula',horse:'Dzidzia'},// <-INCORRECT
+            ],
+        },
+    ],
+    dailyExcludes: ['Parys']
+}
+
+//case:19 repeated data - horse in excluded and in predefined match
+exports.dailyQuery19 = {
+    day: '2019-03-14',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina'],
+            remarks: '',
+            trainingsDetails: [
+                {kidName: 'Paula',horse:''},
+                {kidName: 'Weronika',horse:'Parys'},// <-INCORRECT
+            ],
+        },
+    ],
+    dailyExcludes: ['Parys']
+}
+
+//case:20 incomplete preferences
+exports.dailyQuery20 = {
     day: '2019-03-14',
     hours: [
         {
@@ -287,8 +375,8 @@ exports.dailyQuery16 = {
     dailyExcludes: []
 }
 
-//case:17 incomplete preferences
-exports.dailyQuery17 = {
+//case:21 incomplete preferences
+exports.dailyQuery21 = {
     day: '2019-03-14',
     hours: [
         {
@@ -303,8 +391,8 @@ exports.dailyQuery17 = {
     dailyExcludes: []
 }
 
-//case:18 - nothing to solve
-exports.dailyQuery18 = {
+//case:22 - nothing to solve
+exports.dailyQuery22 = {
     day: '2019-03-14',
     hours: [
         {

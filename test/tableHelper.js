@@ -32,6 +32,31 @@ module.exports = {
     resultTable.sort((entry1, entry2) => {return entry1.gIndex - entry2.gIndex})
     console.table(resultTable)
     return resultTable
+  },
+
+  tableResults: function getDailyQueryResults(bestSolution){
+    if(bestSolution.solution){
+        let hourArr = bestSolution.solution.hours
+        let resultArr = []
+        hourArr.forEach(hour => {
+            hour.trainingsDetails.forEach((training, i) => {
+                let hourObject = {}
+                if(i === 0){
+                    hourObject.HOUR = hour.hour
+                }
+                if(i < hour.trainer.length){
+                    hourObject.TRAINER = hour.trainer[i]
+                }
+                hourObject.KIDO = training.kidName
+                hourObject.HORSO = training.horse
+                resultArr.push(hourObject)
+            })
+            if(hour.trainer.length > hour.trainingsDetails.length){
+                resultArr.push({TRAINER: '...'})
+            }
+        })
+        console.table(resultArr)
+    }
   }
 }
 

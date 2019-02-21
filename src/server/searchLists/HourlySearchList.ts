@@ -28,7 +28,7 @@ export default class HourlySearchList extends SearchList{
         let allItemsInComb = comb.map((option: IMatchOption) => {
           return option.item
         })
-        return Utils.strArrHasDuplicates(allItemsInComb)
+        return !Utils.strArrHasDuplicates(allItemsInComb)
       })
 
       if (allCombinations.length > 0) {

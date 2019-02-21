@@ -223,3 +223,50 @@ exports.dailyQuery4h_simple = { //??
     ],
     dailyExcludes: ['Parys'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
 }
+
+exports.dailyQueryTEMP = { //PROBLEM
+    day: '2019-03-14',
+    hours: [
+        {
+            hour: '1230',
+            trainer: ['Paulina'],
+            remarks: 'Maja ma zrobić ćwiczenie 3',
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+                {kidName: 'Maja'},
+                {kidName: 'Julka Lonza', horse:'Bracio'},
+                {kidName: 'Ola C', horse:'Bella'},
+            ]
+        },
+        {
+            hour: '1430',
+            trainer: ['Ja'],
+            trainingsDetails: [
+                {kidName: 'Ola C'},
+                {kidName: 'Weronika'},
+                {kidName: 'Emilka'},
+                {kidName: 'Kalina'},
+                {kidName: 'Paula'},
+            ]
+        },
+        {
+            hour: '1530',
+            trainer: ['Ja','Paulina'],
+            trainingsDetails: [
+                {kidName: 'Paula'},
+            ]
+        },
+        {
+            hour: '1630',
+            trainer: ['Paulina'],
+            trainingsDetails: [
+                {kidName: 'Julka Mala'},
+                {kidName: 'Maja'},
+                {kidName: 'Julka Lonza', horse:'Bracio'},
+                {kidName: 'Ola C', horse:'Bella'},
+            ]
+        },
+
+    ],
+    dailyExcludes: ['Parys'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
+}

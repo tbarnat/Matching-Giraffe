@@ -47,7 +47,7 @@ export default abstract class BaseClient {
         let contents = JSON.parse(msg.toString())
 
         if (contents.replyTo) {
-          console.log('got a valid reply')
+          //console.log('got a valid reply')
           this.handleReply(contents.replyTo, contents.success, contents.data)
         }
       });

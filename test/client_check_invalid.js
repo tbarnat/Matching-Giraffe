@@ -21,6 +21,10 @@ const dailyQuery15 = require('./zDailyQueriesInvalid').dailyQuery15
 const dailyQuery16 = require('./zDailyQueriesInvalid').dailyQuery16
 const dailyQuery17 = require('./zDailyQueriesInvalid').dailyQuery17
 const dailyQuery18 = require('./zDailyQueriesInvalid').dailyQuery18
+const dailyQuery19 = require('./zDailyQueriesInvalid').dailyQuery19
+const dailyQuery20 = require('./zDailyQueriesInvalid').dailyQuery20
+const dailyQuery21 = require('./zDailyQueriesInvalid').dailyQuery21
+const dailyQuery22 = require('./zDailyQueriesInvalid').dailyQuery22
 
 
 let getSomeInteraction = async () => {
@@ -45,7 +49,7 @@ let getSomeInteraction = async () => {
         console.log('--------------------------------',reqNumber)
         console.log(JSON.stringify(result,null,2))
         reqNumber += 1
-        if(reqNumber === 19){ //19
+        if(reqNumber === 23){ //23
             clearInterval(reqInt)
             console.log('...done')
         }

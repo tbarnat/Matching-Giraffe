@@ -35,10 +35,10 @@ export default class Utils {
     strArr.sort()
     for (let i = 0; i < strArr.length - 1; i++) {
       if (strArr[i + 1] == strArr[i]) {
-        return false
+        return true
       }
     }
-    return true
+    return false
   }
 
   public static intersection(arr1: any[], arr2: any[]): any[] {

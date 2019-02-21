@@ -1,11 +1,10 @@
 Backend
 0) timeout in asyncWhile does not work (?)
 1) add commons for typings (mess around with package.json)
-2b) convert dailyResult to table in table helper
-2b) create log parsing script, and reply parsing script move tableHelper to src then
 3) add handling for list hints
 4) start on AWS
 ----later on----
+2) create log parsing script, and reply parsing script move tableHelper to src then
 4) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
 5) add handling of new_user/edit_user/remove_user messages
 6) conformation email handling when registering
@@ -15,4 +14,4 @@ WS frn-bck
 
 Frontend
 1) login
-2) default trainer for user
+2) default trainer for user (?)
