@@ -9,7 +9,7 @@ import {
 import {Logger} from "./utils/Logger";
 
 export interface IDatabase {
-  init(): Promise<void>
+  init(withLogger:true): Promise<void>
   find(collectionName: string, query: Object, fields?: Object): Promise<any[]>
   findOne(collectionName: string, filter: Object): Promise<any>
   updateOne(collectionName: string, filter: Object, update: Object): Promise<UpdateWriteOpResult>
@@ -31,10 +31,12 @@ export class Database implements IDatabase {
 
   constructor(protected config: DbConfig, private log: Logger) {}
 
-  async init() {
+  async init(withLogger: boolean) {
     let client = await MongoClient.connect(this.config.uri);
     this.db = client.db(this.config.dbName);
-    this.log.info(`Successfully connected to database: ${this.config.uri}`)
+    if(withLogger){
+      this.log.info(`Successfully connected to database: ${this.config.uri}`)
+    }
   }
 
 

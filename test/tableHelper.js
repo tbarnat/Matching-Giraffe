@@ -53,6 +53,8 @@ module.exports = {
             })
             if(hour.trainer.length > hour.trainingsDetails.length){
                 resultArr.push({TRAINER: '...'})
+            }else{
+              resultArr.push({})
             }
         })
         console.table(resultArr)

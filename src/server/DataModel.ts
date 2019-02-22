@@ -175,10 +175,10 @@ export interface BackendData {
 }
 
 export type ActionInMsg = 'login' | 'get_matches'  | 'save_matches' | 'remove_day' |
-  'new_user'    | 'edit_user'    | 'remove_user'  |
-  'new_horse'   | 'edit_horse'   | 'remove_horse' |
-  'new_kid'     | 'edit_kid'     | 'remove_kid'   |
-  'new_trainer' | 'edit_trainer' | 'remove_trainer'
+  'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  |
+  'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  |
+  'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer'
+  //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user'
 
 export interface ILoginAttempt {
   userName: string // unique

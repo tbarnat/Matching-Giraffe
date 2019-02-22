@@ -1,7 +1,7 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {IBackendMsg, IFrontendMsg, IHorseRidingDay} from "./DataModel";
-import QueryValidator from "./QueryValidator";
+import {IBackendMsg, IHorseRidingDay} from "./DataModel";
+import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
 
 export default class Dispatch {
@@ -10,35 +10,35 @@ export default class Dispatch {
   }
 
   // request.data: IHorseRidingDayQ
-  public async getMatches(userName: string, request: IFrontendMsg): Promise<IBackendMsg> {
+  public async getMatches(userName: string, data: any): Promise<IBackendMsg> {
     let QV = new QueryValidator(userName, this.db)
     await QV.init()
-    let errorMsg = await QV.validateDailyQuery(request.data)
+    let errorMsg = await QV.validateDailyQuery(data)
     if (errorMsg) {
-      return ({replyTo: request.id, success: false, data: {errorMsg}} as IBackendMsg)
+      return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    if (QV.checkIfQueryIsAlreadySolved(request.data)) {
-      return ({replyTo: request.id, success: true, data: {solution: request.data}} as IBackendMsg)
+    if (QV.checkIfQueryIsAlreadySolved(data)) {
+      return ({success: true, data: {solution: data}} as IBackendMsg)
     }
-    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos(), this.log.child({msgId: request.id}))).getMatches(request.data)
-    return ({replyTo: request.id, success: !result.errorMsg, data: result} as IBackendMsg)
+    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos(), this.log.child({userName}))).getMatches(data)
+    return ({success: !result.errorMsg, data: result} as IBackendMsg)
 
   }
 
-  // request.data: IHorseRidingDay
-  public async saveMatches(userName: string, request: IFrontendMsg): Promise<IBackendMsg> {
-    let day: string = request.data.day
+  // data: IHorseRidingDay
+  public async saveMatches(userName: string, data: any): Promise<IBackendMsg> {
+    let day: string = data.day
     let existingEntry: IHorseRidingDay[] = await this.db.find('diary', {userName, day})
     if (existingEntry && existingEntry[0]) {
       return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}
     }
-    await this.db.insertOne('diary', Object.assign({userName}, request.data))
-    return {success: true, data: request.data.day}
+    await this.db.insertOne('diary', Object.assign({userName}, data))
+    return {success: true, data: data.day}
   }
 
-  // request.data: {day: string}   4ex: '2019-03-13' or '2019-03-15-a'
-  public async deleteDay(userName: string, request: IFrontendMsg): Promise<IBackendMsg> {
-    let day: string = request.data.day
+  // data: {day: string}   4ex: '2019-03-13' or '2019-03-15-a'
+  public async deleteDay(userName: string, data: any): Promise<IBackendMsg> {
+    let day: string = data.day
     let mongoDelObj = await this.db.deleteOne('diary', {userName, day})
     if (!mongoDelObj.deletedCount) {
       return {success: false, data: {errorMsg: `Deleted none by the day: ${day}`}}
@@ -46,67 +46,88 @@ export default class Dispatch {
     return {success: true, data: {}}
   }
 
-  // request.data: IHorse / IKido / IInstructo
-  public async newDbEntry(userName: string, request: IFrontendMsg, collName: string): Promise<IBackendMsg> {
-    let name = request.data.name
+  // data: IHorse / IKido / IInstructo
+  public async newDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+    let name = data.name
     let items: any[] = await this.db.find(collName, {userName, name})
     if (items && items[0]) {
       return {success: false, data: {errorMsg: `Entry named: ${name} already exists in db`}}
     }
-    await this.db.insertOne(collName, Object.assign({userName}, request.data))
+    //todo validation: empty strings, fields type and length
+    await this.db.insertOne(collName, Object.assign({userName}, data))
+    await this.logResults('new', userName, name, collName)
     return {success: true, data: {}}
   }
 
-  // request.data: IHorse / IKido / IInstructo
-  public async editDbEntry(userName: string, request: IFrontendMsg, collName: string): Promise<IBackendMsg> {
-    let name = request.data.name
+  // data: IHorse / IKido / IInstructo
+  public async editDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+    let name = data.name
+    //todo validation: empty strings, fields type and length
     let mongoUpdObj = await this.db.updateOne(collName, {
       userName,
       name
-    }, {$set: Object.assign({userName}, request.data)})
+    }, {$set: Object.assign({userName}, data)})
     if (!mongoUpdObj.modifiedCount) {
       return {success: false, data: {errorMsg: `Edited none by the name: ${name}`}}
     }
+    this.logResults('edit',userName,name,collName)
     return {success: true, data: {}}
   }
 
-  // request.data: IHorse / IKido / IInstructo
-  public async removeDbEntry(userName: string, request: IFrontendMsg, collName: string): Promise<IBackendMsg> {
-    let name: string = request.data.name
+  // data: IHorse / IKido / IInstructo
+  public async removeDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+    let name: string = data.name
     let mongoDelObj = await this.db.deleteOne(collName, {userName, name})
     if (!mongoDelObj.deletedCount) {
       return {success: false, data: {errorMsg: `Deleted none by the name: ${name}`}}
     }
+    this.logResults('remove',userName,name,collName)
     return {success: true, data: {}}
+  }
+
+  private async logResults(action: string, userName: string, name: string, collName: string) {
+    let entries = await this.db.find(collName, {userName, name})
+    this.log.info(entries, `for '${action}' by '${userName}' on '${name}' as '${collName}'`)
+  }
+
+  // data.query; string (incomplete string)  data.taken: string[] (list of taken, already selected)
+  public async listEntriesNames(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+    let items: string[] = []
+    if (collName === 'users') {
+      return {success: true, data: items}
+    }
+    let query: string = data.query
+    let entries: any[] = await this.db.find(collName, {userName})
+    if (entries.length) {
+      items = entries.map(entry => {
+        return entry.name
+      })
+    }
+    if (query) {
+      query = query.toLowerCase()
+      items = items.filter(item => {
+        item = item.toLowerCase()
+        return (item.substr(0, query.length) === query)
+      })
+    }
+    if (data.taken) {
+      let taken: string[] = data.taken
+      items = items.filter(item => {
+        return -taken.indexOf(item)
+      })
+    }
+    items = items.sort().slice(0, 10)
+    return {success: true, data: items}
   }
 
   public async registerVisit(userName: string) {
     await this.db.updateOne('users', {userName}, {$set: {'lastVisit': Date.now()}, '$inc': {'allVisits': 1}}) //
   }
 
-  // correct hints
-  /*public async getHintsForKido(query: string, taken: string[]): Promise<string[]> {
-    return await this.getHintsForQuery('kidos', query, taken)
-  }
-
-  public async getHintsForHorsos(query: string, taken: string[]): Promise<string[]> {
-    return await this.getHintsForQuery('horsos', query, taken)
-  }
-
-  public async getHintsForTrainers(query: string): Promise<string[]> {
-    return await this.getHintsForQuery('trainers', query)
-  }
-
-  /!*  Get 10 first hints of select-one-menu for entry name by query string in ex. 'Nata', plus filter for all names that were already taken  *!/
-  public async getHintsForQuery(collection: string, query: string, taken?: string[]): Promise<string[]> {
-    let entries = await this.db.find(collection)
-    if (taken) {
-      entries = entries.filter(entry => {
-        return -taken.indexOf(entry)
-      })
+  public async defaultIncorrect(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+    return {
+      success: false,
+      data: {errorMsg: 'incorrect_call'}
     }
-    return entries.filter(entry => {
-      return (entry.substr(0, query.length) === query)
-    }).sort().slice(0, 9)
-  }*/
+  }
 }

@@ -27,8 +27,8 @@ export default class Server {
   private wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
   private dispatch: Dispatch
 
-  private readonly actionPrefixes = ['new', 'edit', 'remove']
-  private readonly actionSuffixes = ['user', 'horse', 'kid', 'trainer']
+  private readonly actionPrefixes = ['new', 'edit', 'remove', 'list']
+  private readonly actionSuffixes = ['horse', 'kid', 'trainer']
 
   constructor(config: IServerConfig) {
 
@@ -52,7 +52,7 @@ export default class Server {
 
   private async initDb(config: IServerConfig) {
     this.db = new Database(config.db, this.log);
-    await this.db.init()
+    await this.db.init(true)
   }
 
   public async onWssServerConnection(ws: WebSocket, request: http.IncomingMessage) {
@@ -81,7 +81,11 @@ export default class Server {
         let request = JSON.parse(msg.toString());
         request = request as IFrontendMsg
         if (userName) {
-          await this.onClientMessageReceived(ws, userName, request)
+          try{
+            await this.onClientMessageReceived(ws, userName, request)
+          }catch (err) {
+            this.log.error(err, 'onClientMessageReceived')
+          }
         } else if (request.action == 'login') {
           //request: {userName:string,password:string}
           let reply: IBackendMsg = {success: false, data: 'Invalid login or password'}
@@ -105,22 +109,16 @@ export default class Server {
 
   public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
     let reply: IBackendMsg
+    let data = request.data
     switch (request.action) {
-      /*case 'login': <- this is handled somewhere else
-        break;*/
-      case 'new_user':
-      case 'edit_user':
-      case 'remove_user':
-        reply = {success: false, data: {errorMsg: 'not implemented yet'}}
-        break
       case 'get_matches':
-        reply = await this.dispatch.getMatches(userName, request);
+        reply = await this.dispatch.getMatches(userName, data);
         break;
       case 'save_matches':
-        reply = await this.dispatch.saveMatches(userName, request)
+        reply = await this.dispatch.saveMatches(userName, data)
         break;
       case 'remove_day':
-        reply = await this.dispatch.deleteDay(userName, request)
+        reply = await this.dispatch.deleteDay(userName, data)
         break;
       default:
         if (request.action) {
@@ -131,7 +129,7 @@ export default class Server {
             if (this.actionPrefixes.includes(prefix) && this.actionSuffixes.includes(suffix)) {
               let collectionName = this.actionSuffixToCollection(suffix)
               let method = this.actionPrefixToMethod(prefix)
-              reply = await method.bind(this)(userName, request, collectionName)
+              reply = await method.call(this.dispatch, userName, data, collectionName)
               break
             }
           }
@@ -139,23 +137,27 @@ export default class Server {
         reply = {success: false, data: {errorMsg: 'unknown request'}}
         break;
     }
-    this.log.debug(reply, `reply for: action: ${request.action}  (${request.id})`)
     this.sendMsg(ws, request, reply)
   }
 
   public sendMsg(ws: WebSocket, request: IFrontendMsg, reply: IBackendMsg) {
     Object.assign(reply, {replyTo: request.id})
+    this.log.debug({reply}, 'sending reply')
     ws.send(JSON.stringify(reply))
   }
 
   private actionPrefixToMethod(actionPrefix: string): ((userName: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
     switch (actionPrefix) {
+      case 'new':
+        return this.dispatch.newDbEntry
       case 'edit':
         return this.dispatch.editDbEntry
       case 'remove':
         return this.dispatch.removeDbEntry
-      default:
-        return this.dispatch.newDbEntry //'new'
+      case 'list':
+        return this.dispatch.listEntriesNames
+      default: //'incorrect'
+        return this.dispatch.defaultIncorrect
     }
   }
 

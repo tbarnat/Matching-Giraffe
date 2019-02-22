@@ -1,7 +1,7 @@
-import {Database} from "./Database";
-import {IHorseRidingDayQ, IHorso, IInstructo, IKido, default as Preferences} from "./DataModel";
+import {Database} from "../Database";
+import {IHorseRidingDayQ, IHorso, IInstructo, IKido, default as Preferences} from "../DataModel";
 import _ = require('lodash')
-import Utils from "./utils/Utils";
+import Utils from "../utils/Utils";
 
 export default class QueryValidator {
 
