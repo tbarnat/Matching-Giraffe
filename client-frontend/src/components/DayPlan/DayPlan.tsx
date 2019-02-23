@@ -4,8 +4,7 @@ import Paper from '@material-ui/core/Paper/Paper';
 import update from 'immutability-helper';
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles, Theme } from '@material-ui/core';
-import purple from '@material-ui/core/colors/purple';
-import green from '@material-ui/core/colors/purple';
+import Button from '@material-ui/core/Button';
 
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
@@ -14,16 +13,16 @@ import myClasses from './DayPlan.module.scss';
 
 const styles = (theme: Theme) => createStyles({
   root: {
-    maxHeight: '20vw'
+    maxHeight: '20vw',
   },
   cssLabel: {
     '&$cssFocused': {
-      color: purple[500],
+
     },
   },
   cssOutlinedInput: {
     '&$cssFocused $notchedOutline': {
-      borderColor: purple[500],
+
     },
   },
   cssFocused: {},
@@ -184,19 +183,6 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
             onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
             margin="dense"
             variant="outlined"
-            InputLabelProps={{
-              classes: {
-                root: classes.cssLabel,
-                focused: classes.cssFocused,
-              },
-            }}
-            InputProps={{
-              classes: {
-                root: classes.cssOutlinedInput,
-                focused: classes.cssFocused,
-                notchedOutline: classes.notchedOutline,
-              },
-            }}
           />
         )
       })
@@ -286,7 +272,7 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
         <div>
           {hours}
         </div>
-        <button onClick={() => console.log(this.state)}>get state</button>
+        <Button color="primary" variant="contained" onClick={() => console.log(this.state)}>get state</Button>
       </div>
     )
 
