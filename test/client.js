@@ -1,7 +1,6 @@
 const Client = require('../client-frontend/build/dist/Client').default;
+let client = new Client('ws://localhost:8080')
 const tableHelper = require('./tableHelper.js')
-
-let client = new Client()
 
 // const dailyQuery = require('./zDailyQueriesValid').dailyQueryBasic
 // const dailyQuery = require('./zDailyQueriesValid').dailyQuery3h

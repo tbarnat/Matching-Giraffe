@@ -1,5 +1,5 @@
 const Client = require('../client-frontend/build/dist/Client').default;
-let client = new Client()
+let client = new Client('ws://localhost:8080')
 
 let getSomeInteraction = async () => {
 

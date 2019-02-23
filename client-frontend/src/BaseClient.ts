@@ -4,13 +4,14 @@ export default abstract class BaseClient {
 
   private webSocket: WebSocket
   private initialized: Deferred
-  private readonly url = 'ws://localhost:8080';
+  private readonly url: string // 'ws://localhost:8080';
   private readonly pingTimeout: number = 10000
   private readonly reconnectTimeout: number = 30000
   private pingTimer: NodeJS.Timer
   private reconnectTimer: NodeJS.Timer
 
-  constructor() {
+  protected constructor(url: string) {
+    this.url = url
     this.connectToBackend()
   }
 
