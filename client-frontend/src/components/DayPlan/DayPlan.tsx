@@ -1,182 +1,299 @@
 import * as React from 'react';
 import TextField from '@material-ui/core/TextField';
+import Paper from '@material-ui/core/Paper/Paper';
 import update from 'immutability-helper';
+import { withStyles } from "@material-ui/core/styles";
+import { WithStyles, createStyles, Theme } from '@material-ui/core';
+import purple from '@material-ui/core/colors/purple';
+import green from '@material-ui/core/colors/purple';
+
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
-import classes from './DayPlan.module.scss';
+import myClasses from './DayPlan.module.scss';
 
 
-class DayPlan extends React.Component<{}, IHorseRidingDayQ> {
+const styles = (theme: Theme) => createStyles({
+  root: {
+    maxHeight: '20vw'
+  },
+  cssLabel: {
+    '&$cssFocused': {
+      color: purple[500],
+    },
+  },
+  cssOutlinedInput: {
+    '&$cssFocused $notchedOutline': {
+      borderColor: purple[500],
+    },
+  },
+  cssFocused: {},
+  notchedOutline: {},
+});
+
+interface Props extends WithStyles<typeof styles> {
+
+}
+
+const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Component<Props, IHorseRidingDayQ> {
   state = {
     day: '',
     remarks: '',
     dailyExcludes: [],
     hours: [
       {
-        hour: '1230',
-        trainer: ['Paulina'],
+        hour: '',
+        trainer: [''],
         trainingsDetails: [
-          { kidName: 'Julka Mala' },
-          { kidName: 'Maja' },
-          { kidName: 'Julka Lonza' },
-          { kidName: 'Ola C' },
-        ]
-      },
-      {
-        hour: '1430',
-        trainer: ['Eva'],
-        trainingsDetails: [
-          { kidName: 'Ola C' },
-          { kidName: 'Weronika' },
-          { kidName: 'Emilka' },
-          { kidName: 'Kalina' },
-          { kidName: 'Paula' },
-        ]
-      },
-      {
-        hour: '1530',
-        trainer: ['Eva'],
-        trainingsDetails: [
-          { kidName: 'Paula' },
-          { kidName: 'Kalina' },
+          { kidName: '', horse: '' },
         ]
       },
     ]
   };
+  // state = {
+  //   day: '',
+  //   remarks: '',
+  //   dailyExcludes: [],
+  //   hours: [
+  //     {
+  //       hour: '1230',
+  //       trainer: ['Paulina'],
+  //       trainingsDetails: [
+  //         { kidName: 'Julka Mala', horse: '' },
+  //         { kidName: 'Maja' },
+  //         { kidName: 'Julka Lonza' },
+  //         { kidName: 'Ola C' },
+  //       ]
+  //     },
+  //     {
+  //       hour: '1430',
+  //       trainer: ['Eva'],
+  //       trainingsDetails: [
+  //         { kidName: 'Ola C' },
+  //         { kidName: 'Weronika' },
+  //         { kidName: 'Emilka' },
+  //         { kidName: 'Kalina' },
+  //         { kidName: 'Paula' },
+  //       ]
+  //     },
+  //     {
+  //       hour: '1530',
+  //       trainer: ['Eva'],
+  //       trainingsDetails: [
+  //         { kidName: 'Paula' },
+  //         { kidName: 'Kalina' },
+  //       ]
+  //     },
+  //   ]
+  // };
 
 
-  changeHourHandler = (e: React.FormEvent<HTMLInputElement>, type: string, index: number[]) => {
+  changeHourHandler = (e: any, type: string, index: number[]) => {
+    // changeHourHandler = (e: React.FormEvent<HTMLInputElement>, type: string, index: number[]) => {
     const value = (e.target as HTMLInputElement).value;
+    let updatedValues: IHorseRidingHourQ[];
+    let isFilled: boolean;
+
     switch (type) {
       case 'hour':
-        {
-          const updatedValues = update(this.state.hours, { [index[0]]: { hour: { $set: value } } })
-          this.setState({ hours: updatedValues })
-
-          // Add next inputs
-          const isFilled = !updatedValues.some(hour => !Boolean(hour.hour));
-          if (isFilled) {
-            this.setState(prevState => ({
-              hours: prevState.hours.concat({
-                hour: '',
-                trainer: [''],
-                trainingsDetails: [
-                  { kidName: '' },
-                ]
-              })
-            }))
+        this.setState(prevState => {
+          // Remove redundant inputs
+          const hoursNum = prevState.hours.length - 1;
+          if (!value && index[0] < hoursNum) {
+            updatedValues = update(prevState.hours, { $splice: [[index[0], 1]] });
+            return { hours: updatedValues };
           }
-          break;
-        }
+
+          // Set  new Value
+          updatedValues = update(this.state.hours, { [index[0]]: { hour: { $set: value } } })
+          // Add next inputs
+          isFilled = !updatedValues.some(hour => !Boolean(hour.hour));
+          if (isFilled) {
+            const extended: IHorseRidingHourQ[] = update(updatedValues, { $push: [{ hour: '', trainer: [''], trainingsDetails: [{ kidName: '' }] }] });
+            return {
+              hours: extended
+            }
+          } else {
+            return {
+              hours: updatedValues
+            }
+          }
+        })
+        break;
+
       case 'kid':
-        {
-          const updatedValues: IHorseRidingHourQ[] = update(this.state.hours, { [index[0]]: { trainingsDetails: { [index[1]]: { kidName: { $set: value } } } } });
-          this.setState({ hours: updatedValues });
+        this.setState(prevState => {
 
-          // Add next inputs
-          const isFilled = !updatedValues[index[0]].trainingsDetails.some(kid => !Boolean(kid.kidName));
-          if (isFilled) {
-            this.setState(prevState => {
-              const extended: IHorseRidingHourQ[] = update(prevState.hours, { [index[0]]: { trainingsDetails: { $push: [{ kidName: '' }] } } });
-              return {
-                hours: extended
-              }
-            })
+          // Remove redundant inputs
+          const kidsNum = prevState.hours[index[0]].trainingsDetails.length - 1;
+          if (!value && index[1] < kidsNum) {
+            updatedValues = update(prevState.hours, { [index[0]]: { trainingsDetails: { $splice: [[index[1], 1]] } } });
+            return { hours: updatedValues };
           }
-          break;
-        }
-      case 'trainer': {
-        {
-          const updatedValues: IHorseRidingHourQ[] = update(this.state.hours, { [index[0]]: { trainer: { [index[1]]: { $set: value } } } });
-          this.setState({ hours: updatedValues });
 
+          updatedValues = update(this.state.hours, { [index[0]]: { trainingsDetails: { [index[1]]: { kidName: { $set: value } } } } });
           // Add next inputs
-          const isFilled = !updatedValues[index[0]].trainer.some(trainer => !Boolean(trainer));
+          isFilled = !updatedValues[index[0]].trainingsDetails.some(kid => !Boolean(kid.kidName));
           if (isFilled) {
-            this.setState(prevState => {
-              const extended: IHorseRidingHourQ[] = update(prevState.hours, { [index[0]]: { trainer: { $push: [''] } } });
-              return {
-                hours: extended
-              }
-            })
+            const extended: IHorseRidingHourQ[] = update(updatedValues, { [index[0]]: { trainingsDetails: { $push: [{ kidName: '' }] } } });
+            return {
+              hours: extended
+            }
+          } else {
+            return {
+              hours: updatedValues
+            }
           }
-          break;
+        })
+        break;
+
+      case 'horse':
+        updatedValues = update(this.state.hours, { [index[0]]: { trainingsDetails: { [index[1]]: { horse: { $set: value } } } } });
+        this.setState({ hours: updatedValues });
+        break;
+
+      case 'trainer':
+        updatedValues = update(this.state.hours, { [index[0]]: { trainer: { [index[1]]: { $set: value } } } });
+        this.setState({ hours: updatedValues });
+
+        // Add next inputs
+        isFilled = !updatedValues[index[0]].trainer.some(trainer => !Boolean(trainer));
+        if (isFilled) {
+          this.setState(prevState => {
+            const extended: IHorseRidingHourQ[] = update(prevState.hours, { [index[0]]: { trainer: { $push: [''] } } });
+            return {
+              hours: extended
+            }
+          })
         }
-      }
+        break;
     }
   }
 
-  // }
+
 
   render() {
+    const classes = this.props.classes;
+
     const hours = this.state.hours.map((hour, hourIndex) => {
-      const kids = hour.trainingsDetails.map((kid, kidIndex) => {
+      const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
-          <input type="text" key={kidIndex} placeholder="Dziecko" value={kid.kidName} onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, kidIndex])} />
+          <TextField
+            key={trainingIndex}
+            label="Dziecko"
+            value={training.kidName}
+            onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
+            margin="dense"
+            variant="outlined"
+            InputLabelProps={{
+              classes: {
+                root: classes.cssLabel,
+                focused: classes.cssFocused,
+              },
+            }}
+            InputProps={{
+              classes: {
+                root: classes.cssOutlinedInput,
+                focused: classes.cssFocused,
+                notchedOutline: classes.notchedOutline,
+              },
+            }}
+          />
         )
       })
+
+      const horses = hour.trainingsDetails.map((training, trainingIndex) => {
+        return training.kidName
+          ? (
+            <TextField
+              key={trainingIndex}
+              label="Koń"
+              value={training.horse || ''}
+              onChange={(e) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
+              margin="dense"
+              variant="outlined"
+            />
+          ) : null;
+      })
+
+
       const trainers = hour.trainer.map((tr, trainerIndex) => {
         return (
-          <input type="text" key={trainerIndex} placeholder="Trener" value={tr} onChange={(e) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])} />
+          <TextField
+            key={trainerIndex}
+            label="Trener"
+            value={tr}
+            onChange={(e) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])}
+            margin="dense"
+            variant="outlined"
+          />
         )
       })
 
       return (
-        <div className={classes.OneHourQuery} key={hourIndex}>
-          <div className={classes.Hours}>
-            <input type="text" placeholder="Godzina" onChange={(e) => this.changeHourHandler(e, 'hour', [hourIndex])} value={hour.hour} />
+        <Paper key={hourIndex}>
+          <div className={myClasses.OneHourQuery}>
+            <div className={myClasses.Hours}>
+              <TextField
+                label="Godzina"
+                value={hour.hour}
+                onChange={(e) => this.changeHourHandler(e, 'hour', [hourIndex])}
+                margin="dense"
+                variant="outlined"
+              />
+            </div>
+            <div className={myClasses.Kids}>
+              {kids}
+            </div>
+            <div className={myClasses.Kids}>
+              {horses}
+            </div>
+            <div className={myClasses.Trainers}>
+              {trainers}
+            </div>
           </div>
-          <div className={classes.Kids}>
-            {kids}
-          </div>
-          <div className={classes.Trainers}>
-            {trainers}
-          </div>
-          {/* <div className={classes.Horses}>
-            <input type="text" placeholder="Koń" />
-            <input type="text" placeholder="Koń" />
-          </div> */}
-        </div>
+        </Paper>
       )
 
     })
 
 
     return (
-      <div className={classes.DayPlan}>
+      <div className={myClasses.DayPlan}>
         <div style={{ display: 'flex' }}>
-          <input type="text" placeholder="Dzień" />
-          <input type="text" placeholder="Wyłączone konie" />
-          <input type="text" placeholder="Uwagi" />
+          <TextField
+            label="Dzień"
+            value={this.state.day}
+            onChange={(e) => this.setState({ day: e.target.value })}
+            margin="dense"
+            variant="outlined"
+          />
+          <TextField
+            label="Wyłączone konie"
+            value={this.state.dailyExcludes}
+            // onChange={(e) => this.setState({dailyExcludes: e.target.value})}
+            margin="dense"
+            variant="outlined"
+          />
+          <TextField
+            label="Uwagi"
+            value={this.state.remarks}
+            onChange={(e) => this.setState({ remarks: e.target.value })}
+            margin="dense"
+            variant="outlined"
+          />
         </div>
         <hr />
         <div>
           {hours}
-          {/* <div className={classes.OneHourQuery}>
-            <div className={classes.Hours}>
-              <input type="text" placeholder="Godzina" onChange={(e) => this.changeHandler(e)} />
-            </div>
-            <div className={classes.Kids}>
-              <input type="text" placeholder="Dziecko" />
-              <input type="text" placeholder="Dziecko" />
-            </div>
-            <div className={classes.Trainers}>
-              <input type="text" placeholder="Trener" />
-              <input type="text" placeholder="Trener" />
-            </div>
-            <div className={classes.Horses}>
-              <input type="text" placeholder="Koń" />
-              <input type="text" placeholder="Koń" />
-            </div>
-          </div> */}
         </div>
+        <button onClick={() => console.log(this.state)}>get state</button>
       </div>
     )
 
   }
-};
+});
 
-export default DayPlan;
+export default DecoratedDayPlan;
 
 
 // let query = {
