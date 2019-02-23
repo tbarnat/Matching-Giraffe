@@ -1,14 +1,5 @@
 const Client = require('../client-frontend/build/dist/Client').default;
-const tableHelper = require('./tableHelper.js')
-
 let client = new Client()
-
-// const dailyQuery = require('./zDailyQueriesValid').dailyQueryBasic
-// const dailyQuery = require('./zDailyQueriesValid').dailyQuery3h
-// const dailyQuery = require('./zDailyQueriesValid').dailyQuery3h_2
-const dailyQuery = require('./zDailyQueriesValid').dailyQueryTEMP
-// const dailyQuery = require('./zDailyQueriesValid').dailyQuery4h_2
-// const dailyQuery = require('./zDailyQueriesValid').dailyQuery4h_simple
 
 let getSomeInteraction = async () => {
 
@@ -103,7 +94,7 @@ let getSomeInteraction = async () => {
   console.log('INFO:  got results: ',resultGeneric)
 
   //list - few elem without taken
-  console.log('--10--')
+  console.log('--5--')
   data = {query:'aaa', taken: ['Aaa1','Aaa2','aaa3','aab1']}
   requestId = client.sendRequest('list_horse',data)
   resultGeneric = await client.waitFor(requestId)

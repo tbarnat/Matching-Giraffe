@@ -1,19 +1,22 @@
 Backend
 0) timeout in asyncWhile does not work (?)
 1) add commons for typings (mess around with package.json)
-2) validation on other queries
-3) sorting of hint lists
-4) start on AWS
-----later on----
-2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
-3) change db scheme - horses and kidos are assigned to 'User' and 'RidingSchool'. after login user selects the ridingSchool for which he/she will be defining query
-4) create log parsing script, and reply parsing script move tableHelper to src then
-5) add handling of new_user/edit_user/remove_user messages
-6) conformation email handling when registering
+
+3) start on AWS
+4) get a windows client
+
+    ----later on----
+    1) add length validation on 'remarks' in daily query
+    2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
+    3) change db scheme - horses and kidos are assigned to 'User' and 'RidingSchool'. after login user selects the ridingSchool for which he/she will be defining query
+    4) create log parsing script, and reply parsing script move tableHelper to src then
+    5) add handling of new_user/edit_user/remove_user messages
+    6) conformation email handling when registering
 
 WS frn-bck
-1) should client disconnect (?)
+1) is there any reason to disconnect client (?)
 
 Frontend
 1) login
+2) maxWorkload
 2) default trainer for user (?)

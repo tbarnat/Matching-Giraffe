@@ -1,8 +1,9 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {IBackendMsg, IHorseRidingDay} from "./DataModel";
+import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido, PrefType} from "./DataModel";
 import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
+import DataValidator from "./validators/DataValidator";
 
 export default class Dispatch {
 
@@ -46,23 +47,48 @@ export default class Dispatch {
     return {success: true, data: {}}
   }
 
-  // data: IHorse / IKido / IInstructo
-  public async newDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
-    let name = data.name
-    let items: any[] = await this.db.find(collName, {userName, name})
-    if (items && items[0]) {
-      return {success: false, data: {errorMsg: `Entry named: ${name} already exists in db`}}
+  // data: INewHorse / IKido / IInstructo
+  public async newDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+    let DV: DataValidator = new DataValidator(userName, this.db)
+    let errorMsg = await DV.validateNewEntry(data,collName)
+    if (errorMsg) {
+      return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    //todo validation: empty strings, fields type and length
     await this.db.insertOne(collName, Object.assign({userName}, data))
-    await this.logResults('new', userName, name, collName)
+
+    // this stuff is not tested - in case of adding horsos to a filled Riding Center
+    if(collName === 'horsos'){
+      if(data.addAsHorse){
+        let kidos  = (await this.db.find('kidos', {userName}) as IKido[])
+        if(kidos && kidos.length){
+          let newKidos: IKido[] = kidos.map(kido => {
+            let newPrefs: PrefType = kido.prefs
+            Object.keys(kido.prefs).forEach(prefCat => {
+              if(kido.prefs[prefCat].includes(data.addAsHorse)){
+                newPrefs[prefCat].push(data.addAsHorse)
+              }
+            })
+            return {name:kido.name,remarks:kido.remarks, prefs:newPrefs}
+          })
+          await this.db.updateMany('kidos',{userName},newKidos)
+        }
+      }
+    }
+
+    await this.logResults('new', userName, data.name, collName)
     return {success: true, data: {}}
   }
 
-  // data: IHorse / IKido / IInstructo
-  public async editDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+  // data: IHorse / IKido / IInstructo, but also data.newName? : string
+  public async editDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let name = data.name
-    //todo validation: empty strings, fields type and length
+
+    let DV: DataValidator = new DataValidator(userName, this.db)
+    let errorMsg = await DV.validateEditEntry(data,collName)
+    if (errorMsg) {
+      return ({success: false, data: {errorMsg}} as IBackendMsg)
+    }
+
     let mongoUpdObj = await this.db.updateOne(collName, {
       userName,
       name
@@ -75,7 +101,7 @@ export default class Dispatch {
   }
 
   // data: IHorse / IKido / IInstructo
-  public async removeDbEntry(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+  public async removeDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let name: string = data.name
     let mongoDelObj = await this.db.deleteOne(collName, {userName, name})
     if (!mongoDelObj.deletedCount) {
@@ -85,13 +111,13 @@ export default class Dispatch {
     return {success: true, data: {}}
   }
 
-  private async logResults(action: string, userName: string, name: string, collName: string) {
+  private async logResults(action: string, userName: string, name: string, collName: Collection) {
     let entries = await this.db.find(collName, {userName, name})
     this.log.info(entries, `for '${action}' by '${userName}' on '${name}' as '${collName}'`)
   }
 
   // data.query; string (incomplete string)  data.taken: string[] (list of taken, already selected)
-  public async listEntriesNames(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+  public async listEntriesNames(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let items: string[] = []
     if (collName === 'users') {
       return {success: true, data: items}
@@ -116,15 +142,32 @@ export default class Dispatch {
         return -taken.indexOf(item)
       })
     }
-    items = items.sort().slice(0, 10)
+    items = items.sort((a,b)=>{return a.toLowerCase().localeCompare(b.toUpperCase())}).slice(0, 10)
     return {success: true, data: items}
+  }
+
+  // data: string (name of donor kido)
+  public async getPrefsTemplate(userName: string, data:any): Promise<IBackendMsg> {
+    let kidos = (await this.db.find('kidos', {userName, name:data})) as IKido[]
+    if(kidos && kidos[0]){
+      return {success: true, data: kidos[0].prefs}
+    }
+    return {success: true, data: {}}
+  }
+
+  public async haveAny(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+    let horsos = (await this.db.find(collName, {userName})) as IHorso[]
+    if(horsos && horsos.length){
+      return {success: true, data: true}
+    }
+    return {success: true, data: false}
   }
 
   public async registerVisit(userName: string) {
     await this.db.updateOne('users', {userName}, {$set: {'lastVisit': Date.now()}, '$inc': {'allVisits': 1}}) //
   }
 
-  public async defaultIncorrect(userName: string, data: any, collName: string): Promise<IBackendMsg> {
+  public async defaultIncorrect(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     return {
       success: false,
       data: {errorMsg: 'incorrect_call'}

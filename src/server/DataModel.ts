@@ -1,9 +1,14 @@
+/* ---------- COLLECTIONS ---------- */
+
+export type Collection = 'horsos' | 'kidos' | 'trainers' | 'users' | 'diary' | 'undefined'
+
+
 /* ---------- BASE ENTITIES ---------- */
 
 export interface IKido {
   name: string, // unique!!!
   remarks?: string,
-  prefs: PrefType //
+  prefs: PrefType
 }
 
 /*  Important type - defines kido preferences for horse (horso.name) selection  */
@@ -55,20 +60,29 @@ export interface IInstructo {
   name: string // unique!!!
   descr?: string
   remarks?: string
-  isDefault: boolean
+  isDefault?: boolean
 }
 
 export interface IHorso {
   name: string // unique!!!
+  maxDailyWorkload?: number
   descr?: string
   remarks?: string
 }
 
-/*export interface IUser extends ILoginAttempt{
-  email: string
+/*export interface INewHorso extends IHorso {
+  addAsHorse: string
+}*/
+
+/*export interface IUser extends INewUser{
   lastVisit: number,
   allVisits: number
-}*/
+}
+
+export interface INewUser extends ILoginAttempt{
+  email: string
+}
+*/
 
 
 /* ---------- Horse Riding Day - QUERY ---------- */
@@ -174,11 +188,12 @@ export interface BackendData {
   errorMsg?: string  // max 200 chars
 }
 
-export type ActionInMsg = 'login' | 'get_matches'  | 'save_matches' | 'remove_day' |
-  'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  |
-  'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  |
-  'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer'
-  //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user'
+export type ActionInMsg =  'get_matches'  | 'save_matches' | 'remove_day' |
+  'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  |
+  'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
+  //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
+  'prefs_template' | 'login'
 
 export interface ILoginAttempt {
   userName: string // unique

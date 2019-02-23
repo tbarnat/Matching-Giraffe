@@ -51,17 +51,17 @@ export default class QueryValidator {
       toBeDailyQuery.hours.forEach((hour: any) => {
         validStructure = validStructure && (_.isEqual(Object.keys(hour).sort(), hourKeys1) || _.isEqual(Object.keys(hour).sort(), hourKeys2))
         if (!Array.isArray(hour.trainer)) {
-          return `Trainers for hour: '${toBeDailyQuery.hours}' is not an array.`
+          return `Trainers for hour: ${toBeDailyQuery.hours} is not an array.`
         }
         if (Array.isArray(hour.trainingsDetails)) {
           if (!hour.trainingsDetails.length) {
-            return `Empty training details for hour: '${toBeDailyQuery.hours}'`
+            return `Empty training details for hour: ${toBeDailyQuery.hours}`
           }
           hour.trainingsDetails.forEach((training: any) => {
             validStructure = validStructure && (_.isEqual(Object.keys(training).sort(), trainingKeys1) || _.isEqual(Object.keys(training).sort(), trainingKeys2))
           })
         } else {
-          return `Training details for hour: '${toBeDailyQuery.hours}' is not an array.`
+          return `Training details for hour: ${toBeDailyQuery.hours} is not an array.`
         }
       })
     } else {
@@ -88,12 +88,12 @@ export default class QueryValidator {
       validDate = validDate && !isNaN(date.getTime()) && (daySplitNo[2] === date.getDate())
     }
     if (!validDate) {
-      return `Day name: '${dailyQuery.day}' is not ok. Apply following format: YYYY-MM-DD or YYYY-MM-DD-xxxx`
+      return `Day name: ${dailyQuery.day} is not ok. Apply following format: YYYY-MM-DD or YYYY-MM-DD-xxxx`
     }
 
     // checking if 'day' already exists in diary
     if ((await this.db.find('diary', {userName: this.userName, day: dailyQuery.day})).length) {
-      return `Entry by day: '${dailyQuery.day}' already exists`
+      return `Entry by day: ${dailyQuery.day} already exists`
     }
 
     // checking if 'hour' name is valid
@@ -103,7 +103,7 @@ export default class QueryValidator {
     for (let hourInfo of dailyQuery.hours) {
       let hourAsNumber = parseInt(hourInfo.hour)
       if (!(hourInfo.hour.length == 4 && hourAsNumber >= 0 && hourAsNumber < 2400)) {
-        return `Hour name: '${hourInfo.hour}' is not ok. Apply following format: hhmm`
+        return `Hour name: ${hourInfo.hour} is not ok. Apply following format: hhmm`
       }
     }
 
@@ -118,7 +118,7 @@ export default class QueryValidator {
     for (let hourInfo of dailyQuery.hours) {
       for (let trainingDetails of hourInfo.trainingsDetails) {
         if (!this.allKidosString.includes(trainingDetails.kidName)) {
-          return `Kid by the name: '${trainingDetails.kidName}' does not exist in db`
+          return `Kid by the name: ${trainingDetails.kidName} does not exist in db`
         }
         kidosStrInQuery.push(trainingDetails.kidName)
         if (trainingDetails.horse) {
@@ -126,19 +126,19 @@ export default class QueryValidator {
         }
         if (trainingDetails.horse) {
           if (!this.allHorsosString.includes(trainingDetails.horse)) {
-            return `Horse by the name: '${trainingDetails.horse}' does not exist in db`
+            return `Horse by the name: ${trainingDetails.horse} does not exist in db`
           }
         }
       }
       for( let trainer of hourInfo.trainer) {
         if (!this.allTrainersString.includes(trainer)) {
-          return `Trainer by the name: '${trainer}' does not exist in db`
+          return `Trainer by the name: ${trainer} does not exist in db`
         }
       }
     }
     for (let horseName of dailyQuery.dailyExcludes) {
       if (!this.allHorsosString.includes(horseName)) {
-        return `Excluded horse by the name: '${horseName}' does not exist in db`
+        return `Excluded horse by the name: ${horseName} does not exist in db`
       }
     }
 
@@ -154,16 +154,16 @@ export default class QueryValidator {
         }
       }
       if (Utils.strArrHasDuplicates(allHorsosThisHour)) {
-        return `Preselected horses were duplicated for: '${hourName}' `
+        return `Preselected horses were duplicated for: ${hourName} `
       }
       if (Utils.strArrHasDuplicates(allHorsosThisHour.concat(dailyQuery.dailyExcludes))) {
-        return `Excluded horses were selected for '${hourName}'`
+        return `Excluded horses were selected for ${hourName}`
       }
       if (Utils.strArrHasDuplicates(allKidosThisHour)) {
-        return `Kidos were duplicated for: '${hourName}' `
+        return `Kidos were duplicated for: ${hourName} `
       }
       if (Utils.strArrHasDuplicates(hourInfo.trainer)) {
-        return `Trainers were duplicated for: '${hourName}' `
+        return `Trainers were duplicated for: ${hourName} `
       }
     }
 
@@ -174,7 +174,7 @@ export default class QueryValidator {
     let allHorsosInStables = this.allHorsosString.length
     for(let kido of kidosInQuery) {
       if (Preferences.countItemsInPrefType(kido.prefs) != allHorsosInStables) {
-        return ` '${kido.name}' have incomplete preferences`
+        return `: ${kido.name} have incomplete preferences`
       }
     }
 
@@ -183,7 +183,7 @@ export default class QueryValidator {
       let allHorsesInPrefs: string[] = Preferences.flatListForAllLevels(kido.prefs)
       for(let horse of allHorsesInPrefs){
         if (!this.allHorsosString.includes(horse)) {
-          return ` '${kido.name}' have a non-existing horse: '${horse}' in preferences`
+          return `: ${kido.name} have a non-existing horse: ${horse} in preferences`
         }
       }
     }

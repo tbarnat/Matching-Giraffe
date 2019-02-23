@@ -3,7 +3,7 @@ import fs = require('fs')
 import WebSocket = require('ws')
 import {Database, DbConfig} from "./Database";
 import Dispatch from "./Dispatch";
-import {IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
+import {Collection, IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
 import {Logger, LoggerConfig} from "./utils/Logger";
 
 const crypto = require('crypto');
@@ -27,7 +27,7 @@ export default class Server {
   private wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
   private dispatch: Dispatch
 
-  private readonly actionPrefixes = ['new', 'edit', 'remove', 'list']
+  private readonly actionPrefixes = ['new', 'edit', 'remove', 'list', 'haveAny']
   private readonly actionSuffixes = ['horse', 'kid', 'trainer']
 
   constructor(config: IServerConfig) {
@@ -120,6 +120,9 @@ export default class Server {
       case 'remove_day':
         reply = await this.dispatch.deleteDay(userName, data)
         break;
+      case 'prefs_template':
+        reply = await this.dispatch.getPrefsTemplate(userName, data)
+        break;
       default:
         if (request.action) {
           let msgArr = request.action.split('_')
@@ -156,12 +159,14 @@ export default class Server {
         return this.dispatch.removeDbEntry
       case 'list':
         return this.dispatch.listEntriesNames
+      case 'haveAny':
+        return this.dispatch.haveAny
       default: //'incorrect'
         return this.dispatch.defaultIncorrect
     }
   }
 
-  private actionSuffixToCollection(actionSuffix: string): string {
+  private actionSuffixToCollection(actionSuffix: string): Collection {
     switch (actionSuffix) {
       case 'horse':
         return 'horsos'
@@ -172,7 +177,7 @@ export default class Server {
       case 'user':
         return 'users'
       default:
-        return 'undefined_collection'
+        return 'undefined'
     }
   }
 }

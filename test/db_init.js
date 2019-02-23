@@ -129,27 +129,27 @@ let kidosQWE =
 
 let trainersQWE = [{name: 'Ja'}, {name: 'Paulina'}, {name: 'Inna'}]
 
-let horsosTEST_USER = [
-  {name: 'Aaa1', userName: 'test_user'},
-  {name: 'aab2', userName: 'test_user'},
-  {name: 'Aaa2', userName: 'test_user'},
-  {name: 'Abb4', userName: 'test_user'},
-  {name: 'aaa3', userName: 'test_user'},
-  {name: 'aaa4', userName: 'test_user'},
-  {name: 'Abb5', userName: 'test_user'},
-  {name: 'aaa5', userName: 'test_user'},
-  {name: 'aab1', userName: 'test_user'},
-  {name: 'aab3', userName: 'test_user'},
-  {name: 'Abb6', userName: 'test_user'}]
+let horsosTEST_USER1 = [
+  {name: 'Aaa1', userName: 'test_user1'},
+  {name: 'aab2', userName: 'test_user1'},
+  {name: 'Aaa2', userName: 'test_user1'},
+  {name: 'Abb4', userName: 'test_user1'},
+  {name: 'aaa3', userName: 'test_user1'},
+  {name: 'aaa4', userName: 'test_user1'},
+  {name: 'Abb5', userName: 'test_user1'},
+  {name: 'aaa5', userName: 'test_user1'},
+  {name: 'aab1', userName: 'test_user1'},
+  {name: 'aab3', userName: 'test_user1'},
+  {name: 'Abb6', userName: 'test_user1'}]
 
 
-let fillInDatabase = async () => {
+fillInDatabase = async () => {
 
   const db = new Database(config);
-  await db.init()
+  await db.init(false)
 
   // cleaning old db
-  let allCollections = ['users','horsos','kidos','trainers','diary']
+  let allCollections = ['users', 'horsos', 'kidos', 'trainers', 'diary']
   for (let collName of allCollections) {
     let data = await db.find(collName)
     if (data.length) {
@@ -186,15 +186,25 @@ let fillInDatabase = async () => {
     userName: "qwe"
   })
 
-  //--------TEST_USER----------
+  //--------TEST_USER1----------
   await db.insertOne('users', {
-    userName: 'test_user',
-    email: 'tu@gmail.com',
+    userName: 'test_user1',
+    email: 'tu1@gmail.com',
     password: '7815696ecbf1c96e6894b779456d330e', //asd
     lastVisit: Date.now(),
     allVisits: 0
   })
-  await db.insertMany('horsos', horsosTEST_USER)
+  await db.insertMany('horsos', horsosTEST_USER1)
+
+
+  //--------TEST_USER2----------
+  await db.insertOne('users', {
+    userName: 'test_user2',
+    email: 'tu2@gmail.com',
+    password: '7815696ecbf1c96e6894b779456d330e', //asd
+    lastVisit: Date.now(),
+    allVisits: 0
+  })
 
 }
 
