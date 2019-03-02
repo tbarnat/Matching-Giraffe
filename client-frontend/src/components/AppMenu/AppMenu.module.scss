@@ -1,14 +1,5 @@
-.AppMenu {
- a {
-   color: inherit;
-   text-decoration: none;
- }
-}
-
-.Link {
-  padding-right: 10px;
-  &.Active {
+.Navbar {
+  a{
     color: red;
   }
 }
-

@@ -1,14 +1,18 @@
 .DayPlan {
-  .OneHourQuery {
-    display: flex;
-    margin-bottom: 30px;
-
-    .Hours,
-    .Kids,
-    .Trainers,
-    .Horses {
+  .Card {
+    padding: 10px 0;
+    margin: 15px 0;
+    .OneHourQuery {
       display: flex;
-      flex-direction: column;
+      margin-bottom: 30px;
+  
+      .Hours,
+      .Kids,
+      .Trainers,
+      .Horses {
+        display: flex;
+        flex-direction: column;
+      }
     }
   }
 

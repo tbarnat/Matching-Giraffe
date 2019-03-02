@@ -1,41 +1,16 @@
 import * as React from 'react';
-import TextField from '@material-ui/core/TextField';
-import Paper from '@material-ui/core/Paper/Paper';
 import update from 'immutability-helper';
-import { withStyles } from "@material-ui/core/styles";
-import { WithStyles, createStyles, Theme } from '@material-ui/core';
-import Button from '@material-ui/core/Button';
-import SuggestInput from '../../lib/SuggestInput';
 
+import Form from 'react-bootstrap/Form';
+import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
-import myClasses from './DayPlan.module.scss';
+import classes from './DayPlan.module.scss';
 
 
-const styles = (theme: Theme) => createStyles({
-  root: {
-    maxHeight: '20vw',
-  },
-  cssLabel: {
-    '&$cssFocused': {
 
-    },
-  },
-  cssOutlinedInput: {
-    '&$cssFocused $notchedOutline': {
-
-    },
-  },
-  cssFocused: {},
-  notchedOutline: {},
-});
-
-interface Props extends WithStyles<typeof styles> {
-
-}
-
-
-const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Component<Props, IHorseRidingDayQ> {
+class DayPlan extends React.Component<any, IHorseRidingDayQ> {
   state = {
     day: '',
     remarks: '',
@@ -91,7 +66,6 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
 
 
   changeHourHandler = (e: any, type: string, index: number[]) => {
-    // changeHourHandler = (e: React.FormEvent<HTMLInputElement>, type: string, index: number[]) => {
     const value = (e.target as HTMLInputElement).value;
     let updatedValues: IHorseRidingHourQ[];
     let isFilled: boolean;
@@ -175,27 +149,16 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
 
 
   render() {
-    const classes = this.props.classes;
-
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
-          // <TextField
-          //   key={trainingIndex}
-          //   label="Dziecko"
-          //   value={training.kidName}
-          //   onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-          //   margin="dense"
-          //   variant="outlined"
-          // />
-          <SuggestInput
+          // label="Dziecko"
+          <Form.Control
             onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-            label="Dziecko"
             value={training.kidName || ''}
             key={trainingIndex}
-            placeholder="Dziecko"
-
-          />
+            placeholder="Dziecko">
+          </Form.Control>
 
         )
       })
@@ -203,97 +166,89 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
       const horses = hour.trainingsDetails.map((training, trainingIndex) => {
         return training.kidName
           ? (
-            <TextField
+            // label="Koń"
+            <Form.Control
+              placeholder="Koń"
               key={trainingIndex}
-              label="Koń"
               value={training.horse || ''}
-              onChange={(e) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
-              margin="dense"
-              variant="outlined"
-            />
+              onChange={(e: any) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])} />
           ) : null;
       })
 
 
       const trainers = hour.trainer.map((tr, trainerIndex) => {
         return (
-          <TextField
+          <Form.Control
             key={trainerIndex}
-            label="Trener"
+            // label="Trener"
+            placeholder="Trener"
             value={tr}
-            onChange={(e) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])}
-            margin="dense"
-            variant="outlined"
+            onChange={(e: any) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])}
           />
         )
       })
 
       return (
-        <Paper key={hourIndex}>
-          <div className={myClasses.OneHourQuery}>
-            <div className={myClasses.Hours}>
-              <TextField
-                label="Godzina"
+        <Card key={hourIndex} className={classes.Card}>
+          <div className={classes.OneHourQuery}>
+            <div className={classes.Hours}>
+              <Form.Control
+                // label="Godzina"
+                placeholder="Godzina"
                 value={hour.hour}
-                onChange={(e) => this.changeHourHandler(e, 'hour', [hourIndex])}
-                margin="dense"
-                variant="outlined"
+                onChange={(e: any) => this.changeHourHandler(e, 'hour', [hourIndex])}
               />
             </div>
-            <div className={myClasses.Kids}>
+            <div className={classes.Kids}>
               {kids}
             </div>
-            <div className={myClasses.Kids}>
+            <div className={classes.Kids}>
               {horses}
             </div>
-            <div className={myClasses.Trainers}>
+            <div className={classes.Trainers}>
               {trainers}
             </div>
           </div>
-        </Paper>
+        </Card>
       )
 
     })
 
 
     return (
-      <div className={myClasses.DayPlan}>
+      <div className={classes.DayPlan}>
         <div style={{ display: 'flex' }}>
-          <TextField
-            label="Dzień"
+          <Form.Control
+            // label="Dzień"
+            placeholder="Dzień"
             value={this.state.day}
-            onChange={(e) => this.setState({ day: e.target.value })}
-            margin="dense"
-            variant="outlined"
+            onChange={(e: any) => this.setState({ day: e.target.value })}
           />
-          <TextField
-            label="Wyłączone konie"
-            value={this.state.dailyExcludes}
-            // onChange={(e) => this.setState({dailyExcludes: e.target.value})}
-            margin="dense"
-            variant="outlined"
+          <Form.Control
+            placeholder="Wyłączone konie"
+          // label="Wyłączone konie"
+          // value={this.state.dailyExcludes}
+          // onChange={(e: any) => this.setState({dailyExcludes: e.target.value})}
           />
-          <TextField
-            label="Uwagi"
+          <Form.Control
+            // label="Uwagi"
+            placeholder="Uwagi"
             value={this.state.remarks}
-            onChange={(e) => this.setState({ remarks: e.target.value })}
-            margin="dense"
-            variant="outlined"
+            onChange={(e: any) => this.setState({ remarks: e.target.value })}
           />
         </div>
         <hr />
         <div>
           {hours}
         </div>
-        <Button color="primary" variant="contained" onClick={() => console.log(this.state)}>get state</Button>
-        <SuggestInput />
+        <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
       </div>
     )
 
   }
-});
+};
 
-export default DecoratedDayPlan;
+export default DayPlan;
 
 
 // let query = {

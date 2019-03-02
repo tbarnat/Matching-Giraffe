@@ -1,8 +1,7 @@
 
 
 $theme-colors: (
-  "primary": #0074d9,
-  "danger": #ff4136
+  "orange": rgb(255, 115, 0),
 );
 
 @import './scss//bootstrap.scss';

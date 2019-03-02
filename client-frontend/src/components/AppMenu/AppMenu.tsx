@@ -17,7 +17,7 @@ class AppMenu extends React.Component {
     return (
       <div className={classes.AppMenu}>
         <div className={classes.AppMenu}>
-          <Navbar bg="light" expand="lg">
+          <Navbar bg="orange" expand="lg">
             <LinkContainer to="/">
               <Navbar.Brand>Horse Matcher</Navbar.Brand>
             </LinkContainer>
