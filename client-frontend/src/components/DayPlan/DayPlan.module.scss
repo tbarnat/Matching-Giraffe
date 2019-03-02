@@ -1,19 +1,57 @@
 .DayPlan {
-  .Card {
-    padding: 10px 0;
+  .OneHour {
+    padding: 20px 10px;
     margin: 15px 0;
-    .OneHourQuery {
-      display: flex;
-      margin-bottom: 30px;
-  
-      .Hours,
-      .Kids,
-      .Trainers,
-      .Horses {
-        display: flex;
-        flex-direction: column;
+    box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.5);
+
+    .Hours,
+    .Kids,
+    .Trainers,
+    .Horses {
+      input {
+        margin-bottom: 10px;
       }
     }
   }
 
+  input {
+    &:focus {
+      border: 1px solid orange;
+      box-shadow: 0 0 0 0.15rem rgba(255, 153, 0, 0.25);
+    }
+  }
+
+  .DayLabel,
+  .DailyExcludesLabel,
+  .RemarksLabel,
+  .HourLabel,
+  .KidLabel,
+  .HorseLabel,
+  .TrainerLabel {
+    display: inline-block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    transition: 0.2s;
+    position: relative;
+    &:after {
+      content: "";
+      position: absolute;
+      transition: all 0.55s ease-out;
+      bottom: -1px;
+      width: 0px;
+      height: 2px;
+      margin: 5px 0 0;
+      opacity: 0;
+      left: -10%;
+      background-color: orangered;
+    }
+    &.Active {
+      font-weight: bold;
+      color: orange;
+      &:after {
+        width: 120%;
+        opacity: 1;
+      }
+    }
+  }
 }

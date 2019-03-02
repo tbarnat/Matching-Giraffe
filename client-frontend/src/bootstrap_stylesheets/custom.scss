@@ -4,5 +4,7 @@ $theme-colors: (
   "orange": rgb(255, 115, 0),
 );
 
+$grid-gutter-width: 10px !default;
+
 @import './scss//bootstrap.scss';
 
