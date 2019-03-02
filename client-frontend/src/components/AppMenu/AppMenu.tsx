@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { NavLink } from "react-router-dom";
-import { withStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import orange from '@material-ui/core/colors/orange';
+
+import { LinkContainer } from 'react-router-bootstrap';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
+import NavItem from 'react-bootstrap/NavItem';
 
 
 
 
 import classes from './AppMenu.module.scss';
-const color = orange[500];
 
 
 
@@ -18,30 +16,30 @@ class AppMenu extends React.Component {
   render() {
     return (
       <div className={classes.AppMenu}>
-        <AppBar position="fixed" color="default">
-          <Toolbar>
-            <NavLink to="/dayplan" activeClassName={classes.Active} className={classes.Link}>
-              <Typography variant="h6" color="inherit">
-                Zaplanuj dzień
-            </Typography>
-            </NavLink>
-            <NavLink to="/diary" activeClassName={classes.Active} className={classes.Link}>
-              <Typography variant="h6" color="inherit">
-                Dziennik
-          </Typography>
-            </NavLink>
-            <NavLink to="/admin" activeClassName={classes.Active} className={classes.Link}>
-              <Typography variant="h6" color="inherit">
-                Panel szefa
-          </Typography>
-            </NavLink>
-            <NavLink to="/about-us" activeClassName={classes.Active} className={classes.Link}>
-              <Typography variant="h6" color="inherit">
-                O apce
-          </Typography>
-            </NavLink>
-          </Toolbar>
-        </AppBar>
+        <div className={classes.AppMenu}>
+          <Navbar bg="light" expand="lg">
+            <LinkContainer to="/">
+              <Navbar.Brand>Horse Matcher</Navbar.Brand>
+            </LinkContainer>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse>
+              <Nav className="mr-auto">
+                <LinkContainer to="/day">
+                  <Nav.Link>Zaplanuj dzień</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/diary">
+                  <Nav.Link>Dziennik</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/admin">
+                  <Nav.Link style={{color: 'red'}}>Panel Szefa</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/about-us">
+                  <Nav.Link>O apce</Nav.Link>
+                </LinkContainer>
+              </Nav>
+            </Navbar.Collapse>
+          </Navbar>
+        </div>
       </div>
     )
 
@@ -49,3 +47,4 @@ class AppMenu extends React.Component {
 };
 
 export default AppMenu;
+

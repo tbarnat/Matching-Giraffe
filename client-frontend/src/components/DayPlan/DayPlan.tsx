@@ -5,8 +5,6 @@ import update from 'immutability-helper';
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles, Theme } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
-import SelectComp from '../../lib/SelectComp';
-import SelectC from '../../lib/SelectC';
 import SuggestInput from '../../lib/SuggestInput';
 
 
@@ -288,7 +286,6 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
           {hours}
         </div>
         <Button color="primary" variant="contained" onClick={() => console.log(this.state)}>get state</Button>
-        {/* <SelectC options={['jeden', 'dwa', 'trzy']} /> */}
         <SuggestInput />
       </div>
     )
