@@ -5,6 +5,9 @@ import update from 'immutability-helper';
 import { withStyles } from "@material-ui/core/styles";
 import { WithStyles, createStyles, Theme } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
+import SelectComp from '../../lib/SelectComp';
+import SelectC from '../../lib/SelectC';
+import SuggestInput from '../../lib/SuggestInput';
 
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
@@ -33,6 +36,7 @@ interface Props extends WithStyles<typeof styles> {
 
 }
 
+
 const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Component<Props, IHorseRidingDayQ> {
   state = {
     day: '',
@@ -46,7 +50,9 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
           { kidName: '', horse: '' },
         ]
       },
-    ]
+    ],
+    options: ['Helena', 'Stefan', 'Marian', 'Olaf'].map(person => ({ value: person.toLowerCase(), label: person })),
+    multi: null,
   };
   // state = {
   //   day: '',
@@ -273,6 +279,8 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
           {hours}
         </div>
         <Button color="primary" variant="contained" onClick={() => console.log(this.state)}>get state</Button>
+        {/* <SelectC options={['jeden', 'dwa', 'trzy']} /> */}
+        <SuggestInput />
       </div>
     )
 
