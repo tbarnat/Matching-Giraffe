@@ -182,14 +182,23 @@ const DecoratedDayPlan = withStyles(styles)(class DayPlan extends React.Componen
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
-          <TextField
-            key={trainingIndex}
+          // <TextField
+          //   key={trainingIndex}
+          //   label="Dziecko"
+          //   value={training.kidName}
+          //   onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
+          //   margin="dense"
+          //   variant="outlined"
+          // />
+          <SuggestInput
+            onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
             label="Dziecko"
-            value={training.kidName}
-            onChange={(e) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-            margin="dense"
-            variant="outlined"
+            value={training.kidName || ''}
+            key={trainingIndex}
+            placeholder="Dziecko"
+
           />
+
         )
       })
 

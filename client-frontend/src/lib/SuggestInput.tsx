@@ -207,17 +207,21 @@ class IntegrationAutosuggest extends React.Component<any, any> {
       getSuggestionValue,
       renderSuggestion,
     };
-
+    console.log(this.props)
     return (
       // <div className={classes.root}>
       <Autosuggest
         {...autosuggestProps}
         inputProps={{
           classes,
-          label: 'No popper',
-          placeholder: 'No popper placegholder',
-          value: this.state.single,
-          onChange: this.handleChange('single'),
+          // label: this.props.label,
+          // placeholder: this.props.placeholder,
+          // value: this.props.value,
+          // onChange: this.props.onChange,
+          label: 'label',
+          placeholder: 'placeholder',
+          value: this.props.value,
+          onChange: this.props.onChange,
         }}
         theme={{
           container: classes.container,
@@ -231,36 +235,6 @@ class IntegrationAutosuggest extends React.Component<any, any> {
           </Paper>
         )}
       />
-      //   <div className={classes.divider} />
-      //   <Autosuggest
-      //     {...autosuggestProps}
-      //     inputProps={{
-      //       classes,
-      //       label: 'Label',
-      //       placeholder: 'With Popper',
-      //       value: this.state.popper,
-      //       onChange: this.handleChange('popper'),
-      //       inputRef: (node: any) => {
-      //         this.popperNode = node;
-      //       },
-      //     }}
-      //     theme={{
-      //       suggestionsList: classes.suggestionsList,
-      //       suggestion: classes.suggestion,
-      //     }}
-      //     renderSuggestionsContainer={options => (
-      //       <Popper anchorEl={this.popperNode} open={Boolean(options.children)}>
-      //         <Paper
-      //           square
-      //           {...options.containerProps}
-      //           style={{ width: this.popperNode ? this.popperNode.clientWidth : null }}
-      //         >
-      //           {options.children}
-      //         </Paper>
-      //       </Popper>
-      //     )}
-      //   />
-      // </div>
     );
   }
 }
