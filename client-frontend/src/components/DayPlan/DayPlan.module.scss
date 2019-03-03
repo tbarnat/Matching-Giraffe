@@ -13,14 +13,6 @@
       }
     }
   }
-  .Input,
-  input {
-    border: 2px solid red;
-    &:focus {
-      border: 1px solid orange;
-      box-shadow: 0 0 0 0.15rem rgba(255, 153, 0, 0.25);
-    }
-  }
 
   .DayLabel,
   .DailyExcludesLabel,

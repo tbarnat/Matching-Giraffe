@@ -3,8 +3,10 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter } from "react-router-dom";
 
 import './index.css';
-import '../src/bootstrap_stylesheets/custom.scss';
+import './bootstrap_stylesheets/custom.scss';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
+import './bootstrap_stylesheets/Typeahead-bs4.scss';
+import './bootstrap_stylesheets/Overrides.scss';
 
 import App from './App';
 import * as serviceWorker from './serviceWorker';
