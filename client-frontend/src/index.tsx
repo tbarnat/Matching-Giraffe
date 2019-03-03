@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router-dom";
 
 import './index.css';
 import '../src/bootstrap_stylesheets/custom.scss';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 

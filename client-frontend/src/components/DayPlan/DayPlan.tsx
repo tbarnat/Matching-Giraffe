@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import {Typeahead} from 'react-bootstrap-typeahead';
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
 import classes from './DayPlan.module.scss';
@@ -25,7 +26,7 @@ class DayPlan extends React.Component<any, State> {
   state = {
     day: '',
     remarks: '',
-    dailyExcludes: [],
+    dailyExcludes: ['kon1'],
     hours: [
       {
         hour: '',
@@ -78,6 +79,8 @@ class DayPlan extends React.Component<any, State> {
   //     },
   //   ]
   // };
+
+  
 
 
   changeHourHandler = (e: any, type: string, index: number[]) => {
@@ -280,12 +283,31 @@ class DayPlan extends React.Component<any, State> {
           </Col>
           <Col>
             <span className={[classes.DailyExcludesLabel, this.isFocused('dailyExcludes', -1) ? classes.Active : null].join(' ')}>Wyłączone konie</span>
-            <Form.Control
+            {/* <Form.Control
               placeholder="Wyłączone konie"
               // label="Wyłączone konie"
               // value={this.state.dailyExcludes}
               // onChange={(e: any) => this.setState({dailyExcludes: e.target.value})}
               onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
+            /> */}
+            <Typeahead
+              placeholder="Wyłączone konie"
+              // label="Wyłączone konie"
+              // value={this.state.dailyExcludes}
+              onChange={(e: any) => this.setState({dailyExcludes: e})}
+              onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
+              options={['kon1', 'kon2']}
+              selected={this.state.dailyExcludes}
+              allowNew
+              clearButton
+              multiple
+              minLength={1}
+              selectHintOnEnter
+              newSelectionPrefix="Inny koń: "
+              inputProps={{
+                className: classes.Input
+              }}
+              
             />
           </Col>
           <Col>
