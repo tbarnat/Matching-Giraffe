@@ -72,21 +72,23 @@ export default class Server {
     });
 
     ws.on('message', async (msg) => {
-      this.log.debug(`message received: ${msg} \n`);
       try {
         if (msg === '"ping"') {
           ws.send('"pong"')
           return
         }
+
         let request = JSON.parse(msg.toString());
         request = request as IFrontendMsg
         if (userName) {
+          this.log.debug(`message received: ${msg} \n`);
           try{
             await this.onClientMessageReceived(ws, userName, request)
           }catch (err) {
             this.log.error(err, 'onClientMessageReceived')
           }
         } else if (request.action == 'login') {
+          this.log.info(`message received: ${msg} \n`);
           //request: {userName:string,password:string}
           let reply: IBackendMsg = {success: false, data: 'Invalid login or password'}
           let loginInfo = (await this.db.findOne('users', {userName: request.data.userName}) as ILoginAttempt)

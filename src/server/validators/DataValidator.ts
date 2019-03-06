@@ -1,8 +1,10 @@
 import {Database} from "../Database";
 import {Collection, default as Preferences} from "../DataModel";
+import Utils from "../utils/Utils";
 
 interface IInterfaceObj{
-  req: boolean
+  req: boolean //is required field
+  altReq?: string, // at least one of fields sharing the same group name is required
   key: string
   type: string
   regEx?: string
@@ -82,10 +84,10 @@ export default class DataValidator{
   }
 
   private patternCheck(data:any, collName: Collection): string{
-    let objIntArr = this.getInterfaceObjForCollection(collName)
+    let objPatternArr = this.getPatternObjForCollection(collName)
     let missingKeys: string[] = []
     let actualKeys = Object.keys(data)
-    objIntArr.filter(inter => {return inter.req}).forEach(inter => {
+    objPatternArr.filter(fieldPattern => {return fieldPattern.req}).forEach(inter => {
       if(!actualKeys.includes(inter.key)){
         missingKeys.push(inter.key)
       }
@@ -93,19 +95,42 @@ export default class DataValidator{
     if(missingKeys.length){
       return `Internal error: object properties are missing: ${missingKeys.join(',')}`
     }
+    let allGroups = objPatternArr.filter(fieldPattern => {return fieldPattern.altReq})
+      .map(fieldPattern => {return fieldPattern.altReq})
+    if(allGroups.length){
+      allGroups = [...new Set(allGroups)]
+      allGroups.forEach(groupOfFields => {
+        // check if only one field of list is filled
+        let namesOfFieldsInGroup = objPatternArr.filter(fieldPattern => {
+          return fieldPattern.altReq == groupOfFields
+        }).map(fieldPattern => {return fieldPattern.key})
+
+        let groupFieldCount = Utils.intersection(actualKeys,namesOfFieldsInGroup).length
+        if(groupFieldCount < 1){
+          return `Internal error: one of field: ${namesOfFieldsInGroup.join(',')} has to be submitted`
+        }
+        if(groupFieldCount > 1){
+          return `Internal error: just one of field: ${namesOfFieldsInGroup.join(',')} has to be submitted`
+        }
+      })
+    }
+
+    if(missingKeys.length){
+      return `Internal error: at least one of:  has to be specified`
+    }
     for(let actualKey of actualKeys){
-      let keyPattern = objIntArr.find(inter => {return inter.key === actualKey})
-      if(keyPattern){
-        if(typeof data[actualKey] != keyPattern.type){
+      let fieldPattern = objPatternArr.find(inter => {return inter.key === actualKey})
+      if(fieldPattern){
+        if(typeof data[actualKey] != fieldPattern.type){
           return `Internal error: type of: ${actualKey} is incorrect`
         }
-        if(keyPattern.maxL && data[actualKey].length > keyPattern.maxL){
+        if(fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL){
           return `Internal error: max length of: ${actualKey}`
         }
-        if(keyPattern.minL && data[actualKey].length < keyPattern.minL){
+        if(fieldPattern.minL && data[actualKey].length < fieldPattern.minL){
           return `Internal error: min length of: ${actualKey}`
         }
-        if(keyPattern.regEx){
+        if(fieldPattern.regEx){
           return `Internal error: regEx check`
         }
       }else{
@@ -115,7 +140,7 @@ export default class DataValidator{
     return ''
   }
 
-  private getInterfaceObjForCollection(collName: Collection): IInterfaceObj[]{
+  private getPatternObjForCollection(collName: Collection): IInterfaceObj[]{
     switch (collName){
       case 'horsos':
         return [
@@ -124,8 +149,10 @@ export default class DataValidator{
           {req: false, key: 'maxDailyWorkload',type: 'number'},
           {req: false, key: 'descr',type: 'string', maxL:200},
           {req: false, key: 'remarks',type: 'string', maxL:200},
-          {req: true, key: 'addAsHorse',type: 'string', maxL:20},
-          // there a hack here: addAsHorse is not req for first horso added, so the '' is sent in such case - hence no minL param
+          {req: false, altReq: 'howToAddToPrefs', key: 'addAsHorse',type: 'string', minL:2, maxL:20},
+          {req: false, altReq: 'howToAddToPrefs', key: 'addToPrefLevel',type: 'string', minL:2, maxL:20},
+          /*this is special cheat key added when there is no kido for user*/
+          {req: false, altReq: 'howToAddToPrefs', key: 'noKidosCheatKey',type: 'boolean'}
         ]
       case 'kidos':
         return [

@@ -16,7 +16,7 @@ export interface IKido {
 the levels of match are: 'best' | 'nice' | 'ok' | 'limp' | 'excl'
 last (5th) level of prefs is excludes - horses which mustn't be selected for any training */
 export type PrefType = { [prefCategory: string]: string[] }
-//export type PrefCategory = 'best' | 'nice' | 'isok' | 'limp' | 'excl' <- cannot be use in index type signature (?)
+//export type PrefCategory = 'best' | 'nice' | 'isok' | 'limp' | 'excl' <- sadly cannot be use in index type signature (?)
 
 export default class Preferences {
   static readonly allPrefCat = ['best', 'nice', 'isok', 'limp', 'excl']
@@ -54,6 +54,10 @@ export default class Preferences {
     })
     return flatList
   }
+
+  public static isPrefCategory(cat: string):boolean{
+    return Preferences.allPrefCat.includes(cat)
+  }
 }
 
 export interface IInstructo {
@@ -71,7 +75,8 @@ export interface IHorso {
 }
 
 /*export interface INewHorso extends IHorso {
-  addAsHorse: string
+  addAsHorse?: string
+  addToPrefLevel?: string
 }*/
 
 /*export interface IUser extends INewUser{
@@ -194,6 +199,8 @@ export type ActionInMsg =  'get_matches'  | 'save_matches' | 'remove_day' |
   'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
   //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
   'prefs_template' | 'login'
+
+// prefs_template is sent when we want to duplicate other kidos preferences when adding new one
 
 export interface ILoginAttempt {
   userName: string // unique

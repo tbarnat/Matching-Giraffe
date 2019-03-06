@@ -75,7 +75,7 @@ export default class QueryValidator {
 
     let dailyQuery = toBeDailyQuery as IHorseRidingDayQ
 
-    // checking if 'day' name is valid
+    // checking if 'day' name is valid - it should be done with regex
     let validDate: boolean = dailyQuery.day.length >= 10 && dailyQuery.day.length < 15
     if (validDate) {
       let daySplit: string[] = dailyQuery.day.split('-')
