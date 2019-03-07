@@ -1,14 +1,17 @@
 Backend
 
-0) add horso everywhere to pref level test
-0) removing horses!! -remove form kidos
-1) timeout in asyncWhile does not work (?)
-2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
+0) use a library for tests
+1) TEST: add horso everywhere to pref level test - invalid prefLevel name etc
+1) TEST: remove horso from the prefs test
+1) TEST: all the validation test... :(
+2) timeout in asyncWhile does not work (?)
+
 3) add commons for typings (mess around with package.json)
 
-
     ----later on----
-    1) add length validation on 'remarks' in daily query
+    2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
+    2a) allow different time resolutions (like 45 minutes rides etc)
+    2c) adding a flag to calculation if exhausting search is expected (may not be good for AWS EC2 where CPU credits are calculated)
     3) change db scheme - horses and kidos are assigned to 'User' and 'RidingSchool'. after login user selects the ridingSchool for which he/she will be defining query
     4) create log parsing script, and reply parsing script move tableHelper to src then
     5) add handling of new_user/edit_user/remove_user messages

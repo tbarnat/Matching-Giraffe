@@ -284,7 +284,7 @@ export default class MatchingEngine {
     if (!results.results.length && !results.errorMsg) {
       message = {
         solution: {day: '', remarks: '', hours: []},
-        errorMsg: `Checked everything, and could not find a single result :(`
+        errorMsg: `You gave me a very hard task. I checked a lot of possibilities, and could not find a single result :(`
       }
     }else if (!results.results.length && results.errorMsg) {
       message = {

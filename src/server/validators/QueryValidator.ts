@@ -2,8 +2,9 @@ import {Database} from "../Database";
 import {IHorseRidingDayQ, IHorso, IInstructo, IKido, default as Preferences} from "../DataModel";
 import _ = require('lodash')
 import Utils from "../utils/Utils";
+import {BaseValidator, IInterfaceObj} from "./BaseValidator";
 
-export default class QueryValidator {
+export default class QueryValidator extends BaseValidator {
 
   private allHorsos: IHorso[]
   private allHorsosString: string[]
@@ -13,6 +14,7 @@ export default class QueryValidator {
   private allTrainersString: string[]
 
   constructor(private userName: string, private db: Database) {
+    super()
   }
 
   public async init() {
@@ -32,47 +34,22 @@ export default class QueryValidator {
   // returns error msg or empty string
   public async validateDailyQuery(toBeDailyQuery: any): Promise<string> {
 
-    // hardcoded interface
-    let dayKeys1 = ['dailyExcludes', 'day', 'hours', 'remarks']
-    let dayKeys2 = ['dailyExcludes', 'day', 'hours']
-    let hourKeys1 = ['hour', 'remarks', 'trainer', 'trainingsDetails']
-    let hourKeys2 = ['hour', 'trainer', 'trainingsDetails']
-    let trainingKeys1 = ['horse', 'kidName']
-    let trainingKeys2 = ['kidName']
-
-    //confirm field names
-    let validStructure = true
-    validStructure = validStructure && (_.isEqual(Object.keys(toBeDailyQuery).sort(), dayKeys1) || _.isEqual(Object.keys(toBeDailyQuery).sort(), dayKeys2))
-
-    if (Array.isArray(toBeDailyQuery.hours)) {
-      if (!toBeDailyQuery.hours.length) {
-        return `Query with empty hours list`
+    let errorMsg = this.patternCheck(toBeDailyQuery, 'dayKeys')
+    if (errorMsg) {
+      return errorMsg
+    }
+    toBeDailyQuery.hours.forEach((hour: any) => {
+      let errorMsg = this.patternCheck(hour, 'hourKeys')
+      if (errorMsg) {
+        return errorMsg
       }
-      toBeDailyQuery.hours.forEach((hour: any) => {
-        validStructure = validStructure && (_.isEqual(Object.keys(hour).sort(), hourKeys1) || _.isEqual(Object.keys(hour).sort(), hourKeys2))
-        if (!Array.isArray(hour.trainer)) {
-          return `Trainers for hour: ${toBeDailyQuery.hours} is not an array.`
-        }
-        if (Array.isArray(hour.trainingsDetails)) {
-          if (!hour.trainingsDetails.length) {
-            return `Empty training details for hour: ${toBeDailyQuery.hours}`
-          }
-          hour.trainingsDetails.forEach((training: any) => {
-            validStructure = validStructure && (_.isEqual(Object.keys(training).sort(), trainingKeys1) || _.isEqual(Object.keys(training).sort(), trainingKeys2))
-          })
-        } else {
-          return `Training details for hour: ${toBeDailyQuery.hours} is not an array.`
+      hour.trainingsDetails.forEach((training: any) => {
+        let errorMsg = this.patternCheck(training, 'trainingKeys')
+        if (errorMsg) {
+          return errorMsg
         }
       })
-    } else {
-      return `List of hours is not an array.`
-    }
-    validStructure = validStructure && Array.isArray(toBeDailyQuery.dailyExcludes)
-
-    if (!validStructure) {
-      return 'Invalid query object structure (bad or misspelled keys)'
-    }
-
+    })
     let dailyQuery = toBeDailyQuery as IHorseRidingDayQ
 
     // checking if 'day' name is valid - it should be done with regex
@@ -130,7 +107,7 @@ export default class QueryValidator {
           }
         }
       }
-      for( let trainer of hourInfo.trainer) {
+      for (let trainer of hourInfo.trainer) {
         if (!this.allTrainersString.includes(trainer)) {
           return `Trainer by the name: ${trainer} does not exist in db`
         }
@@ -145,11 +122,11 @@ export default class QueryValidator {
     //entries for each hour does not repeat
     for (let hourInfo of dailyQuery.hours) {
       let hourName = hourInfo.hour
-      let allHorsosThisHour: string[] =[]
+      let allHorsosThisHour: string[] = []
       let allKidosThisHour: string[] = []
       for (let trainingDetails of hourInfo.trainingsDetails) {
         allKidosThisHour.push(trainingDetails.kidName)
-        if(trainingDetails.horse){
+        if (trainingDetails.horse) {
           allHorsosThisHour.push(trainingDetails.horse)
         }
       }
@@ -172,16 +149,16 @@ export default class QueryValidator {
       return kidosStrInQuery.includes(kido.name)
     })
     let allHorsosInStables = this.allHorsosString.length
-    for(let kido of kidosInQuery) {
+    for (let kido of kidosInQuery) {
       if (Preferences.countItemsInPrefType(kido.prefs) != allHorsosInStables) {
         return `: ${kido.name} have incomplete preferences`
       }
     }
 
     // kidos in query has only valid horses in prefs
-    for(let kido of kidosInQuery) {
+    for (let kido of kidosInQuery) {
       let allHorsesInPrefs: string[] = Preferences.flatListForAllLevels(kido.prefs)
-      for(let horse of allHorsesInPrefs){
+      for (let horse of allHorsesInPrefs) {
         if (!this.allHorsosString.includes(horse)) {
           return `: ${kido.name} have a non-existing horse: ${horse} in preferences`
         }
@@ -192,11 +169,11 @@ export default class QueryValidator {
     return ''
   }
 
-  public checkIfQueryIsAlreadySolved(dailyQuery: IHorseRidingDayQ): boolean{
+  public checkIfQueryIsAlreadySolved(dailyQuery: IHorseRidingDayQ): boolean {
     let isSolved = true
     dailyQuery.hours.forEach(hour => {
       hour.trainingsDetails.forEach(training => {
-        if(!training.horse){
+        if (!training.horse) {
           isSolved = false
           return
         }
@@ -212,5 +189,32 @@ export default class QueryValidator {
 
   public getAllHorsosString(): string[] {
     return this.allHorsosString;
+  }
+
+  protected getPatternByName(name: string): IInterfaceObj[] {
+    switch (name) {
+      case 'dayKeys':
+        return [
+          {req: true, key: 'day', type: 'string', minL: 10, maxL: 15}, //todo regEx
+          {req: false, key: 'dailyExcludes', type: 'object', isArr: true},
+          {req: true, key: 'hours', type: 'object', isArr: true, minL: 1},
+          {req: false, key: 'remarks', type: 'string', maxL: 200},
+          {req: true, key: 'timeResInMinutes', type: 'number', minV: 60, maxV: 60} //fix hour resolution for a start
+        ]
+      case 'hourKeys':
+        return [
+          {req: true, key: 'hour', type: 'number', minV: 0, maxV: 2400}, //todo regEx
+          {req: true, key: 'trainer', type: 'object', isArr: true, minL: 2, maxL: 20},
+          {req: true, key: 'trainingsDetails', type: 'object', isArr: true, minL: 1},
+          {req: false, key: 'remarks', type: 'string', maxL: 200},
+        ]
+      case 'trainingKeys':
+        return [
+          {req: true, key: 'kidName', type: 'string', minL: 2, maxL: 20},
+          {req: false, key: 'horse', type: 'string', minL: 2, maxL: 20},
+        ]
+      default:
+        return []
+    }
   }
 }

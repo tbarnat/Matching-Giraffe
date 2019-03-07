@@ -95,9 +95,10 @@ export interface INewUser extends ILoginAttempt{
 export interface IHorseRidingDayQ {
 //_id: number, //mongo id
   day: string //the same as 'name', will be part of an url format: YYYY-MM-DDxxxxx (xxxxx is optional value) ie.: '2018-10-11' (domain.pl/schedule2018-10-11) or
-  remarks?: string // additional comments which would be rewritten
-  hours: IHorseRidingHourQ[]
   dailyExcludes: string[] //unavailable horses 4e. injured
+  hours: IHorseRidingHourQ[]
+  remarks?: string // additional comments which would be rewritten
+  timeResInMinutes: number // in the future matching engine will be handling other time resolutions ie. 30/45 minutes
 }
 
 export interface IHorseRidingHourQ {

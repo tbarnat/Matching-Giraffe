@@ -3,7 +3,7 @@ import MatchingEngine from "./MatchingEngine";
 import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido, default as Preferences, PrefType} from "./DataModel";
 import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
-import DataValidator from "./validators/DataValidator";
+import EntriesValidator from "./validators/EntriesValidator";
 
 export default class Dispatch {
 
@@ -12,6 +12,7 @@ export default class Dispatch {
 
   // request.data: IHorseRidingDayQ
   public async getMatches(userName: string, data: any): Promise<IBackendMsg> {
+    Object.assign(data, {timeResInMinutes: 60})
     let QV = new QueryValidator(userName, this.db)
     await QV.init()
     let errorMsg = await QV.validateDailyQuery(data)
@@ -52,7 +53,7 @@ export default class Dispatch {
     if (collName === 'horsos') {  // horso is kinda special case entity
       return await this.newHorso(userName, data, collName)
     }
-    let DV: DataValidator = new DataValidator(userName, this.db)
+    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
     let errorMsg = await DV.validateNewEntry(data, collName)
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -75,9 +76,9 @@ export default class Dispatch {
           data: {errorMsg: 'Internal error: fields addAsHorse or addToPrefLevel are not allowed if there is no kidos ind db for this user'}
         }
       }
-      Object.assign(data, {noKidosCheatKey: true})
+      Object.assign(data, {noAddingCheatKey: true})
     }
-    let DV: DataValidator = new DataValidator(userName, this.db)
+    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
     let errorMsg = await DV.validateNewEntry(data, collName)
     if(data.addToPrefLevel){
       if(!Preferences.isPrefCategory(data.addToPrefLevel)){
@@ -91,7 +92,7 @@ export default class Dispatch {
 
     if (kidos && kidos.length) {
       if (data.addAsHorse) {
-        let newKidos: IKido[] = kidos.map(kido => {
+        let editedKidos: IKido[] = kidos.map(kido => {
           let newPrefs: PrefType = kido.prefs
           Object.keys(kido.prefs).forEach(prefCat => {
             if (kido.prefs[prefCat].includes(data.addAsHorse)) {
@@ -100,13 +101,13 @@ export default class Dispatch {
           })
           return {name: kido.name, remarks: kido.remarks, prefs: newPrefs}
         })
-        await this.db.updateMany('kidos', {userName}, newKidos)
+        await this.db.updateMany('kidos', {userName}, editedKidos)
       }else if(data.addToPrefLevel){
-        let newKidos: IKido[] = kidos.map(kido => {
+        let editedKidos: IKido[] = kidos.map(kido => {
           kido.prefs[data.addToPrefLevel].push(data.name)
           return kido
         })
-        await this.db.updateMany('kidos', {userName}, newKidos)
+        await this.db.updateMany('kidos', {userName}, editedKidos)
       }
     }
 
@@ -119,7 +120,7 @@ export default class Dispatch {
   public async editDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let name = data.name
 
-    let DV: DataValidator = new DataValidator(userName, this.db)
+    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
     let errorMsg = await DV.validateEditEntry(data, collName)
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -139,12 +140,28 @@ export default class Dispatch {
   // data: IHorse / IKido / IInstructo
   public async removeDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let name: string = data.name
+    if (collName === 'horsos') {  // horso is kinda special case entity
+      await this.removeHorsoFromKidosPrefs(userName, name)
+    }
     let mongoDelObj = await this.db.deleteOne(collName, {userName, name})
     if (!mongoDelObj.deletedCount) {
       return {success: false, data: {errorMsg: `Deleted none by the name: ${name}`}}
     }
     this.logResults('remove', userName, name, collName)
     return {success: true, data: {}}
+  }
+
+  private async removeHorsoFromKidosPrefs(userName: string, name: string){
+    let kidos = (await this.db.find('kidos', {userName}) as IKido[])
+    let editedKidos: IKido[] = kidos.map(kido => {
+      Object.keys(kido.prefs).forEach(prefLevel => {
+        if(kido.prefs[prefLevel].includes(name)){
+          kido.prefs[prefLevel] = kido.prefs[prefLevel].filter(horso => {return (horso != name)})
+        }
+      })
+      return kido
+    })
+    await this.db.updateMany('kidos', {userName}, editedKidos)
   }
 
   private async logResults(action: string, userName: string, name: string, collName: Collection) {
@@ -208,7 +225,7 @@ export default class Dispatch {
   public async defaultIncorrect(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     return {
       success: false,
-      data: {errorMsg: 'incorrect_call'}
+      data: {errorMsg: `Internal error: incorrect_call ${userName} / ${JSON.stringify(data)} / ${collName}`}
     }
   }
 }
