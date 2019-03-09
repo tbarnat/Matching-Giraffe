@@ -41,6 +41,7 @@ class DayPlan extends React.Component<any, State> {
           { kidName: 'Maja' },
           { kidName: 'Julka Lonza' },
           { kidName: 'Ola C' },
+          { kidName: '' },
         ]
       },
       {
@@ -149,6 +150,23 @@ class DayPlan extends React.Component<any, State> {
   //   }
   // }
 
+
+  changeKidHandler = (e: any, type: string, index: number[]) => {
+    const [hourIndex, kidIndex] = index;
+    let value;
+    if (Array.isArray(e)) {
+      value = e[0];
+    } else {
+      value = typeof (e) === 'object' ? e.target.value : e;
+    };
+
+    if (!value) {
+      console.log('changeKidHandler: ', e[0]);
+      let updatedValues: IHorseRidingHourQ[];
+      updatedValues = update(this.state.hours, { [hourIndex]: { trainingsDetails: { $splice: [[kidIndex, 1]] } } });
+      this.setState({ hours: updatedValues });
+    }
+  }
 
 
 
@@ -281,11 +299,44 @@ class DayPlan extends React.Component<any, State> {
     )
   }
 
+  updateState = () => {
+    this.setState({
+      hours: [
+        {
+          hour: '1230',
+          trainer: ['Paulina'],
+          trainingsDetails: [
+            { kidName: 'Julka Mala', horse: 'Koń 1' },
+            { kidName: 'Weronika', horse: 'Bucefał' },
+
+          ]
+        },
+        {
+          hour: '1430',
+          trainer: ['Eva'],
+          trainingsDetails: [
+            { kidName: 'Weronika', horse: 'Koń 2' },
+            { kidName: 'Kalina', horse: 'Jakoś koń' },
+          ]
+        },
+        {
+          hour: '1530',
+          trainer: ['Eva'],
+          trainingsDetails: [
+            { kidName: 'Paula', horse: 'Koń 1' },
+            { kidName: 'Kalina', horse: 'Koń 2' },
+          ]
+        },
+      ],
+    })
+  }
+
   render() {
     console.log('=======================')
     console.log('STATE: ', this.state)
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
+        console.log(training, trainingIndex);
         return (
           // label="Dziecko"
           // <Form.Control
@@ -299,13 +350,14 @@ class DayPlan extends React.Component<any, State> {
             placeholder="Dziecko"
             // onInputChange={(value: string) => this.changeHourHandler(value, 'kid', [hourIndex, trainingIndex])}
             // onInputChange={(value: string) => this.inputChangeHandler(value, 'kid', [hourIndex, trainingIndex])}
-            onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
+            onChange={(e: any) => this.changeKidHandler(e, 'kid', [hourIndex, trainingIndex])}
+            // onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
             onFocus={(e: any) => this.focusHandler(e, 'kid', hourIndex)}
             options={this.state.options.kids}
             selected={training.kidName ? [training.kidName] : []}
             clearButton
             inputProps={{
-              width:'20px'
+              width: '20px'
             }}
           // selected={[training.kidName] || undefined}
           // allowNew
@@ -316,7 +368,6 @@ class DayPlan extends React.Component<any, State> {
           />
         )
       })
-      console.log('Kids: ', kids)
 
       const horses = hour.trainingsDetails.map((training, trainingIndex) => {
         return training.kidName
@@ -342,7 +393,6 @@ class DayPlan extends React.Component<any, State> {
             // />
           ) : null;
       })
-
 
       const trainers = hour.trainer.map((tr, trainerIndex) => {
         return (
@@ -442,6 +492,7 @@ class DayPlan extends React.Component<any, State> {
         {hours}
         <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>
+        <Button variant="secondary" onClick={this.updateState}>change state</Button>
       </Container>
     )
 

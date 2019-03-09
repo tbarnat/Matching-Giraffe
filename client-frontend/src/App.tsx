@@ -4,6 +4,8 @@ import { Switch, Route } from "react-router-dom";
 import './App.scss';
 import AppMenu from './components/AppMenu/AppMenu';
 import DayPlan from './components/DayPlan/DayPlan';
+import Diary from './components/Diary/Diary';
+import DiaryList from './components/Diary/DiaryList';
 
 
 class App extends React.Component {
@@ -15,6 +17,8 @@ class App extends React.Component {
 
           <Switch>
             <Route path="/day" component={DayPlan} />
+            <Route path="/diary/:chosendate" component={Diary} />
+            <Route path="/diary" component={DiaryList} />
           </Switch>
         </div>
       </div>
