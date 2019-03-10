@@ -38,14 +38,15 @@ export default class Client extends BaseClient {
     return id
   }
 
+  //main method for client's requests
+  public async sendAndWait(action: Action, data: any): Promise<any>{
+    let requestId = await this.sendRequest(action,data)
+    return this.waitFor(requestId)
+  }
+
   public login(userName: string, password: string): string{
     return this.sendRequest('login', {userName, password})
 
   }
-
-  //export types to node_modules
-  /*public getMatches(dailyQuery: any): string{
-    return this.sendRequest('get_matches', dailyQuery)
-  }*/
 
 }

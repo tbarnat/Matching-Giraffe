@@ -45,4 +45,17 @@ export default class Utils {
     let intersection = arr1.filter(item => -1 !== arr2.indexOf(item));
     return [...new Set(intersection)]
   }
+
+  // object has to be flat and serializable
+  public static areFlatObjectsIdentical(object1: any, object2: any): boolean{
+    let object1Sorted: any = {}
+    let object2Sorted: any = {}
+    Object.keys(object1).sort().forEach(function(key) {
+      object1Sorted[key] = object1[key];
+    });
+    Object.keys(object1).sort().forEach(function(key) {
+      object2Sorted[key] = object2[key];
+    });
+    return (JSON.stringify(object1Sorted) == JSON.stringify(object2Sorted))
+  }
 }

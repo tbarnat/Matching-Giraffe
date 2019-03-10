@@ -1,5 +1,6 @@
 const Database = require('../dist/Database').Database;
 
+
 const config = {
   uri: 'mongodb://localhost:27017',
   dbName: 'hmDev'
@@ -208,11 +209,24 @@ fillInDatabase = async () => {
 
 }
 
-console.log('database will be repopulated with some start-up values')
-try {
-  fillInDatabase().then(() => {
-    console.log('--- everything went smooth :)) ---')
-  })
-} catch (err) {
-  console.log(err, 'filling error')
+initDatabase = async () => {
+  try {
+    await fillInDatabase()
+    return true
+  } catch (err) {
+    console.log(err, '### filling error')
+  }
+  return false
+}
+
+//initDatabase()
+
+exports.initTestServer = async() => {
+  console.log('mac mac')
+  let stepUno = await initDatabase()
+  if(!stepUno){
+    return false
+  }
+  require('./server').startServer
+  return true
 }

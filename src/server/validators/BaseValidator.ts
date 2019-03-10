@@ -12,6 +12,12 @@ export interface IInterfaceObj {
   maxL?: number
   minV?: number //max number value
   maxV?: number
+  transient?: boolean //fields marked as transient are removed from 'data', and returned
+}
+
+export interface IPatternObj {
+  errorMsg: string,
+  transients?: { [key: string]: any }
 }
 
 export abstract class BaseValidator {
@@ -41,7 +47,8 @@ export abstract class BaseValidator {
       })
     if (allGroups.length) {
       allGroups = [...new Set(allGroups)]
-      allGroups.forEach(groupOfFields => {
+      for (let groupOfFields of allGroups) {
+
         // check if only one field of list is filled
         let namesOfFieldsInGroup = objPatternArr.filter(fieldPattern => {
           return fieldPattern.altReq == groupOfFields
@@ -56,10 +63,14 @@ export abstract class BaseValidator {
         if (groupFieldsCount > 1) {
           return `Internal error: just one of fields: ${namesOfFieldsInGroup.join(',')} has to be submitted`
         }
-      })
+      }
     }
 
     for (let actualKey of actualKeys) {
+      let regex = RegExp('\{|\}|\'|\"')
+      if (regex.test(data[actualKey])) {
+        return `Special characters are not allowed`
+      }
       let fieldPattern = objPatternArr.find(inter => {
         return inter.key === actualKey
       })
@@ -72,20 +83,18 @@ export abstract class BaseValidator {
         }
         if ((fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL)
           || (fieldPattern.minL && data[actualKey].length < fieldPattern.minL)) {
-          return `Internal error: ${actualKey} length out of bounds 
-          (${fieldPattern.minL ? fieldPattern.minL : ' '}-${fieldPattern.minL ? fieldPattern.minL : ' '})`
+          return `Internal error: ${actualKey} length out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
         if ((fieldPattern.minV && data[actualKey] > fieldPattern.minV) ||
           (fieldPattern.maxV && data[actualKey] < fieldPattern.maxV)) {
-          return `Internal error: ${actualKey} value out of bounds 
-          (${fieldPattern.minL ? fieldPattern.minL : ' '}-${fieldPattern.minL ? fieldPattern.minL : ' '})`
+          return `Internal error: ${actualKey} value out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
-        if(fieldPattern.anyOf && !fieldPattern.anyOf.includes(data[actualKey])){
+        if (fieldPattern.anyOf && !fieldPattern.anyOf.includes(data[actualKey])) {
           return `Internal error: ${actualKey} should be any of ${fieldPattern.anyOf.join(', ')}`
         }
         if (fieldPattern.regEx) {
-          let regex = RegExp(fieldPattern.regEx)
-          if(regex.test(data[actualKey])){
+          regex = RegExp(fieldPattern.regEx)
+          if (regex.test(data[actualKey])) {
             return `Internal error: regEx test failed`
           }
         }
@@ -94,6 +103,23 @@ export abstract class BaseValidator {
       }
     }
     return ''
+  }
+
+  protected checkForTransients(data: any, patternName: string): any {
+    let objPatternArr = this.getPatternByName(patternName)
+    let actualKeys = Object.keys(data)
+    let transients: { [key: string]: any } = {}
+    for (let actualKey of actualKeys) {
+      let fieldPattern = objPatternArr.find(inter => {
+        return inter.key === actualKey
+      })
+      if (fieldPattern && fieldPattern.transient) {
+        transients[actualKey] = data[actualKey]
+        delete data[actualKey]
+
+      }
+    }
+    return transients
   }
 
   // a handicapped way of hardcoding the interfaces for objects - still better then anything

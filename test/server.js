@@ -19,8 +19,6 @@ const config = {
     }
 }
 
-let server = new Server(config)
+startServer = new Server(config)
 
-
-
-
+exports.startServer = startServer
