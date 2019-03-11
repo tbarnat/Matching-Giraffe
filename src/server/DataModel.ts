@@ -194,10 +194,11 @@ export interface BackendData {
   errorMsg?: string  // max 200 chars
 }
 
-export type ActionInMsg =  'get_matches'  | 'save_matches' | 'remove_day' |
-  'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  |
-  'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
-  'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
+export type ActionInMsg =
+  'get_matches'  | 'save_matches' | 'remove_day' |
+  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  |
+  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
   //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
   'prefs_template' | 'login'
 

@@ -49,6 +49,14 @@ export default class Dispatch {
     return {success: true, data: {}}
   }
 
+  public async getDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+    let entry = (await this.db.find(collName, {userName, name:data.name}))[0]
+    if(entry){
+      return {success: true, data: entry}
+    }
+    return {success: false, data: {}}
+  }
+
   // data: INewHorse / IKido / IInstructo
   public async newDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     if (collName === 'horsos') {  // horso is kinda special case entity
@@ -74,7 +82,7 @@ export default class Dispatch {
       if (data.addAsHorse || data.addToPrefLevel) {
         return {
           success: false,
-          data: {errorMsg: 'Internal error: fields addAsHorse or addToPrefLevel are not allowed if there is no kidos ind db for this user'}
+          data: {errorMsg: 'Internal error: fields addAsHorse or addToPrefLevel are not allowed if there is no kidos in db for this user'}
         }
       }
       Object.assign(data, {addedBeforeKids: true})
@@ -91,7 +99,6 @@ export default class Dispatch {
     }
     await this.db.insertOne(collName, Object.assign({userName}, data))
 
-    //console.log('\n\n Message from server *****************************')
     let transients = patternObj.transients
     if (kidos && kidos.length && transients) {
       if (transients.addAsHorse) {
@@ -130,9 +137,9 @@ export default class Dispatch {
     let name = data.name
 
     let DV: EntriesValidator = new EntriesValidator(userName, this.db)
-    let errorMsg = await DV.validateEditEntry(data, collName)
-    if (errorMsg) {
-      return ({success: false, data: {errorMsg}} as IBackendMsg)
+    let patternObj = await DV.validateEditEntry(data, collName)
+    if (patternObj) {
+      return ({success: false, data: {errorMsg:patternObj.errorMsg}} as IBackendMsg)
     }
 
     let oldObject = (await this.db.find(collName, {userName, name}))[0]
@@ -152,7 +159,57 @@ export default class Dispatch {
   }
 
   private async editHorso(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+    let kidos = (await this.db.find('kidos', {userName}) as IKido[])
+    if (!kidos.length) {
+      if (data.addAsHorse || data.addToPrefLevel) {
+        return {
+          success: false,
+          data: {errorMsg: 'Internal error: fields addAsHorse or addToPrefLevel are not allowed if there is no kidos in db for this user'}
+        }
+      }
+      Object.assign(data, {addedBeforeKids: true})
+    }
+    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
+    let patternObj = await DV.validateEditEntry(data, collName)
+    if(data.addToPrefLevel){
+      if(!Preferences.isPrefCategory(data.addToPrefLevel)){
+        patternObj.errorMsg = `Internal error: preferences category: ${data.addToPrefLevel} is invalid`
+      }
+    }
+    if (patternObj.errorMsg) {
+      return ({success: false, data: {errorMsg:patternObj.errorMsg}} as IBackendMsg)
+    }
+    await this.db.insertOne(collName, Object.assign({userName}, data))
 
+    let name = data.name
+    let oldObject = (await this.db.find(collName, {userName, name}))[0]
+    if(Utils.areFlatObjectsIdentical(data,oldObject)){
+      return ({success: false, data: {errorMsg:'Edited none - new and old objects are the same'}} as IBackendMsg)
+    }
+
+    let mongoUpdObj = await this.db.updateOne(collName, {
+      userName,
+      name
+    }, {$set: Object.assign({userName}, data)})
+    if (!mongoUpdObj.modifiedCount) {
+      return {success: false, data: {errorMsg: `Edited none by the name: ${name}`}}
+    }
+
+    if (kidos && kidos.length) {
+      let editedKidos: IKido[] = kidos.map(kido => {
+        let newPrefs: PrefType = kido.prefs
+        Object.keys(kido.prefs).forEach(prefCat => {
+          if (kido.prefs[prefCat].includes(data.name)) {
+            newPrefs[prefCat] = newPrefs[prefCat].filter(horsoName => {return horsoName !== data.name})
+          }
+        })
+        return {name: kido.name, remarks: kido.remarks, prefs: newPrefs}
+      })
+      await this.db.updateMany('kidos', {userName}, editedKidos)
+    }
+
+    await this.logResults('new', userName, data.name, collName)
+    return {success: true, data: {}}
     //mix of newHorso and editEntry - divide into correct sub methods
   }
 
@@ -176,7 +233,7 @@ export default class Dispatch {
       let editedKidos: IKido[] = kidos.map(kido => {
         Object.keys(kido.prefs).forEach(prefLevel => {
           if(kido.prefs[prefLevel].includes(name)){
-            kido.prefs[prefLevel] = kido.prefs[prefLevel].filter(horso => {return (horso != name)})
+            kido.prefs[prefLevel] = kido.prefs[prefLevel].filter(horsoName => {return (horsoName != name)})
           }
         })
         return kido

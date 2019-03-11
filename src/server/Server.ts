@@ -153,6 +153,8 @@ export default class Server {
 
   private actionPrefixToMethod(actionPrefix: string): ((userName: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
     switch (actionPrefix) {
+      case 'get':
+        return this.dispatch.getDbEntry
       case 'new':
         return this.dispatch.newDbEntry
       case 'edit':
