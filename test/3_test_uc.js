@@ -20,8 +20,7 @@ let req_res_arr = [
   {action:'edit_kid', reqData:{newName:'Steven', name:'Steve', remarks: '', prefs:{'best':[], 'nice':['Jolly Jumper','Hasty Harry'], 'isok':[], 'limp':[], 'excl':[]}}, success:true, resData:{}},
   {action:'prefs_template',reqData:'Steven',success:true,resData:{ best: [], nice: [ 'Jolly Jumper', 'Hasty Harry' ], isok: [], limp: [], excl: [] } },
 
-  //adding and removing horsos when there are kidos
-  /*{action:'new_horse', reqData:{name: 'Foxy'}, success:false, resData:{}},// no adding scheme
+  {action:'new_horse', reqData:{name: 'Foxy'}, success:false, resData:{}},// no adding scheme
   {action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'good'}, success:false, errorMsg: 'Internal error: preferences category: good is invalid' },
   {action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'best'}, success:true, resData:{}},
 
@@ -31,8 +30,8 @@ let req_res_arr = [
   {action:'new_horse', reqData:{name: 'Porche', addAsHorse:'Jolly Jumper'}, success:true, resData:{}},
 
   {action:'edit_horse', reqData:{name: 'Jolly Jumper', newName:'Joyful'}, success: true, resData:{}},
-  //{action:'get_horse' and action:get_kid  and compare state
-  {action:'remove_kid', reqData:{name: 'Dylan'}, success:false, errorMsg: 'Deleted none by the name: Dylan'},
+  {action:'get_horse', reqData:{name: 'Joyful'}, success: true} //todo  resData
+  /*{action:'remove_kid', reqData:{name: 'Dylan'}, success:false, errorMsg: 'Deleted none by the name: Dylan'},
   {action:'remove_kid', reqData:{name: 'Jessica'}, success: true, resData:{}},
   {action:'remove_horse', reqData:{name: 'Joyful'}, success: true, resData:{}},*/
   //{action:'get_horse' and action:get_kid  and compare state

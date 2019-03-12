@@ -117,10 +117,12 @@ export default class Dispatch {
           return ({success: false, data: {errorMsg:`Internal error: No such horse: ${data.addAsHorse}`}} as IBackendMsg)
         }
       }else if(transients.addToPrefLevel){
+        let prefLevel: string = transients.addToPrefLevel
         let editedKidos: IKido[] = kidos.map(kido => {
-          kido.prefs[data.addToPrefLevel].push(data.name)
-          return kido
+            kido.prefs[prefLevel].push(data.name)
+            return kido
         })
+        console.log(editedKidos)
         await this.db.updateMany('kidos', {userName}, editedKidos)
       }
     }
