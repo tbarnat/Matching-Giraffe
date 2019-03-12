@@ -31,10 +31,10 @@ exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
         console.log('\n\n')
 
         // comment for title
-        if (reqData.length < 50) {
-          t.comment(`:         --> ${req_res.action}   --> ${reqData}`)
+        if (reqData.length < 35) {
+          t.comment(`Action: '${req_res.action}'   <|>   Request: ${reqData}   <|>   Success: expected:${req_res.success} / received:${response.success}`)
         } else {
-          t.comment(`:         --> ${req_res.action}   --> ..long-input..`)
+          t.comment(`Action: '${req_res.action}'   <|>   Request: ${reqData.substring(0,32)}...   <|>   Success: expected:${req_res.success} / received:${response.success}`)
         }
         //assertions
         console.log(response)

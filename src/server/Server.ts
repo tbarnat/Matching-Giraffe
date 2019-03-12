@@ -27,7 +27,7 @@ export default class Server {
   private wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
   private dispatch: Dispatch
 
-  private readonly actionPrefixes = ['new', 'edit', 'remove', 'list', 'haveAny']
+  private readonly actionPrefixes = ['get', 'new', 'edit', 'remove', 'list', 'haveAny']
   private readonly actionSuffixes = ['horse', 'kid', 'trainer']
 
   constructor(config: IServerConfig) {
@@ -78,13 +78,12 @@ export default class Server {
           return
         }
 
-        let request = JSON.parse(msg.toString());
-        request = request as IFrontendMsg
+        let request = JSON.parse(msg.toString()) as IFrontendMsg;
         if (userName) {
           this.log.debug(`message received: ${msg} \n`);
-          try{
+          try {
             await this.onClientMessageReceived(ws, userName, request)
-          }catch (err) {
+          } catch (err) {
             this.log.error(err, 'onClientMessageReceived')
           }
         } else if (request.action == 'login') {

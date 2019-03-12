@@ -1,3 +1,5 @@
+//RUN WITH TAP-SPEC: node test/1_test_uc.js | node_modules/.bin/tap-spec
+
 genericTest = require('./genericTest').genericTest
 
 // req_res_arr: {action:string, reqData:{}, success:boolean, errorMsg?:string, resData?: {}}
@@ -17,5 +19,5 @@ let req_res_arr = [
   {action:'list_horse', reqData:{query:'aaa', taken: ['Aaa1','Aaa2','aaa3','aab1']}, success:true, resData:[ 'Aaa2', 'aaa3', 'aaa4', 'aaa5' ]},
 ]
 
-genericTest('Listing','test_user1','asd', req_res_arr)
+genericTest('### ### Very basic functionality with listings ### ###','test_user1','asd', req_res_arr)
 

@@ -134,14 +134,14 @@ export default class Dispatch {
     if (collName === 'horsos') {  // horso is kinda special case entity
       return await this.editHorso(userName, data, collName)
     }
-    let name = data.name
 
     let DV: EntriesValidator = new EntriesValidator(userName, this.db)
     let patternObj = await DV.validateEditEntry(data, collName)
-    if (patternObj) {
+    if (patternObj.errorMsg) {
       return ({success: false, data: {errorMsg:patternObj.errorMsg}} as IBackendMsg)
     }
 
+    let name = data.name
     let oldObject = (await this.db.find(collName, {userName, name}))[0]
     if(Utils.areFlatObjectsIdentical(data,oldObject)){
       return ({success: false, data: {errorMsg:'Edited none - new and old objects are the same'}} as IBackendMsg)
@@ -169,6 +169,7 @@ export default class Dispatch {
       }
       Object.assign(data, {addedBeforeKids: true})
     }
+
     let DV: EntriesValidator = new EntriesValidator(userName, this.db)
     let patternObj = await DV.validateEditEntry(data, collName)
     if(data.addToPrefLevel){
@@ -179,7 +180,6 @@ export default class Dispatch {
     if (patternObj.errorMsg) {
       return ({success: false, data: {errorMsg:patternObj.errorMsg}} as IBackendMsg)
     }
-    await this.db.insertOne(collName, Object.assign({userName}, data))
 
     let name = data.name
     let oldObject = (await this.db.find(collName, {userName, name}))[0]

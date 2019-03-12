@@ -3,13 +3,13 @@ Backend
 0) dopisać akcję get
 1) TEST: remove horso from the prefs test
 2) editHorso the same as add new horso
-3)all tests must work
+3) all tests must work
 4) timeout in asyncWhile does not work (?)
 5) add commons for typings (mess around with package.json)
 
     ----later on----
     2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
-    2a) allow different time resolutions (like 45 minutes rides etc)
+    2a) allow different time resolutions (like 30 or 45 minutes rides etc)
     2c) adding a flag to calculation if exhausting search is expected (may not be good for AWS EC2 where CPU credits are calculated)
     3) change db scheme - horses and kidos are assigned to 'User' and 'RidingSchool'. after login user selects the ridingSchool for which he/she will be defining query
     4) create log parsing script, and reply parsing script move tableHelper to src then
