@@ -30,11 +30,12 @@ exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
 
         console.log('\n\n')
 
+        let reqDataLength = 45
         // comment for title
-        if (reqData.length < 35) {
+        if (reqData.length < reqDataLength) {
           t.comment(`Action: '${req_res.action}'   <|>   Request: ${reqData}   <|>   Success: expected:${req_res.success} / received:${response.success}`)
         } else {
-          t.comment(`Action: '${req_res.action}'   <|>   Request: ${reqData.substring(0,32)}...   <|>   Success: expected:${req_res.success} / received:${response.success}`)
+          t.comment(`Action: '${req_res.action}'   <|>   Request: ${reqData.substring(0,reqDataLength-3)}...   <|>   Success: expected:${req_res.success} / received:${response.success}`)
         }
         //assertions
         console.log(response)
@@ -42,8 +43,8 @@ exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
         t.equal(req_res.success, response.success)
         if (!req_res.success && !response.success && req_res.errorMsg) {
           t.equal(req_res.errorMsg, response.data.errorMsg)
-        } else if (req_res.success && response.success && req_res.data) {
-          t.equal(req_res.resData, response.data)
+        } else if (req_res.success && response.success && req_res.resData) {
+          t.equal(JSON.stringify(req_res.resData), JSON.stringify(response.data))
         }
       }
 

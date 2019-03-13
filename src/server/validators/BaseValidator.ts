@@ -15,15 +15,10 @@ export interface IInterfaceObj {
   transient?: boolean //fields marked as transient are removed from 'data', and returned
 }
 
-export interface IPatternObj {
-  errorMsg: string,
-  transients?: { [key: string]: any }
-}
-
 export abstract class BaseValidator {
 
-  protected patternCheck(data: any, patternName: string): string {
-    let objPatternArr = this.getPatternByName(patternName)
+  protected patternCheck(data: any, patternName: string, type?: string): string {
+    let objPatternArr = this.getPatternByName(patternName, type)
     if (!objPatternArr) {
       return `Internal error: missing interface/pattern definition for: ${patternName}`
     }
@@ -58,10 +53,10 @@ export abstract class BaseValidator {
 
         let groupFieldsCount = Utils.intersection(actualKeys, namesOfFieldsInGroup).length
         if (groupFieldsCount < 1) {
-          return `Internal error: one of fields: ${namesOfFieldsInGroup.join(',')} has to be submitted`
+          return `Internal error: one of the fields: ${namesOfFieldsInGroup.join(',')} has to be submitted`
         }
         if (groupFieldsCount > 1) {
-          return `Internal error: just one of fields: ${namesOfFieldsInGroup.join(',')} has to be submitted`
+          return `Internal error: just one of the fields: ${namesOfFieldsInGroup.join(',')} has to be submitted`
         }
       }
     }
@@ -105,24 +100,7 @@ export abstract class BaseValidator {
     return ''
   }
 
-  protected checkForTransients(data: any, patternName: string): any {
-    let objPatternArr = this.getPatternByName(patternName)
-    let actualKeys = Object.keys(data)
-    let transients: { [key: string]: any } = {}
-    for (let actualKey of actualKeys) {
-      let fieldPattern = objPatternArr.find(inter => {
-        return inter.key === actualKey
-      })
-      if (fieldPattern && fieldPattern.transient) {
-        transients[actualKey] = data[actualKey]
-        delete data[actualKey]
-
-      }
-    }
-    return transients
-  }
-
   // a handicapped way of hardcoding the interfaces for objects - still better then anything
-  protected abstract getPatternByName(name?: string): IInterfaceObj[]
+  protected abstract getPatternByName(name: string, type?: string): IInterfaceObj[]
 
 }

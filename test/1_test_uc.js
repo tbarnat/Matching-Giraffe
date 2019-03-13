@@ -5,7 +5,9 @@ genericTest = require('./genericTest').genericTest
 // req_res_arr: {action:string, reqData:{}, success:boolean, errorMsg?:string, resData?: {}}
 let req_res_arr = [
   {action:'new_horse', reqData:{name:'Aaa0'}, success:true, resData:{}},
-  {action:'edit_horse', reqData:{name:'Aaa0',remarks:''}, success:true, resData:{}},
+  {action:'get_horse', reqData:{name:'Aaa0'}, success:true, resData:{name:'Aaa0'}},
+  {action:'edit_horse', reqData:{name:'Aaa0',remarks:'asd'}, success:true, resData:{}},
+  {action:'get_horse', reqData:{name:'Aaa0'}, success:true, resData:{name:'Aaa0',remarks:'asd'}},
   {action:'remove_horse', reqData:{name:'Aaa0'}, success:true, resData:{}},
   {action:'list_horse', reqData:{query:''}, success:true, resData:[ 'Aaa1', 'Aaa2', 'aaa3', 'aaa4', 'aaa5', 'aab1', 'aab2', 'aab3', 'Abb4', 'Abb5' ]},
   {action:'list_horse', reqData:{query:'a'}, success:true, resData:[ 'Aaa1', 'Aaa2', 'aaa3', 'aaa4', 'aaa5', 'aab1', 'aab2', 'aab3', 'Abb4', 'Abb5' ]},

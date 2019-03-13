@@ -1,6 +1,6 @@
 import {Database} from "../Database";
-import {Collection, default as Preferences} from "../DataModel";
-import {BaseValidator, IInterfaceObj, IPatternObj} from './BaseValidator'
+import {Collection, default as Preferences, IHorso} from "../DataModel";
+import {BaseValidator, IInterfaceObj} from './BaseValidator'
 
 export default class EntriesValidator extends BaseValidator {
 
@@ -8,37 +8,39 @@ export default class EntriesValidator extends BaseValidator {
     super()
   }
 
-  public async validateNewEntry(data: any, collName: Collection): Promise<IPatternObj> {
+  public async validateNewEntry(data: any, collName: Collection): Promise<string> {
     let name = data.name
     let items: any[] = await this.db.find(collName, {userName: this.userName, name})
     if (items && items[0]) {
-      return {errorMsg:`Entry by the name: ${name} already exists in db`}
+      return `Entry by the name: ${name} already exists in db`
     }
-    return this.validateCommon(data,collName)
+    return this.validateCommon(data, collName, 'new')
   }
 
-  public async validateEditEntry(data: any, collName: Collection): Promise<IPatternObj> {
-    return this.validateCommon(data,collName)
+  public async validateEditEntry(data: any, collName: Collection): Promise<string> {
+    return this.validateCommon(data, collName, 'edit')
   }
 
-  private async validateCommon(data: any, collName: Collection): Promise<IPatternObj>{
-    let errorMsg = this.patternCheck(data, collName)
+  private async validateCommon(data: any, collName: Collection, actionType?: 'new' | 'edit'): Promise<string> {
+    let errorMsg = this.patternCheck(data, collName, actionType)
     if (errorMsg) {
-      return {errorMsg:errorMsg}
+      return errorMsg
     }
 
-    if (collName === 'kidos') {
-      return {errorMsg:(await this.checkPrefsForKidos(data.prefs))}
+    switch (collName) {
+      case 'kidos':
+        return await this.additionalValidationForKidos(data)
+      case 'horsos':
+        return await this.additionalValidationForHorses(data)
+      default:
+        break
     }
-    let noError = {errorMsg:''}
-    let transients = this.checkForTransients(data, collName)
-    if(transients){
-      Object.assign(noError,{transients})
-    }
-    return noError
+    return ''
   }
 
-  private async checkPrefsForKidos(prefs: any): Promise<string> {
+  private async additionalValidationForKidos(data: any): Promise<string> {
+    let prefs = data.prefs
+    //checking preferences for kids
     let allHorsosForUserNo: number = (await this.db.find('horsos', {userName: this.userName})).length
     if (!allHorsosForUserNo) {
       return `Before adding kid, please add all horses in your Riding Center`
@@ -57,21 +59,50 @@ export default class EntriesValidator extends BaseValidator {
     return ''
   }
 
-  protected getPatternByName(collName: Collection): IInterfaceObj[] {
+  private async additionalValidationForHorses(data: any): Promise<string> {
+    if (data.addAsHorse) {
+      let horso = (await this.db.find('horsos', {userName: this.userName, name: data.addAsHorse}) as IHorso[])[0]
+      if(!horso){
+        return `Internal error: cannot add horse to preferences as: ${data.addAsHorse}, because it doesn't exist in db`
+      }
+    }
+    if (data.addToPrefLevel && !Preferences.isPrefCategory(data.addToPrefLevel)) {
+      return `Internal error: preferences category: ${data.addToPrefLevel} is invalid`
+    }
+    return ''
+  }
+
+  //todo newName to edit type
+  protected getPatternByName(collName: Collection, actionType?: 'new' | 'edit'): IInterfaceObj[] {
     switch (collName) {
       case 'horsos':
-        return [
+        let pattern = [
           {req: true, key: 'name', type: 'string', minL: 2, maxL: 20},
           {req: false, key: 'newName', type: 'string', minL: 2, maxL: 20},
           {req: false, key: 'maxDailyWorkload', type: 'number'},
           {req: false, key: 'descr', type: 'string', maxL: 200},
-          {req: false, key: 'remarks', type: 'string', maxL: 200},
-          {req: false, altReq: 'howToAddToPrefs', key: 'addAsHorse', type: 'string', minL: 2, maxL: 20, transient:true},
-          {req: false, altReq: 'howToAddToPrefs', key: 'addToPrefLevel', type: 'string', minL: 2, maxL: 20,
-            anyOf: Preferences.allPrefCat, transient:true},
-          /*special cheat key added when user started adding horses before adding kidos*/
-          {req: false, altReq: 'howToAddToPrefs', key: 'addedBeforeKids', type: 'boolean', transient:true}
-        ]
+          {req: false, key: 'remarks', type: 'string', maxL: 200}]
+        if(actionType && actionType === 'new'){
+          let addPattern = [
+            {
+              req: false,
+              altReq: 'howToAddToPrefs',
+              key: 'addAsHorse',
+              type: 'string',
+              minL: 2,
+              maxL: 20,
+              transient: true
+            },
+            {
+              req: false, altReq: 'howToAddToPrefs', key: 'addToPrefLevel', type: 'string', minL: 2, maxL: 20,
+              anyOf: Preferences.allPrefCat, transient: true
+            },
+            /*special cheat key added when user started adding horses before adding kidos*/
+            {req: false, altReq: 'howToAddToPrefs', key: 'addedBeforeKids', type: 'boolean', transient: true}
+          ]
+          pattern = pattern.concat(addPattern)
+        }
+        return pattern
       case 'kidos':
         return [
           {req: true, key: 'name', type: 'string', minL: 2, maxL: 20},
@@ -96,5 +127,7 @@ export default class EntriesValidator extends BaseValidator {
       default:
         return []
     }
+
+    //todo get functions for custom validations
   }
 }

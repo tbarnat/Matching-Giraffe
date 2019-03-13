@@ -12,7 +12,7 @@ let req_res_arr = [
   {action:'get_horse', reqData:{name: 'Stinky'}, success:false},
   {action:'get_horse', reqData:{name: 'Jolly Jumper'}, success:true, resData:{name: 'Jolly Jumper', remarks: ''}},
   {action:'new_horse', reqData:{name: 'Buddy', remarks: 'quickest buddy on the universe', descr: 'brownish', maxDailyWorkload: 2}, success:true, resData:{}},
-  {action:'haveAny_horse', reqData:{query:'a'}, success:true, resData:{}},
+  {action:'haveAny_horse', reqData:{query:'a'}, success:true, resData:true},
   {action:'edit_horse', reqData:{newName: 'Hasty Harry', name: 'Buddy', remarks: ' :)  \n \\ ^^ '}, success:true, resData:{}},
   {action:'new_horse', reqData:{name: 'X', remarks: 'reject!!'}, success:false, errorMsg: 'Internal error: name length out of bounds (2-20)'},
   {action:'edit_horse', reqData:{name: 'X', remarks: 'reject!!'}, success:false, errorMsg: 'Internal error: name length out of bounds (2-20)'},
