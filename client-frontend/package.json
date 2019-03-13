@@ -16,6 +16,7 @@
     "autosuggest-highlight": "^3.1.1",
     "bootstrap": "^4.3.1",
     "immutability-helper": "^3.0.0",
+    "node-sass": "^4.11.0",
     "react": "^16.8.2",
     "react-bootstrap": "^1.0.0-beta.5",
     "react-bootstrap-typeahead": "^4.0.0-alpha.3",

@@ -6,6 +6,7 @@ import AppMenu from './components/AppMenu/AppMenu';
 import DayPlan from './components/DayPlan/DayPlan';
 import Diary from './components/Diary/Diary';
 import DiaryList from './components/Diary/DiaryList';
+import AdminPanel from './components/AdminPanel/AdminPanel';
 
 
 class App extends React.Component {
@@ -19,6 +20,7 @@ class App extends React.Component {
             <Route path="/day" component={DayPlan} />
             <Route path="/diary/:chosendate" component={Diary} />
             <Route path="/diary" component={DiaryList} />
+            <Route path="/admin" component={AdminPanel} />
           </Switch>
         </div>
       </div>
