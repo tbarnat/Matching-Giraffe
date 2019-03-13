@@ -25,21 +25,27 @@ let req_res_arr = [
   {action:'new_horse', reqData:{name: 'Foxy'}, success:false, resData:{}},// no adding scheme
   {action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'good'}, success:false, errorMsg: 'Internal error: addToPrefLevel should be any of best, nice, isok, limp, excl' },
   {action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'best'}, success:true, resData:{}},
-  {action:'get_kid', reqData:{name: 'Jessica'}, success: true, resData:{name:'Jessica', prefs:{'best':['Foxy'], 'nice':[], 'isok':['Hasty Harry'], 'limp':['Jolly Jumper'], 'excl':[]}}}, //todo  resData
+  {action:'get_kid', reqData:{name: 'Jessica'}, success: true, resData:{name:'Jessica', prefs:{'best':['Foxy'], 'nice':[], 'isok':['Hasty Harry'], 'limp':['Jolly Jumper'], 'excl':[]}}},
 
   {action:'new_kid', reqData:{name:'Margaret', remarks: '', prefs:{'best':['Jolly Jumper'], 'nice':['Foxy'], 'isok':[], 'limp':[], 'excl':['Hasty Harry']}}, success:true, resData:{}},
 
-  {action:'new_horse', reqData:{name: 'Porche', addAsHorse:'Ghost'}, success:false, errorMsg:'Internal error: cannot add horse to preferences as: Ghost, because it doesn\'t exist in db'},
-  {action:'new_horse', reqData:{name: 'Porche', addAsHorse:'Jolly Jumper'}, success:true, resData:{}},
-  {action:'get_kid', reqData:{name: 'Jessica'}, success: true, resData:{name:'Jessica', prefs:{'best':['Foxy'], 'nice':[], 'isok':['Hasty Harry'], 'limp':['Jolly Jumper','Porche'], 'excl':[]}}}, //todo  resData
+  {action:'new_horse', reqData:{name: 'Porshe', addAsHorse:'Ghost'}, success:false, errorMsg:'Internal error: cannot add horse to preferences as: Ghost, because it doesn\'t exist in db'},
+  {action:'new_horse', reqData:{name: 'Porshe', addAsHorse:'Jolly Jumper'}, success:true, resData:{}},
+  {action:'get_kid', reqData:{name: 'Jessica'}, success: true, resData:{name:'Jessica', prefs:{'best':['Foxy'], 'nice':[], 'isok':['Hasty Harry'], 'limp':['Jolly Jumper','Porshe'], 'excl':[]}}},
 
-  {action:'edit_horse', reqData:{name: 'Jolly Jumper', newName:'Jolly Jumper'}, success: false, errorMsg: 'Edited none - new and old objects are the same'},
+  {action:'edit_horse', reqData:{name: 'Jolly Jumper', newName:'Jolly Jumper'}, success: false, errorMsg: 'Edited none by the name: Jolly Jumper'},
   {action:'edit_horse', reqData:{name: 'Jolly Jumper', newName:'Joyful'}, success: true, resData:{}},
   {action:'get_horse', reqData:{name: 'Joyful'}, success: true, resData:{ name: 'Joyful', remarks: '' } },
   {action:'remove_kid', reqData:{name: 'Dylan'}, success:false, errorMsg: 'Deleted none by the name: Dylan'},
   {action:'remove_kid', reqData:{name: 'Jessica'}, success: true, resData:{}},
   {action:'remove_horse', reqData:{name: 'Joyful'}, success: true, resData:{}},
-  //{action:'get_horse' and action:get_kid  and compare state
+  {action:'get_kid', reqData:{name: 'Jessica'}, success: false, resData:{}},
+  {action:'get_kid', reqData:{name: 'Steven'}, success: true, resData:{name: 'Steven', remarks: '', prefs:{'best':['Foxy'], 'nice':['Hasty Harry','Porshe'], 'isok':[], 'limp':[], 'excl':[]}}},
+  {action:'edit_horse', reqData:{name: 'Foxy'}, success:false, errorMsg:'Edited none - new and old objects are the same'},
+  {action:'edit_horse', reqData:{newName: 'Foxy', name: 'Foxy'}, success:false, errorMsg:'Edited none - new and old objects are the same'},
+  {action:'edit_horse', reqData:{newName: 'Shifty', name: 'Foxy'}, success:true, resData:{}},
+  {action:'get_kid', reqData:{name: 'Steven'}, success: true, resData:{name: 'Steven', remarks: '', prefs:{'best':['Shifty'], 'nice':['Hasty Harry','Porshe'], 'isok':[], 'limp':[], 'excl':[]}}},
+
 
 
   //rozbic na dwa osobne use case'y

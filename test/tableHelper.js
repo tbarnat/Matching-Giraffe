@@ -16,7 +16,7 @@ module.exports = {
   },
 
 
-  // todo this helper have to by corrected becuse of change data format
+  // todo this helper have to by corrected because of change data format
   tableSearchOrder: function getSearchOrderFormatForTable(searchOrder) {
     let resultTable = []
     Object.keys(searchOrder).forEach(kido => {

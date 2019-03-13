@@ -222,7 +222,6 @@ initDatabase = async () => {
 //initDatabase()
 
 exports.initTestServer = async() => {
-  console.log('mac mac')
   let stepUno = await initDatabase()
   if(!stepUno){
     return false

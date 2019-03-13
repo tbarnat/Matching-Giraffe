@@ -1,6 +1,6 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido, PrefType} from "./DataModel";
+import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido} from "./DataModel";
 import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
 import EntriesValidator from "./validators/EntriesValidator";
@@ -52,8 +52,7 @@ export default class Dispatch {
   public async getDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let entry = (await this.db.find(collName, {userName, name: data.name}))[0]
     if (entry) {
-      delete entry._id
-      delete entry.userName
+      entry = Dispatch.stripFromUserNameAnd_Id(entry)
       return {success: true, data: entry}
     }
     return {success: false, data: {}}
@@ -146,25 +145,25 @@ export default class Dispatch {
     }
 
     let oldName = data.name
-    let newDbEntry: any = {}
-    Object.keys(data).forEach(field => {
-      if(field != 'newName'){
-        if(field != 'name'){
-          newDbEntry[field] = data[field]
-        }
-      }else{
-        newDbEntry['name'] = data['newName']
-      }
-    })
-    let oldObject = (await this.db.find(collName, {userName, name: oldName}))[0]
-    if (Utils.areFlatObjectsIdentical(newDbEntry, oldObject)) {
+    let newEntry: any = {}
+    let keys = Object.keys(data)
+    if(keys.includes('newName')){
+      keys.filter(key => key != 'name').forEach(field => {
+        field == 'newName' ? newEntry['name'] = data['newName'] : newEntry[field] = data[field]
+      })
+    }else{
+      keys.forEach(field => {newEntry[field] = data[field]})
+    }
+    let oldEntry = (await this.db.find(collName, {userName, name: oldName}))[0]
+    oldEntry = Dispatch.stripFromUserNameAnd_Id(oldEntry)
+    if (Utils.areFlatObjectsIdentical(newEntry, oldEntry)) {
       return ({success: false, data: {errorMsg: 'Edited none - new and old objects are the same'}} as IBackendMsg)
     }
 
     let mongoUpdObj = await this.db.updateOne(collName, {
       userName,
-      name:oldName
-    }, {$set: Object.assign({userName}, newDbEntry)})
+      name: oldName
+    }, {$set: Object.assign({userName}, newEntry)})
     if (!mongoUpdObj.modifiedCount) {
       return {success: false, data: {errorMsg: `Edited none by the name: ${oldName}`}}
     }
@@ -181,42 +180,42 @@ export default class Dispatch {
     }
 
     let oldName = data.name
-    let newDbEntry: any = {}
-    Object.keys(data).forEach(field => {
-      if(field != 'newName'){
-        if(field != 'name'){
-          newDbEntry[field] = data[field]
-        }
-      }else{
-        newDbEntry['name'] = data['newName']
-      }
-    })
-    let oldObject = (await this.db.find(collName, {userName, name: oldName}))[0]
-
-    if (Utils.areFlatObjectsIdentical(newDbEntry, oldObject)) {
+    let newEntry: any = {}
+    let keys = Object.keys(data)
+    if(keys.includes('newName')){
+     keys.filter(key => key != 'name').forEach(field => {
+       field == 'newName' ? newEntry['name'] = data['newName'] : newEntry[field] = data[field]
+      })
+    }else{
+      keys.forEach(field => {newEntry[field] = data[field]})
+    }
+    let oldEntries = (await this.db.find(collName, {userName, name: oldName}))
+    let oldEntry = oldEntries[0]
+    oldEntry = Dispatch.stripFromUserNameAnd_Id(oldEntry)
+    if (Utils.areFlatObjectsIdentical(newEntry, oldEntry)) {
       return ({success: false, data: {errorMsg: 'Edited none - new and old objects are the same'}} as IBackendMsg)
     }
-
     let mongoUpdObj = await this.db.updateOne(collName, {
       userName,
-      name:oldName
-    }, {$set: Object.assign({userName}, newDbEntry)})
+      name: oldName
+    }, {$set: Object.assign({userName}, newEntry)})
     if (!mongoUpdObj.modifiedCount) {
       return {success: false, data: {errorMsg: `Edited none by the name: ${oldName}`}}
     }
 
+
     let kidos = (await this.db.find('kidos', {userName}) as IKido[])
     if (kidos && kidos.length) {
       let modifiedKidos: IKido[] = kidos.map(kido => {
-        let newPrefs: PrefType = kido.prefs
         Object.keys(kido.prefs).forEach(prefCat => {
           if (kido.prefs[prefCat].includes(data.name)) {
-            newPrefs[prefCat] = newPrefs[prefCat].filter(horsoName => {
+            let prefsFiltered = kido.prefs[prefCat].filter(horsoName => {
               return horsoName !== data.name
             })
+            kido.prefs[prefCat] = prefsFiltered.concat(newEntry.name)
           }
         })
-        return {name: kido.name, remarks: kido.remarks, prefs: newPrefs}
+        return kido
       })
       await this.updateKidosWithHorses(userName, modifiedKidos)
     }
@@ -312,7 +311,7 @@ export default class Dispatch {
     if (kidos && kidos[0]) {
       return {success: true, data: kidos[0].prefs}
     }
-    return {success: false, data: {errorMsg:`Internal error: No kid by the name: ${data}`}}
+    return {success: false, data: {errorMsg: `Internal error: No kid by the name: ${data}`}}
   }
 
   public async haveAny(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
@@ -332,5 +331,11 @@ export default class Dispatch {
       success: false,
       data: {errorMsg: `Internal error: incorrect_call ${userName} / ${JSON.stringify(data)} / ${collName}`}
     }
+  }
+
+  private static stripFromUserNameAnd_Id(entry: any): any{
+    delete entry._id
+    delete entry.userName
+    return entry
   }
 }

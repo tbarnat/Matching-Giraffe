@@ -1,11 +1,7 @@
 Backend
 
-0) dopisać akcję get
-1) TEST: remove horso from the prefs test
-2) editHorso the same as add new horso
-3) all tests must work
-4) timeout in asyncWhile does not work (?)
-5) add commons for typings (mess around with package.json)
+1) timeout in asyncWhile does not work (?)
+2) add commons for typings (mess around with package.json)
 
     ----later on----
     2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy

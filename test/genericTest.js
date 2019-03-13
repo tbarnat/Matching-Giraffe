@@ -5,7 +5,6 @@
 exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
 
   let init = require('./init_for_tests').initTestServer
-  console.log('jak to')
   if (!(await init())) {
     console.log('ERROR: db initialization failed or server error occurred')
     return null
@@ -27,8 +26,6 @@ exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
       let assertForSingleRequest = async (req_res) => {
         let response = await client.sendAndWait(req_res.action, req_res.reqData)
         let reqData = JSON.stringify(req_res.reqData)
-
-        console.log('\n\n')
 
         let reqDataLength = 45
         // comment for title

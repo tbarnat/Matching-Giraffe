@@ -62,7 +62,7 @@ export default class EntriesValidator extends BaseValidator {
   private async additionalValidationForHorses(data: any): Promise<string> {
     if (data.addAsHorse) {
       let horso = (await this.db.find('horsos', {userName: this.userName, name: data.addAsHorse}) as IHorso[])[0]
-      if(!horso){
+      if (!horso) {
         return `Internal error: cannot add horse to preferences as: ${data.addAsHorse}, because it doesn't exist in db`
       }
     }
@@ -72,26 +72,20 @@ export default class EntriesValidator extends BaseValidator {
     return ''
   }
 
-  //todo newName to edit type
   protected getPatternByName(collName: Collection, actionType?: 'new' | 'edit'): IInterfaceObj[] {
+    let pattern: IInterfaceObj[]
+    let addPattern: IInterfaceObj[]
     switch (collName) {
       case 'horsos':
-        let pattern = [
+        pattern = [
           {req: true, key: 'name', type: 'string', minL: 2, maxL: 20},
-          {req: false, key: 'newName', type: 'string', minL: 2, maxL: 20},
           {req: false, key: 'maxDailyWorkload', type: 'number'},
           {req: false, key: 'descr', type: 'string', maxL: 200},
           {req: false, key: 'remarks', type: 'string', maxL: 200}]
-        if(actionType && actionType === 'new'){
-          let addPattern = [
+        if (actionType && actionType === 'new') {
+          addPattern = [
             {
-              req: false,
-              altReq: 'howToAddToPrefs',
-              key: 'addAsHorse',
-              type: 'string',
-              minL: 2,
-              maxL: 20,
-              transient: true
+              req: false, altReq: 'howToAddToPrefs', key: 'addAsHorse', type: 'string', minL: 2, maxL: 20, transient: true
             },
             {
               req: false, altReq: 'howToAddToPrefs', key: 'addToPrefLevel', type: 'string', minL: 2, maxL: 20,
@@ -102,22 +96,34 @@ export default class EntriesValidator extends BaseValidator {
           ]
           pattern = pattern.concat(addPattern)
         }
+        if (actionType && actionType === 'edit') {
+          addPattern = [{req: false, key: 'newName', type: 'string', minL: 2, maxL: 20}]
+          pattern = pattern.concat(addPattern)
+        }
         return pattern
       case 'kidos':
-        return [
+        pattern = [
           {req: true, key: 'name', type: 'string', minL: 2, maxL: 20},
-          {req: false, key: 'newName', type: 'string', minL: 2, maxL: 20},
           {req: true, key: 'prefs', type: 'object'},
           {req: false, key: 'remarks', type: 'string', maxL: 200},
         ]
+        if (actionType && actionType === 'edit') {
+          addPattern = [{req: false, key: 'newName', type: 'string', minL: 2, maxL: 20}]
+          pattern = pattern.concat(addPattern)
+        }
+        return pattern
       case 'trainers':
-        return [
+        pattern = [
           {req: true, key: 'name', type: 'string', minL: 2, maxL: 20},
-          {req: false, key: 'newName', type: 'string', minL: 2, maxL: 20},
           {req: false, key: 'descr', type: 'string', maxL: 200},
           {req: false, key: 'remarks', type: 'string', maxL: 200},
           {req: false, key: 'isDefault', type: 'boolean'},
         ]
+        if (actionType && actionType === 'edit') {
+          addPattern = [{req: false, key: 'newName', type: 'string', minL: 2, maxL: 20}]
+          pattern = pattern.concat(addPattern)
+        }
+        return pattern
       /*case 'users':
         return [
           {req: true, key: 'userName',type: 'string', maxL:20},
@@ -127,7 +133,5 @@ export default class EntriesValidator extends BaseValidator {
       default:
         return []
     }
-
-    //todo get functions for custom validations
   }
 }
