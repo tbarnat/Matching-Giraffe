@@ -1,19 +1,28 @@
 import * as React from 'react';
-import './App.css';
+import { Switch, Route } from "react-router-dom";
 
-import logo from './logo.svg';
+import './App.scss';
+import AppMenu from './components/AppMenu/AppMenu';
+import DayPlan from './components/DayPlan/DayPlan';
+import Diary from './components/Diary/Diary';
+import DiaryList from './components/Diary/DiaryList';
+import AdminPanel from './components/AdminPanel/AdminPanel';
+
 
 class App extends React.Component {
-  public render() {
+  render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React 2</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
+        <AppMenu />
+        <div className="Content">
+
+          <Switch>
+            <Route path="/day" component={DayPlan} />
+            <Route path="/diary/:chosendate" component={Diary} />
+            <Route path="/diary" component={DiaryList} />
+            <Route path="/admin" component={AdminPanel} />
+          </Switch>
+        </div>
       </div>
     );
   }
