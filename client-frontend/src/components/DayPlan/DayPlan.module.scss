@@ -2,7 +2,7 @@
   .OneHour {
     padding: 20px 10px;
     margin: 15px 0;
-    box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.5);
+    box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
 
     .Hours,
     .Kids,
@@ -14,36 +14,35 @@
     }
   }
 
-  .DayLabel,
-  .DailyExcludesLabel,
-  .RemarksLabel,
-  .HourLabel,
-  .KidLabel,
-  .HorseLabel,
-  .TrainerLabel {
-    display: inline-block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    transition: 0.2s;
-    position: relative;
-    &:after {
-      content: "";
-      position: absolute;
-      transition: all 0.55s ease-out;
-      bottom: -1px;
-      width: 0px;
-      height: 2px;
-      margin: 5px 0 0;
-      opacity: 0;
-      left: -10%;
-      background-color: orangered;
-    }
-    &.Active {
-      font-weight: bold;
-      color: orange;
+ 
+  .LabelSection {
+    .Label {
+      display: inline-block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      transition: 0.2s;
+      position: relative;
       &:after {
-        width: 120%;
-        opacity: 1;
+        content: "";
+        position: absolute;
+        transition: all 0.55s ease-out;
+        bottom: -1px;
+        width: 0px;
+        height: 2px;
+        margin: 5px 0 0;
+        opacity: 0;
+        left: -10%;
+        background-color: orangered;
+      }
+    }
+    &:focus-within {
+      .Label {
+        font-weight: bold;
+        color: orange;
+        &:after {
+          width: 120%;
+          opacity: 1;
+        }
       }
     }
   }

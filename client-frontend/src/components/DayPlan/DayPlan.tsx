@@ -14,10 +14,6 @@ import classes from './DayPlan.module.scss';
 
 
 interface State extends IHorseRidingDayQ {
-   focused: {
-      index: number,
-      name: string
-   }
    options?: {
       kids?: string[],
       trainers?: { id: number, label: string }[],
@@ -32,55 +28,53 @@ class DayPlan extends React.Component<any, State> {
       day: '',
       remarks: '',
       dailyExcludes: [],
-      // hours: [
-      //   {
-      //     hour: '1230',
-      //     trainer: ['Paulina'],
-      //     trainingsDetails: [
-      //       { kidName: 'Julka Mala', horse: '' },
-      //       { kidName: 'Maja' },
-      //       { kidName: 'Julka Lonza' },
-      //       { kidName: 'Ola C' },
-      //       { kidName: '' },
-      //     ]
-      //   },
-      //   {
-      //     hour: '1430',
-      //     trainer: ['Eva'],
-      //     trainingsDetails: [
-      //       { kidName: 'Ola C' },
-      //       { kidName: 'Weronika' },
-      //       { kidName: 'Emilka' },
-      //       { kidName: 'Kalina' },
-      //       { kidName: 'Paula' },
-      //     ]
-      //   },
-      //   {
-      //     hour: '1530',
-      //     trainer: ['Eva'],
-      //     trainingsDetails: [
-      //       { kidName: 'Paula' },
-      //       { kidName: 'Kalina' },
-      //     ]
-      //   },
-      // ],
       hours: [
          {
-            hour: '',
-            trainer: [''],
+            hour: '1230',
+            trainer: ['Paulina'],
             trainingsDetails: [
-               { kidName: '', horse: '' },
+               { kidName: 'Julka Mala', horse: '' },
+               { kidName: 'Maja' },
+               { kidName: 'Julka Lonza' },
+               { kidName: 'Ola C' },
+               { kidName: undefined },
+            ]
+         },
+         {
+            hour: '1430',
+            trainer: ['Eva'],
+            trainingsDetails: [
+               { kidName: 'Ola C' },
+               { kidName: 'Weronika' },
+               { kidName: 'Emilka' },
+               { kidName: 'Kalina' },
+               { kidName: 'Paula' },
+               { kidName: undefined },
+            ]
+         },
+         {
+            hour: '1530',
+            trainer: ['Eva'],
+            trainingsDetails: [
+               { kidName: 'Paula' },
+               { kidName: 'Kalina' },
+               { kidName: undefined },
             ]
          },
       ],
+      // hours: [
+      //   {
+      //     hour: '',
+      //     trainer: [''],
+      //     trainingsDetails: [
+      //       { kidName: '', horse: '' },
+      //     ]
+      //   },
+      // ],
       options: {
          kids: ['Julka Mala', 'Maja', 'Julka Lonza', 'Ola C', 'Weronika', 'Emilka', 'Kalina', 'Paula'],
          // kids: ['Helena', 'Stefan', 'Marian', 'Olaf'].map((kid, index) => ({id: index, label: kid})),
          horses: ['Koń 1', 'Koń 2', 'Jakiś koń', 'Bucefał'].map((horse, index) => ({ id: index, label: horse })),
-      },
-      focused: {
-         index: -1,
-         name: ''
       },
    };
    // state = {
@@ -151,26 +145,28 @@ class DayPlan extends React.Component<any, State> {
    // }
 
 
-   changeKidHandler = (e: any, type: string, index: number[]) => {
-      const [hourIndex, kidIndex] = index;
-      let value;
-      if (Array.isArray(e)) {
-         value = e[0];
-      } else {
-         value = typeof (e) === 'object' ? e.target.value : e;
-      };
+   // changeKidHandler = (e: any, type: string, index: number[]) => {
+   //    const [hourIndex, kidIndex] = index;
+   //    let value;
+   //    if (Array.isArray(e)) {
+   //       value = e[0];
+   //    } else {
+   //       value = typeof (e) === 'object' ? e.target.value : e;
+   //    };
 
-      if (!value) {
-         console.log('changeKidHandler: ', e[0]);
-         let updatedValues: IHorseRidingHourQ[];
-         updatedValues = update(this.state.hours, { [hourIndex]: { trainingsDetails: { $splice: [[kidIndex, 1]] } } });
-         this.setState({ hours: updatedValues });
-      }
-   }
+   //    if (!value) {
+   //       console.log('changeKidHandler: ', e[0]);
+   //       let updatedValues: IHorseRidingHourQ[];
+   //       updatedValues = update(this.state.hours, { [hourIndex]: { trainingsDetails: { $splice: [[kidIndex, 1]] } } });
+   //       this.setState({ hours: updatedValues });
+   //    }
+   // }
 
 
 
-   changeHourHandler = (e: any, type: string, index: number[]) => {
+
+
+   changeHourHandler0 = (e: any, type: string, index: number[]) => {
       console.log('CHANGE HANDLER', e, type, index)
       if (!e[0]) {
          let updatedValues: IHorseRidingHourQ[];
@@ -281,81 +277,96 @@ class DayPlan extends React.Component<any, State> {
       }
    }
 
-   focusHandler = (e: any, focusedName: string, hourIndex: number) => {
-      this.setState({
-         focused:
-         {
-            name: focusedName,
-            index: hourIndex
-         }
-      })
-   }
 
-   isFocused = (name: string, index: number) => {
-      return (
-         this.state.focused &&
-         this.state.focused.name === name &&
-         this.state.focused.index === index
-      )
-   }
+   changeHourHandler = (e: any, index: number) => {
+      const value = e.target.value;
+      let updatedHours = update(this.state.hours, { [index]: { hour: { $set: value } } });
 
-   updateState = () => {
-      this.setState({
-         hours: [
-            {
-               hour: '1230',
-               trainer: ['Paulina'],
-               trainingsDetails: [
-                  { kidName: 'Julka Mala', horse: 'Koń 1' },
-                  { kidName: 'Weronika', horse: 'Bucefał' },
-
-               ]
-            },
-            {
-               hour: '1430',
+      if (!value) {
+         updatedHours = update(updatedHours, { $splice: [[index, 1]] });
+      }
+      if (!updatedHours.some(hour => hour.hour === '')) {
+         updatedHours = update(updatedHours, {
+            $push: [{
+               hour: '',
                trainer: ['Eva'],
                trainingsDetails: [
-                  { kidName: 'Weronika', horse: 'Koń 2' },
-                  { kidName: 'Kalina', horse: 'Jakoś koń' },
+                  {
+                     kidName: undefined,
+                     horse: undefined,
+                  }
                ]
-            },
-            {
-               hour: '1530',
-               trainer: ['Eva'],
-               trainingsDetails: [
-                  { kidName: 'Paula', horse: 'Koń 1' },
-                  { kidName: 'Kalina', horse: 'Koń 2' },
-               ]
-            },
-         ],
-      })
+            }]
+         })
+      }
+      this.setState({ hours: updatedHours })
    }
+
+   changeKidHandler = (selected: string[], indexes: number[]) => {
+      const [hourIndex, kidIndex] = indexes;
+      // updatedKids is this.state.hours
+      let updatedKids = update(this.state.hours, { [hourIndex]: { trainingsDetails: { [kidIndex]: { kidName: { $set: selected[0] } } } } });
+      if (!updatedKids[hourIndex]['trainingsDetails'].some(kid => kid.kidName === undefined)) {
+         updatedKids = update(updatedKids, { [hourIndex]: { trainingsDetails: { $push: [{ kidName: undefined, horse: undefined }] } } });
+      }
+      this.setState(() => ({ hours: updatedKids }))
+   }
+
+
+   inputChangeKidHandler = (value: string, indexes: number[]) => {
+      const [hourIndex, kidIndex] = indexes;
+      if (value === '') {
+         const updatedKids = update(this.state.hours, { [hourIndex]: { trainingsDetails: { $splice: [[kidIndex, 1]] } } });
+         this.setState({ hours: updatedKids })
+      }
+   }
+   // updateState = () => {
+   //    this.setState({
+   //       hours: [
+   //          {
+   //             hour: '1230',
+   //             trainer: ['Paulina'],
+   //             trainingsDetails: [
+   //                { kidName: 'Julka Mala', horse: 'Koń 1' },
+   //                { kidName: 'Weronika', horse: 'Bucefał' },
+
+   //             ]
+   //          },
+   //          {
+   //             hour: '1430',
+   //             trainer: ['Eva'],
+   //             trainingsDetails: [
+   //                { kidName: 'Weronika', horse: 'Koń 2' },
+   //                { kidName: 'Kalina', horse: 'Jakoś koń' },
+   //             ]
+   //          },
+   //          {
+   //             hour: '1530',
+   //             trainer: ['Eva'],
+   //             trainingsDetails: [
+   //                { kidName: 'Paula', horse: 'Koń 1' },
+   //                { kidName: 'Kalina', horse: 'Koń 2' },
+   //             ]
+   //          },
+   //       ],
+   //    })
+   // }
 
    render() {
       console.log('=======================')
       console.log('STATE: ', this.state)
       const hours = this.state.hours.map((hour, hourIndex) => {
          const kids = hour.trainingsDetails.map((training, trainingIndex) => {
-            console.log(training, trainingIndex);
             return (
-               // label="Dziecko"
-               // <Form.Control
-               //   onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-               //   value={training.kidName || ''}
-               //   key={trainingIndex}
-               //   placeholder="Dziecko"
-               //   onFocus={(e: any) => this.focusHandler(e, 'kid', hourIndex)} />
                <Typeahead
+                  id={trainingIndex}
                   key={trainingIndex}
                   placeholder="Dziecko"
-                  // onInputChange={(value: string) => this.changeHourHandler(value, 'kid', [hourIndex, trainingIndex])}
-                  // onInputChange={(value: string) => this.inputChangeHandler(value, 'kid', [hourIndex, trainingIndex])}
-                  onChange={(e: any) => this.changeKidHandler(e, 'kid', [hourIndex, trainingIndex])}
-                  // onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-                  onFocus={(e: any) => this.focusHandler(e, 'kid', hourIndex)}
+                  onInputChange={(value: string) => this.inputChangeKidHandler(value, [hourIndex, trainingIndex])}
+                  onChange={(e: any) => this.changeKidHandler(e, [hourIndex, trainingIndex])}
                   options={this.state.options.kids}
-                  selected={training.kidName ? [training.kidName] : []}
-                  clearButton
+                  selected={training.kidName === undefined ? [] : [training.kidName]}
+                  // clearButton
                   inputProps={{
                      width: '20px'
                   }}
@@ -369,69 +380,68 @@ class DayPlan extends React.Component<any, State> {
             )
          })
 
-         const horses = hour.trainingsDetails.map((training, trainingIndex) => {
-            return training.kidName
-               ? (
-                  // label="Koń"
-                  <Form.Control
-                     placeholder="Koń"
-                     key={trainingIndex}
-                     value={training.horse || ''}
-                     onChange={(e: any) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
-                     onFocus={(e: any) => this.focusHandler(e, 'horse', hourIndex)} />
-                  //   <Typeahead
-                  //   key={trainingIndex}
-                  //   placeholder="Dziecko"
-                  //   onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-                  //   onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
-                  //   options={this.state.options.kids}
-                  //   // selected={[training.kidName]}
-                  //   allowNew
-                  //   clearButton
-                  //   selectHintOnEnter
-                  //   newSelectionPrefix="Dodań dziecko: "
-                  // />
-               ) : null;
-         })
+         // const horses = hour.trainingsDetails.map((training, trainingIndex) => {
+         //    return training.kidName
+         //       ? (
+         //          // label="Koń"
+         //          <Form.Control
+         //             placeholder="Koń"
+         //             key={trainingIndex}
+         //             value={training.horse || ''}
+         //             onChange={(e: any) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
+         //             onFocus={(e: any) => this.focusHandler(e, 'horse', hourIndex)} />
+         //          //   <Typeahead
+         //          //   key={trainingIndex}
+         //          //   placeholder="Dziecko"
+         //          //   onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
+         //          //   onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
+         //          //   options={this.state.options.kids}
+         //          //   // selected={[training.kidName]}
+         //          //   allowNew
+         //          //   clearButton
+         //          //   selectHintOnEnter
+         //          //   newSelectionPrefix="Dodań dziecko: "
+         //          // />
+         //       ) : null;
+         // })
 
-         const trainers = hour.trainer.map((tr, trainerIndex) => {
-            return (
-               <Form.Control
-                  key={trainerIndex}
-                  // label="Trener"
-                  placeholder="Trener"
-                  value={tr}
-                  onChange={(e: any) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])}
-                  onFocus={(e: any) => this.focusHandler(e, 'trainer', hourIndex)}
-               />
-            )
-         })
+         // const trainers = hour.trainer.map((tr, trainerIndex) => {
+         //    return (
+         //       <Form.Control
+         //          key={trainerIndex}
+         //          // label="Trener"
+         //          placeholder="Trener"
+         //          value={tr}
+         //          onChange={(e: any) => this.changeHourHandler(e, 'trainer', [hourIndex, trainerIndex])}
+         //          onFocus={(e: any) => this.focusHandler(e, 'trainer', hourIndex)}
+         //       />
+         //    )
+         // })
 
          return (
             <Card key={hourIndex} className={classes.OneHour}>
                <Row>
                   <Col className={classes.Hours}>
-                     <span className={[classes.HourLabel, this.isFocused('hour', hourIndex) ? classes.Active : null].join(' ')}>Godzina</span>
+                     <span className={classes.Label}>Godzina</span>
                      <Form.Control
                         // label="Godzina"
                         placeholder="Godzina"
                         value={hour.hour}
-                        onChange={(e: any) => this.changeHourHandler(e, 'hour', [hourIndex])}
-                        onFocus={(e: any) => this.focusHandler(e, 'hour', hourIndex)}
+                        onChange={(e: any) => this.changeHourHandler(e, hourIndex)}
                      />
                   </Col>
                   <Col className={classes.Kids}>
-                     <span className={[classes.KidLabel, this.isFocused('kid', hourIndex) ? classes.Active : null].join(' ')}>Gówniaki</span>
+                     <span className={classes.Label}>Gówniaki</span>
                      {kids}
                   </Col>
-                  <Col className={classes.Horses}>
-                     <span className={[classes.HorseLabel, this.isFocused('horse', hourIndex) ? classes.Active : null].join(' ')}>Konie</span>
+                  {/* <Col className={classes.Horses}>
+                     <span className={classes.Label}>Konie</span>
                      {horses}
                   </Col>
                   <Col className={classes.Trainers}>
-                     <span className={[classes.TrainerLabel, this.isFocused('trainer', hourIndex) ? classes.Active : null].join(' ')}>Trenerzy</span>
+                     <span className={classes.Label}>Trenerzy</span>
                      {trainers}
-                  </Col>
+                  </Col> */}
                </Row>
             </Card>
          )
@@ -442,49 +452,33 @@ class DayPlan extends React.Component<any, State> {
       return (
          <Container className={classes.DayPlan} fluid>
             <Row>
-               <Col>
-                  <span className={[classes.DayLabel, this.isFocused('day', -1) ? classes.Active : null].join(' ')}>Dzień</span>
+               <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Dzień</span>
                   <Form.Control
-                     // label="Dzień"
                      placeholder="Dzień"
                      value={this.state.day}
                      onChange={(e: any) => this.setState({ day: e.target.value })}
-                     onFocus={(e: any) => this.focusHandler(e, 'day', -1)}
                   />
                </Col>
-               <Col>
-                  <span className={[classes.DailyExcludesLabel, this.isFocused('dailyExcludes', -1) ? classes.Active : null].join(' ')}>Wyłączone konie</span>
-                  {/* <Form.Control
-              placeholder="Wyłączone konie"
-              // label="Wyłączone konie"
-              // value={this.state.dailyExcludes}
-              // onChange={(e: any) => this.setState({dailyExcludes: e.target.value})}
-              onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
-            /> */}
+               <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Wyłączone konie</span>
                   <Typeahead
                      placeholder="Wyłączone konie"
-                     // label="Wyłączone konie"
-                     // value={this.state.dailyExcludes}
+                     id={'dailyExcludes'}
                      onChange={(e: any) => this.setState({ dailyExcludes: e })}
-                     onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
-                     options={['kon1', 'kon2']}
+                     options={this.state.options.horses}
                      selected={this.state.dailyExcludes}
-                     allowNew
-                     clearButton
                      multiple
-                     minLength={1}
                      selectHintOnEnter
-                     newSelectionPrefix="Inny koń: "
+                     emptyLabel="Brak wyników"
                   />
                </Col>
-               <Col>
-                  <span className={[classes.RemarksLabel, this.isFocused('remarks', -1) ? classes.Active : null].join(' ')}>Uwagi</span>
+               <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Uwagi</span>
                   <Form.Control
-                     // label="Uwagi"
                      placeholder="Uwagi"
                      value={this.state.remarks}
                      onChange={(e: any) => this.setState({ remarks: e.target.value })}
-                     onFocus={(e: any) => this.focusHandler(e, 'remarks', -1)}
                   />
                </Col>
             </Row>
@@ -492,7 +486,7 @@ class DayPlan extends React.Component<any, State> {
             {hours}
             <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
             <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>
-            <Button variant="secondary" onClick={this.updateState}>change state</Button>
+            {/* <Button variant="secondary" onClick={this.updateState}>change state</Button> */}
          </Container>
       )
 

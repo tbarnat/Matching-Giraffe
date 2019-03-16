@@ -1,3 +1,4 @@
+import * as React from 'react';
 import update from 'immutability-helper';
 
 import Form from 'react-bootstrap/Form';
@@ -11,15 +12,60 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
 
 
-
-import * as React from 'react';
+interface State extends IHorseRidingDayQ {
+   focused: {
+      index: number,
+      name: string
+   }
+   options?: {
+      kids?: string[],
+      trainers?: { id: number, label: string }[],
+      horses?: { id: number, label: string }[],
+   }
+}
 
 
 
 class Test extends React.Component {
    state = {
       testList: ['jeden', undefined],
-      options: ['jeden', 'dwa', 'trzy', 'cztery']
+      options: ['jeden', 'dwa', 'trzy', 'cztery'],
+
+      day: '',
+      remarks: '',
+      dailyExcludes: [],
+      hours: [
+         {
+            hour: '1230',
+            trainer: ['Paulina'],
+            trainingsDetails: [
+               { kidName: 'Julka Mala', horse: '' },
+               { kidName: 'Maja' },
+               { kidName: 'Julka Lonza' },
+               { kidName: 'Ola C' },
+               { kidName: '' },
+            ]
+         },
+         {
+            hour: '1430',
+            trainer: ['Eva'],
+            trainingsDetails: [
+               { kidName: 'Ola C' },
+               { kidName: 'Weronika' },
+               { kidName: 'Emilka' },
+               { kidName: 'Kalina' },
+               { kidName: 'Paula' },
+            ]
+         },
+         {
+            hour: '1530',
+            trainer: ['Eva'],
+            trainingsDetails: [
+               { kidName: 'Paula' },
+               { kidName: 'Kalina' },
+            ]
+         },
+      ],
    }
 
    changeHandler = (selected: string[], index: number) => {
@@ -28,7 +74,7 @@ class Test extends React.Component {
 
          // Add empty value if all selected
          if (!updatedValues.some(val => val === undefined)) {
-            updatedValues = update(updatedValues, {$push: [undefined]});
+            updatedValues = update(updatedValues, { $push: [undefined] });
          }
 
 
@@ -49,30 +95,28 @@ class Test extends React.Component {
    render() {
       console.log('STATE - render: ', this.state)
 
-      const testList = this.state.testList.map((test, index) => (
+      const kids = this.state.testList.map((test, index) => (
          <Typeahead
             key={index}
             id={index}
             placeholder="Dziecko"
-            // onInputChange={(value: string) => this.changeHourHandler(value, 'kid', [hourIndex, trainingIndex])}
             onInputChange={value => this.inputChangeHandler(value, index)}
             onChange={selected => this.changeHandler(selected, index)}
             options={this.state.options}
             selected={test === undefined ? [] : [test]}
-            // clearButton
+         // clearButton
          // selected={[training.kidName] || undefined}
          // allowNew
          // clearButton
          // selectHintOnEnter
          // newSelectionPrefix="Dodań dziecko: "
-
          />
       ))
 
 
       return (
          <div>
-            {testList}
+            {kids}
          </div>
       )
 
