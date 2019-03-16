@@ -1,8 +1,10 @@
 import http = require('http')
+import fs = require('fs')
 import WebSocket = require('ws')
-import {Database} from "./Database";
-import {IHorso, IKido} from "./DataModel";
-import MatchingEngine from "./MatchingEngine";
+import {Database, DbConfig} from "./Database";
+import Dispatch from "./Dispatch";
+import {Collection, IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
+import {Logger, LoggerConfig} from "./utils/Logger";
 
 const crypto = require('crypto');
 
@@ -10,51 +12,47 @@ const crypto = require('crypto');
 
 interface IServerConfig {
   port: number
-  db: {
-    uri: string  //'mongodb://localhost:27017'
-    dbName: string  //'hmDev'
-  }
-}
-
-interface IFrontendMsg {
-  id: string
-  action: 'login' | 'getMatches' | 'saveMatches' | 'deleteDay' | 'newHorse' | 'editHorse' | 'newKid' | 'editKid'
-  data: any
-}
-
-interface IBackendMsg {
-  replyTo?: string //id of incoming message
-  success: boolean
-  data: any
-}
-
-interface ILoginInfo {
-  userName: string
-  password: string //#
+  path: string
+  logLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent',
+  db: DbConfig,
+  logger: LoggerConfig
 }
 
 export default class Server {
 
+  protected log: Logger
   protected db: Database
-  protected httpServer: http.Server;
-  protected wss: WebSocket.Server;
-  protected wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
+  private httpServer: http.Server;
+  private wss: WebSocket.Server;
+  private wsClients: WebSocket[] = []; //{client: WebSocket, sessionID: string}[] = []
+  private dispatch: Dispatch
+
+  private readonly actionPrefixes = ['get', 'new', 'edit', 'remove', 'list', 'haveAny']
+  private readonly actionSuffixes = ['horse', 'kid', 'trainer']
 
   constructor(config: IServerConfig) {
+
+    console.log('-> Started <-')
+    if (!fs.existsSync(config.logger.pathLog)) {
+      fs.mkdirSync(config.logger.pathLog)
+    }
+    this.log = new Logger(config.logger)
+
     this.initDb(config).then(() => {
+      this.dispatch = new Dispatch(this.db, this.log)
       this.httpServer = http.createServer();
       this.wss = new WebSocket.Server({server: this.httpServer});
       this.wss.on('connection', this.onWssServerConnection.bind(this));
       this.httpServer.listen(config.port)
-      console.log('server started')
-    }).catch(() => {
-      console.log('db init failed')
+      this.log.info('Server started')
+    }).catch((err) => {
+      this.log.error('Db init failed', err)
     })
   }
 
   private async initDb(config: IServerConfig) {
-    this.db = new Database(config.db);
-    await this.db.init()
+    this.db = new Database(config.db, this.log);
+    await this.db.init(true)
   }
 
   public async onWssServerConnection(ws: WebSocket, request: http.IncomingMessage) {
@@ -63,11 +61,10 @@ export default class Server {
     this.wsClients.push(ws);
     const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
-
-    console.log(`client (${ip}) connected`);
+    this.log.info(`client (${ip}) connected`);
 
     ws.on('close', () => {
-      console.log(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
+      this.log.info(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
       const idx = this.wsClients.indexOf(ws);
       if (idx != -1) {
         this.wsClients.splice(idx, 1)
@@ -75,90 +72,115 @@ export default class Server {
     });
 
     ws.on('message', async (msg) => {
-      console.log(`message received: ${msg} \n`);
       try {
-        let request = JSON.parse(msg.toString());
-        if (request === 'ping') {
+        if (msg === '"ping"') {
           ws.send('"pong"')
+          return
         }
-        request = request as IFrontendMsg
-        if (userName) {
-          await this.onClientMessageReceived(ws, userName, request)
-        } else if(request.action == 'login'){
 
+        let request = JSON.parse(msg.toString()) as IFrontendMsg;
+        if (userName) {
+          this.log.debug(`message received: ${msg} \n`);
+          try {
+            await this.onClientMessageReceived(ws, userName, request)
+          } catch (err) {
+            this.log.error(err, 'onClientMessageReceived')
+          }
+        } else if (request.action == 'login') {
+          this.log.info(`message received: ${msg} \n`);
           //request: {userName:string,password:string}
           let reply: IBackendMsg = {success: false, data: 'Invalid login or password'}
-          console.log('0',request.data.userName)
-          let loginInfo = (await this.db.findOne('users', {userName: request.data.userName}) as ILoginInfo)
-          console.log('A',loginInfo)
+          let loginInfo = (await this.db.findOne('users', {userName: request.data.userName}) as ILoginAttempt)
           if (loginInfo) {
-            console.log('B')
             let hash = crypto.createHash('md5').update(request.data.password).digest('hex');
             if (loginInfo.password === hash) {
-              console.log('C')
               userName = loginInfo.userName
-              console.log(`  -- > user: ${userName}, ip: ${ip} : auth ok`);
-              reply = {success:true, data:{}}
+              this.dispatch.registerVisit(userName)
+              this.log.info(`Authenticated connection for user: \'${userName}\', ip: ${ip}`);
+              reply = {success: true, data: {}}
             }
           }
           this.sendMsg(ws, request, reply)
         }
       } catch (error) {
-        console.log(error, 'Incorrect data type')
+        this.log.warn(error, 'Incorrect data type')
       }
     });
   }
 
   public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
-    console.log(request, 'received')
+    let reply: IBackendMsg
+    let data = request.data
     switch (request.action) {
-      /*case 'login': <- this is handled somewhere else
-        break;*/
-      case 'getMatches':
-        this.getMatches(ws, userName, request);
-      case 'saveMatches':
+      case 'get_matches':
+        reply = await this.dispatch.getMatches(userName, data);
         break;
-      case 'deleteDay':
+      case 'save_matches':
+        reply = await this.dispatch.saveMatches(userName, data)
         break;
-      case 'newHorse':
+      case 'remove_day':
+        reply = await this.dispatch.deleteDay(userName, data)
         break;
-      case 'editHorse':
-        break;
-      case 'newKid':
-        break;
-      case 'editKid':
+      case 'prefs_template':
+        reply = await this.dispatch.getPrefsTemplate(userName, data)
         break;
       default:
+        if (request.action) {
+          let msgArr = request.action.split('_')
+          if (msgArr && msgArr.length == 2) {
+            let prefix = msgArr[0]
+            let suffix = msgArr[1]
+            if (this.actionPrefixes.includes(prefix) && this.actionSuffixes.includes(suffix)) {
+              let collectionName = this.actionSuffixToCollection(suffix)
+              let method = this.actionPrefixToMethod(prefix)
+              reply = await method.call(this.dispatch, userName, data, collectionName)
+              break
+            }
+          }
+        }
+        reply = {success: false, data: {errorMsg: 'unknown request'}}
         break;
-    }
-  }
-
-  public async getMatches(ws: WebSocket, userName: string, request: IFrontendMsg) {
-
-    let promiseArr: any[] = []
-    promiseArr.push(this.db.find('horsos', {userName}))
-    promiseArr.push(await this.db.find('kidos', {userName}))
-    let resolvedArr = await Promise.all(promiseArr)
-    let allHorsos = (resolvedArr[0] as IHorso[]).map(horso => horso.name)
-    let allKidos = resolvedArr[1] as IKido[]
-
-    /*let allHorsos = ((await this.db.find('horsos',{userName})) as IHorso[]).map(horso => horso.name)
-    let allKidos = ((await this.db.find('kidos',{userName})) as IKido[])*/ //<-as it was before
-
-
-    let engine = new MatchingEngine(allHorsos, allKidos)
-    let result = await engine.getMatches(request.data)
-    let reply: IBackendMsg
-    if (!result.errorMsg) {
-      reply = {replyTo: request.id, success: true, data: result.solution}
-    } else {
-      reply = {success: false, data: result.errorMsg}
     }
     this.sendMsg(ws, request, reply)
   }
 
   public sendMsg(ws: WebSocket, request: IFrontendMsg, reply: IBackendMsg) {
     Object.assign(reply, {replyTo: request.id})
+    this.log.debug({reply}, 'sending reply')
     ws.send(JSON.stringify(reply))
+  }
+
+  private actionPrefixToMethod(actionPrefix: string): ((userName: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
+    switch (actionPrefix) {
+      case 'get':
+        return this.dispatch.getDbEntry
+      case 'new':
+        return this.dispatch.newDbEntry
+      case 'edit':
+        return this.dispatch.editDbEntry
+      case 'remove':
+        return this.dispatch.removeDbEntry
+      case 'list':
+        return this.dispatch.listEntriesNames
+      case 'haveAny':
+        return this.dispatch.haveAny
+      default: //'incorrect'
+        return this.dispatch.defaultIncorrect
+    }
+  }
+
+  private actionSuffixToCollection(actionSuffix: string): Collection {
+    switch (actionSuffix) {
+      case 'horse':
+        return 'horsos'
+      case 'kid':
+        return 'kidos'
+      case 'trainer':
+        return 'trainers'
+      case 'user':
+        return 'users'
+      default:
+        return 'undefined'
+    }
   }
 }

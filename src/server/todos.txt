@@ -1,6 +1,0 @@
-Backend
-1) move from hours to whole day assembly
-2) onClientMessageReceived
-
-WS fra-bck
-1) add error handling on invalid

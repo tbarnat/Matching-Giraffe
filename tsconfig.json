@@ -19,7 +19,7 @@
     "client-frontend",
     "dist",
     "docs",
-    "temp",
+    "tmp",
     "test"],
   "compileOnSave": false
 }

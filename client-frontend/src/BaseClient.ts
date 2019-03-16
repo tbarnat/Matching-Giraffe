@@ -1,16 +1,15 @@
-import WebSocket = require('ws')
-
 export default abstract class BaseClient {
 
   private webSocket: WebSocket
   private initialized: Deferred
-  private readonly url = 'ws://localhost:8080';
+  private readonly url: string // 'ws://localhost:8080';
   private readonly pingTimeout: number = 10000
-  private readonly reconnectTimeout: number = 5000
+  private readonly reconnectTimeout: number = 30000
   private pingTimer: NodeJS.Timer
   private reconnectTimer: NodeJS.Timer
 
-  constructor() {
+  protected constructor(url: string) {
+    this.url = url
     this.connectToBackend()
   }
 
@@ -21,7 +20,7 @@ export default abstract class BaseClient {
     try {
       this.initialized = new Deferred()
       this.webSocket = new WebSocket(this.url);
-      this.webSocket.on('open', () => {
+      this.webSocket.onopen = () => {
         this.initialized.resolve()
         console.log('ws ready')
         //this.webSocket.send(JSON.stringify(key));
@@ -30,9 +29,9 @@ export default abstract class BaseClient {
           this.ping()
         }, this.pingTimeout)
 
-      });
+      };
 
-      this.webSocket.on('message', (msg) => {
+      this.webSocket.onmessage = (msg) => {
 
         clearInterval(this.pingTimer);
         this.pingTimer = setInterval(() => {
@@ -47,22 +46,23 @@ export default abstract class BaseClient {
         let contents = JSON.parse(msg.toString())
 
         if (contents.replyTo) {
-          console.log('got a valid reply')
+          //console.log('got a valid reply')
           this.handleReply(contents.replyTo, contents.success, contents.data)
         }
-      });
+      };
 
-      this.webSocket.on('close', () => {
+      this.webSocket.onclose = () => {
         console.log('ws was closed')
+        clearInterval(this.pingTimer);
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(() => {
           this.reconnect()
         }, (this.pingTimeout + this.reconnectTimeout))
-      })
+      }
 
-      this.webSocket.on('error', (err) => {
+      this.webSocket.onerror =  (err) => {
         console.log('ws on err', err)
-      })
+      }
     } catch (err) {
       console.log('ws err', err)
     }
@@ -79,14 +79,6 @@ export default abstract class BaseClient {
 
   private reconnect() {
     console.log('reconnecting ws')
-    try {
-      if (this.webSocket) {
-        this.webSocket.removeAllListeners()
-        this.webSocket.terminate()
-      }
-    } catch (err) {
-      console.log('error on reconnect', err)
-    }
     this.connectToBackend()
   }
 

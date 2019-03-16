@@ -2,7 +2,11 @@ import BaseClient, {Deferred} from "./BaseClient";
 
 const uuidv4 = require('uuid/v4');
 
-type Action = 'login' | 'getMatches' | 'saveMatches' | 'deleteDay' | 'newHorse' | 'editHorse' | 'newKid' | 'editKid'
+type Action = 'login' | 'get_matches' | 'save_matches' | 'delete_day' |
+'new_user' | 'edit_user' | 'delete_user' |
+'new_horse' | 'edit_horse' | 'delete_horse' |
+'new_kid' | 'edit_kid' | 'delete_kid' |
+'new_trainer' | 'edit_trainer' | 'delete_trainer'
 
 export default class Client extends BaseClient {
 
@@ -20,14 +24,13 @@ export default class Client extends BaseClient {
       delete this.deferreds[msgId]
       return reply
     }
-    return {success:false, data:{errorMsg:'Collision of uuidv4'}}
+    return {success:false, data:{errorMsg:'Collision of uuid v4'}}
   }
 
   //creates new deferred
-  private sendRequest(action: Action, data: any): string {
+  public sendRequest(action: Action, data: any): string {
     let id = uuidv4()
     if (this.deferreds[id]) {
-      console.log('uuidv4 collision')
       return ''
     }
     this.deferreds[id] = new Deferred()
@@ -35,14 +38,15 @@ export default class Client extends BaseClient {
     return id
   }
 
+  //main method for client's requests
+  public async sendAndWait(action: Action, data: any): Promise<any>{
+    let requestId = await this.sendRequest(action,data)
+    return this.waitFor(requestId)
+  }
+
   public login(userName: string, password: string): string{
     return this.sendRequest('login', {userName, password})
 
-  }
-
-  //todo export types to node_modules
-  public getMathes(dailyQuery: any): string{
-    return this.sendRequest('getMatches', dailyQuery)
   }
 
 }

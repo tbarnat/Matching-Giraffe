@@ -6,9 +6,10 @@ import {
   InsertWriteOpResult,
   DeleteWriteOpResultObject
 } from 'mongodb'
+import {Logger} from "./utils/Logger";
 
 export interface IDatabase {
-  init(): Promise<void>
+  init(withLogger:true): Promise<void>
   find(collectionName: string, query: Object, fields?: Object): Promise<any[]>
   findOne(collectionName: string, filter: Object): Promise<any>
   updateOne(collectionName: string, filter: Object, update: Object): Promise<UpdateWriteOpResult>
@@ -19,22 +20,23 @@ export interface IDatabase {
   drop(collectionName: string): Promise<any>
 }
 
-export interface Config {
-  uri: string
-  dbName: string
+export interface DbConfig {
+  uri: string //'mongodb://localhost:27017'
+  dbName: string //'hmDev'
 }
 
 export class Database implements IDatabase {
 
   protected db: Db;
 
-  constructor(protected config: Config) {}
+  constructor(protected config: DbConfig, private log: Logger) {}
 
-  async init() {
+  async init(withLogger: boolean) {
     let client = await MongoClient.connect(this.config.uri);
-    console.log(`client uses ${this.config.uri}`)
     this.db = client.db(this.config.dbName);
-    console.log(`connected to database: ${this.config.uri}`)
+    if(withLogger){
+      this.log.info(`Successfully connected to database: ${this.config.uri}`)
+    }
   }
 
 
