@@ -14,7 +14,18 @@
     }
   }
 
- 
+  .KidAndButtonContainer {
+    position: relative;
+
+    .DeleteButton {
+      position: absolute;
+      z-index: 10000;
+      right: 0px;
+      top: 0px;
+      outline: none;
+    }
+  }
+
   .LabelSection {
     .Label {
       display: inline-block;

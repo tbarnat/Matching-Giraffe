@@ -27,60 +27,42 @@ interface State extends IHorseRidingDayQ {
 
 
 class Test extends React.Component {
+   rerender: boolean = false;
+   kidInputRefs: any = {};
+   stopChange: boolean;
+
    state = {
       testList: ['jeden', undefined],
       options: ['jeden', 'dwa', 'trzy', 'cztery'],
-
-      day: '',
-      remarks: '',
-      dailyExcludes: [],
-      hours: [
-         {
-            hour: '1230',
-            trainer: ['Paulina'],
-            trainingsDetails: [
-               { kidName: 'Julka Mala', horse: '' },
-               { kidName: 'Maja' },
-               { kidName: 'Julka Lonza' },
-               { kidName: 'Ola C' },
-               { kidName: '' },
-            ]
-         },
-         {
-            hour: '1430',
-            trainer: ['Eva'],
-            trainingsDetails: [
-               { kidName: 'Ola C' },
-               { kidName: 'Weronika' },
-               { kidName: 'Emilka' },
-               { kidName: 'Kalina' },
-               { kidName: 'Paula' },
-            ]
-         },
-         {
-            hour: '1530',
-            trainer: ['Eva'],
-            trainingsDetails: [
-               { kidName: 'Paula' },
-               { kidName: 'Kalina' },
-            ]
-         },
-      ],
    }
 
    changeHandler = (selected: string[], index: number) => {
-      if (selected) {
+      // console.log(this.kidInputRefs[index].getInstance().getInput())
+      if (this.kidInputRefs[index].getInstance().getInput().value === '') {
+         console.log('should remove')
+         this.kidInputRefs[index].getInstance().getInput().blur();
+         const updatedValues = update(this.state.testList, { $splice: [[index, 1]] })
+         this.setState({ testList: updatedValues })
+      } else {
+
          let updatedValues = update(this.state.testList, { [index]: { $set: selected[0] } })
+         console.log(updatedValues)
+
+         //Remove value in case of delete all text at once
+         if (!this.kidInputRefs[index].getInstance().getInput().value) {
+            updatedValues = update(updatedValues, { $splice: [[index, 1]] })
+            console.log(updatedValues)
+         }
 
          // Add empty value if all selected
          if (!updatedValues.some(val => val === undefined)) {
             updatedValues = update(updatedValues, { $push: [undefined] });
          }
 
-
          this.setState({
             testList: updatedValues
          })
+         console.log('ChaneHANDLER: ', updatedValues);
       }
    }
 
@@ -88,30 +70,42 @@ class Test extends React.Component {
       if (value === '') {
          const updatedValues = update(this.state.testList, { $splice: [[index, 1]] })
          this.setState({ testList: updatedValues })
+         console.log('REMOVE VALUE: ', updatedValues);
       }
    }
 
+   removeInput = (index: number) => {
+      const updatedValues = update(this.state.testList, { $splice: [[index, 1]] })
+      this.setState({ testList: updatedValues })
+   }
 
    render() {
-      console.log('STATE - render: ', this.state)
+      console.log('STATE - render: ', { ...this.state })
 
-      const kids = this.state.testList.map((test, index) => (
-         <Typeahead
-            key={index}
-            id={index}
-            placeholder="Dziecko"
-            onInputChange={value => this.inputChangeHandler(value, index)}
-            onChange={selected => this.changeHandler(selected, index)}
-            options={this.state.options}
-            selected={test === undefined ? [] : [test]}
-         // clearButton
-         // selected={[training.kidName] || undefined}
-         // allowNew
-         // clearButton
-         // selectHintOnEnter
-         // newSelectionPrefix="Dodań dziecko: "
-         />
-      ))
+      const kids = this.state.testList.map((test, index) => {
+         // console.log(test)
+         return (
+            <div style={{ display: 'flex' }} key={index}
+            >
+               <Typeahead
+                  id={index}
+                  placeholder=""
+                  onInputChange={value => this.inputChangeHandler(value, index)}
+                  onChange={selected => this.changeHandler(selected, index)}
+                  options={this.state.options}
+                  selected={test === undefined ? [] : [test]}
+                  ref={ref => this.kidInputRefs[index] = ref}
+               // clearButton
+               // selected={[training.kidName] || undefined}
+               // allowNew
+               // clearButton
+               // selectHintOnEnter
+               // newSelectionPrefix="Dodań dziecko: "
+               />
+               {test ? <Button onClick={() => this.removeInput(index)}>x</Button> : null}
+            </div>
+         )
+      })
 
 
       return (

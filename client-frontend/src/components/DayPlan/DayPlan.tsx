@@ -17,14 +17,18 @@ interface State extends IHorseRidingDayQ {
    options?: {
       kids?: string[],
       trainers?: { id: number, label: string }[],
-      horses?: { id: number, label: string }[],
+      horses?: { id: number, label: string }[] | string[],
    }
+   removed?: any
 
 }
 
 
 class DayPlan extends React.Component<any, State> {
+   removed: boolean;
+
    state = {
+      removed: false,
       day: '',
       remarks: '',
       dailyExcludes: [],
@@ -74,7 +78,7 @@ class DayPlan extends React.Component<any, State> {
       options: {
          kids: ['Julka Mala', 'Maja', 'Julka Lonza', 'Ola C', 'Weronika', 'Emilka', 'Kalina', 'Paula'],
          // kids: ['Helena', 'Stefan', 'Marian', 'Olaf'].map((kid, index) => ({id: index, label: kid})),
-         horses: ['Koń 1', 'Koń 2', 'Jakiś koń', 'Bucefał'].map((horse, index) => ({ id: index, label: horse })),
+         horses: ['Koń 1', 'Koń 2', 'Jakiś koń', 'Bucefał'],
       },
    };
    // state = {
@@ -302,6 +306,8 @@ class DayPlan extends React.Component<any, State> {
       this.setState({ hours: updatedHours })
    }
 
+   // KIDS CHANGE
+   //===========================================================================================================
    changeKidHandler = (selected: string[], indexes: number[]) => {
       const [hourIndex, kidIndex] = indexes;
       // updatedKids is this.state.hours
@@ -312,7 +318,6 @@ class DayPlan extends React.Component<any, State> {
       this.setState(() => ({ hours: updatedKids }))
    }
 
-
    inputChangeKidHandler = (value: string, indexes: number[]) => {
       const [hourIndex, kidIndex] = indexes;
       if (value === '') {
@@ -320,6 +325,21 @@ class DayPlan extends React.Component<any, State> {
          this.setState({ hours: updatedKids })
       }
    }
+
+   // HORSE CHANGE
+   //===========================================================================================================
+   changeHorseHandler = (selected: string[], indexes: number[]) => {
+      const [hourIndex, kidIndex] = indexes;
+      let updatedHorses = update(this.state.hours, { [hourIndex]: { trainingsDetails: { [kidIndex]: { horse: { $set: selected[0] } } } } });
+      this.setState(() => ({ hours: updatedHorses }))
+   }
+
+   removeInput = (indexes: number[]) => {
+      const [hourIndex, kidIndex] = indexes;
+      const updatedKids = update(this.state.hours, { [hourIndex]: { trainingsDetails: { $splice: [[kidIndex, 1]] } } });
+      this.setState({ hours: updatedKids })
+   }
+
    // updateState = () => {
    //    this.setState({
    //       hours: [
@@ -358,52 +378,55 @@ class DayPlan extends React.Component<any, State> {
       const hours = this.state.hours.map((hour, hourIndex) => {
          const kids = hour.trainingsDetails.map((training, trainingIndex) => {
             return (
-               <Typeahead
-                  id={trainingIndex}
-                  key={trainingIndex}
-                  placeholder="Dziecko"
-                  onInputChange={(value: string) => this.inputChangeKidHandler(value, [hourIndex, trainingIndex])}
-                  onChange={(e: any) => this.changeKidHandler(e, [hourIndex, trainingIndex])}
-                  options={this.state.options.kids}
-                  selected={training.kidName === undefined ? [] : [training.kidName]}
+               <div className={classes.KidAndButtonContainer} key={trainingIndex}
+               >
+                  <Typeahead
+                     id={trainingIndex}
+                     placeholder="Dziecko"
+                     onInputChange={(value: string) => this.inputChangeKidHandler(value, [hourIndex, trainingIndex])}
+                     onChange={(e: any) => this.changeKidHandler(e, [hourIndex, trainingIndex])}
+                     options={this.state.options.kids}
+                     selected={training.kidName === undefined ? [] : [training.kidName]}
+                     // clearButton
+                     inputProps={{
+                        width: '20px'
+                     }}
+                  // selected={[training.kidName] || undefined}
+                  // allowNew
                   // clearButton
-                  inputProps={{
-                     width: '20px'
-                  }}
-               // selected={[training.kidName] || undefined}
-               // allowNew
-               // clearButton
-               // selectHintOnEnter
-               // newSelectionPrefix="Dodań dziecko: "
-
-               />
+                  // selectHintOnEnter
+                  // newSelectionPrefix="Dodań dziecko: "
+                  />
+                  {training.kidName && <Button className={classes.DeleteButton} variant="outline-danger" onClick={() => this.removeInput([hourIndex, trainingIndex])}>&times;</Button>}
+               </div>
             )
          })
 
-         // const horses = hour.trainingsDetails.map((training, trainingIndex) => {
-         //    return training.kidName
-         //       ? (
-         //          // label="Koń"
-         //          <Form.Control
-         //             placeholder="Koń"
-         //             key={trainingIndex}
-         //             value={training.horse || ''}
-         //             onChange={(e: any) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
-         //             onFocus={(e: any) => this.focusHandler(e, 'horse', hourIndex)} />
-         //          //   <Typeahead
-         //          //   key={trainingIndex}
-         //          //   placeholder="Dziecko"
-         //          //   onChange={(e: any) => this.changeHourHandler(e, 'kid', [hourIndex, trainingIndex])}
-         //          //   onFocus={(e: any) => this.focusHandler(e, 'dailyExcludes', -1)}
-         //          //   options={this.state.options.kids}
-         //          //   // selected={[training.kidName]}
-         //          //   allowNew
-         //          //   clearButton
-         //          //   selectHintOnEnter
-         //          //   newSelectionPrefix="Dodań dziecko: "
-         //          // />
-         //       ) : null;
-         // })
+         const horses = hour.trainingsDetails.map((training, trainingIndex) => {
+            return training.kidName
+               ? (
+                  // label="Koń"
+                  // <Form.Control
+                  //    placeholder="Koń"
+                  //    key={trainingIndex}
+                  //    value={training.horse || ''}
+                  //    onChange={(e: any) => this.changeHourHandler(e, 'horse', [hourIndex, trainingIndex])}
+                  //    onFocus={(e: any) => this.focusHandler(e, 'horse', hourIndex)} />
+                  <Typeahead
+                     key={trainingIndex}
+                     id={trainingIndex}
+                     placeholder="Koń"
+                     onChange={(e: any) => this.changeHorseHandler(e, [hourIndex, trainingIndex])}
+                     options={this.state.options.horses}
+                     selected={training.horse ? [training.horse] : []}
+                     //   allowNew
+                     //   clearButton
+                     selectHintOnEnter
+                  //   newSelectionPrefix="Dodań dziecko: "
+                  />
+               ) : null;
+         })
+
 
          // const trainers = hour.trainer.map((tr, trainerIndex) => {
          //    return (
@@ -421,7 +444,7 @@ class DayPlan extends React.Component<any, State> {
          return (
             <Card key={hourIndex} className={classes.OneHour}>
                <Row>
-                  <Col className={classes.Hours}>
+                  <Col className={[classes.Hours, classes.LabelSection].join(' ')}>
                      <span className={classes.Label}>Godzina</span>
                      <Form.Control
                         // label="Godzina"
@@ -430,15 +453,18 @@ class DayPlan extends React.Component<any, State> {
                         onChange={(e: any) => this.changeHourHandler(e, hourIndex)}
                      />
                   </Col>
-                  <Col className={classes.Kids}>
+                  <Col className={[classes.Kids, classes.LabelSection].join(' ')}>
                      <span className={classes.Label}>Gówniaki</span>
                      {kids}
                   </Col>
-                  {/* <Col className={classes.Horses}>
+                  <Col className={[classes.Horses, classes.LabelSection].join(' ')}>
                      <span className={classes.Label}>Konie</span>
                      {horses}
                   </Col>
-                  <Col className={classes.Trainers}>
+                  {/* <Col className={classes.DeleteButtons}>
+                     {deleteButtons}
+                  </Col> */}
+                  {/* <Col className={classes.Trainers}>
                      <span className={classes.Label}>Trenerzy</span>
                      {trainers}
                   </Col> */}
