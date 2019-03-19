@@ -44,9 +44,8 @@ export default class Client extends BaseClient {
     return this.waitFor(requestId)
   }
 
-  public login(userName: string, password: string): string{
-    return this.sendRequest('login', {userName, password})
-
+  public async login(userName: string, password: string): Promise<boolean>{
+    return ((await this.sendAndWait('login', {userName, password})) as any).success
   }
 
 }

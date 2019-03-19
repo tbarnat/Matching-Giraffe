@@ -8,7 +8,7 @@ export default abstract class BaseClient {
   private pingTimer: NodeJS.Timer
   private reconnectTimer: NodeJS.Timer
 
-  protected constructor(url: string) {
+  public constructor(url: string) {
     this.url = url
     this.connectToBackend()
   }
@@ -43,7 +43,7 @@ export default abstract class BaseClient {
           this.reconnect()
         }, (this.pingTimeout + this.reconnectTimeout))
 
-        let contents = JSON.parse(msg.toString())
+        let contents = JSON.parse(msg.data.toString())
 
         if (contents.replyTo) {
           //console.log('got a valid reply')

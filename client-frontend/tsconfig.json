@@ -19,7 +19,8 @@
     "strictPropertyInitialization": false,
     "noEmit": true,
     "jsx": "preserve",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": true
   },
   "include": [
     "src"
