@@ -2,11 +2,13 @@ import BaseClient, {Deferred} from "./BaseClient";
 
 const uuidv4 = require('uuid/v4');
 
-type Action = 'login' | 'get_matches' | 'save_matches' | 'delete_day' |
-'new_user' | 'edit_user' | 'delete_user' |
-'new_horse' | 'edit_horse' | 'delete_horse' |
-'new_kid' | 'edit_kid' | 'delete_kid' |
-'new_trainer' | 'edit_trainer' | 'delete_trainer'
+type Action =
+  'get_matches'  | 'save_matches' | 'remove_day' |
+  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  |
+  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
+  //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
+  'prefs_template' | 'login'
 
 export default class Client extends BaseClient {
 

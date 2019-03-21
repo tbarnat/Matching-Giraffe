@@ -8,7 +8,13 @@ import Diary from './components/Diary/Diary';
 import DiaryList from './components/Diary/DiaryList';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import Client from './Client'
+import {BackendData} from "../../src/server/DataModel";
 
+export interface IBackendMsg {
+  replyTo?: string //id of incoming message
+  success: boolean
+  data: any | BackendData
+}
 
 declare global {
   interface Window {
@@ -25,7 +31,7 @@ class App extends React.Component {
   constructor(props: any) {
     super(props)
 
-    window.hmClient = new Client('ws://localhost:8080');
+    window.hmClient = new Client('ws://3.122.192.224:8080'); //'ws://localhost:8080'
     let logAction = async () => {
       window.isLoggedIn = await window.hmClient.login('qwe', 'asd');
       console.log(window.isLoggedIn)

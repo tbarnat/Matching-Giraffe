@@ -1,5 +1,7 @@
 Backend
 
+0) add repl
+0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
 
@@ -16,6 +18,6 @@ WS frn-bck
 1) is there any reason to disconnect client (?)
 
 Frontend
-1) login
+1) create api description with interfaces
 2) maxWorkload
 2) default trainer for user (?)

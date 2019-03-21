@@ -4,8 +4,7 @@ import classes from './AdminPanel.module.scss';
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import {IHorseRidingHourQ} from "../../DataModel";
-import update from "immutability-helper";
+import {IBackendMsg} from "../../App";
 
 class App extends React.Component<any, any> {
 
@@ -16,11 +15,13 @@ class App extends React.Component<any, any> {
     }
   }
 
-  changeInputHandler = (e: any) => {
+  changeInputHandler = async (e: any) => {
     this.setState({input: e.target.value})
-    console.log(e.target.value)
-    //window.hmClient
-    //
+    let currInput = e.target.value
+    let getResponse: IBackendMsg = await window.hmClient.sendAndWait('get_kid', {name:currInput})
+    if(getResponse.success){
+      console.log('we got it!')
+    }
   }
 
   render() {
@@ -28,7 +29,7 @@ class App extends React.Component<any, any> {
       <div className={classes.AdminPanel}>
         <Row>
           <Col className={classes.Labels}>
-            Labelka
+            Dzieciak
           </Col>
           <Col className={classes.AutocompleteSelectOne}>
             <input value={this.state.input} onChange={(e: any) => this.changeInputHandler(e)}/>
