@@ -5,6 +5,8 @@ import {Database, DbConfig} from "./Database";
 import Dispatch from "./Dispatch";
 import {Collection, IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
 import {Logger, LoggerConfig} from "./utils/Logger";
+import repl = require("repl");
+
 
 const crypto = require('crypto');
 
@@ -48,6 +50,11 @@ export default class Server {
     }).catch((err) => {
       this.log.error('Db init failed', err)
     })
+    this.initRepl(config.port)
+  }
+
+  protected initRepl(port: number) {
+    repl.start(`deribot:${port}> `).context.server = this
   }
 
   private async initDb(config: IServerConfig) {

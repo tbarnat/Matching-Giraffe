@@ -10,7 +10,8 @@ import {Logger} from "./utils/Logger";
 
 export interface IDatabase {
   init(withLogger:true): Promise<void>
-  find(collectionName: string, query: Object, fields?: Object): Promise<any[]>
+  count(collectionName: string, query?: Object): Promise<number>
+  find(collectionName: string, query?: Object, fields?: Object): Promise<any[]>
   findOne(collectionName: string, filter: Object): Promise<any>
   updateOne(collectionName: string, filter: Object, update: Object): Promise<UpdateWriteOpResult>
   updateMany(collectionName: string, filter: Object, update: Object): Promise<UpdateWriteOpResult>
@@ -39,6 +40,9 @@ export class Database implements IDatabase {
     }
   }
 
+  count(collectionName: string, query?: Object){
+    return this.db.collection(collectionName).count(query)
+  }
 
   find(collectionName: string, query?: Object) {
     return this.db.collection(collectionName).find(query).toArray()

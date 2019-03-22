@@ -1,9 +1,9 @@
 Backend
 
-0) add repl
 0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
+3) api limits (request dependent)
 
     ----later on----
     2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
