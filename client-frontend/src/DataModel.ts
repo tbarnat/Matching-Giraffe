@@ -15,5 +15,5 @@ export interface IHorseRidingHourQ {
 
 export interface ITrainingQ {
   kidName: string | undefined,
-  horse?: string, //rewritten to result if predefined. Matched by engine if undefined
+  horse?: string | undefined, //rewritten to result if predefined. Matched by engine if undefined
 }
