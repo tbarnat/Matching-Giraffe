@@ -1,5 +1,6 @@
 Backend
 
+0) add 'get_whole_asset' action and return whole db for user - this can be used on frontend
 0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
