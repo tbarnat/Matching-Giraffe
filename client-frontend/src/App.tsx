@@ -20,10 +20,6 @@ declare global {
   interface Window {
     hmClient: Client
   }
-
-  interface Window {
-    isLoggedIn: boolean
-  }
 }
 
 class App extends React.Component {
@@ -32,11 +28,9 @@ class App extends React.Component {
     super(props)
 
     window.hmClient = new Client('ws://3.122.192.224:8080'); //'ws://localhost:8080'
-    let logAction = async () => {
-      window.isLoggedIn = await window.hmClient.login('qwe', 'asd');
-      console.log(window.isLoggedIn)
-    }
-    logAction()
+    (async () => {
+      await window.hmClient.login('qwe', 'asd');
+    })()
   }
 
   componentDidMount() {

@@ -30,24 +30,29 @@ export default class Client extends BaseClient {
   }
 
   //creates new deferred
-  public sendRequest(action: ActionInMsg, data: any): string {
+  public sendRequest(action: ActionInMsg, data: any, doWhenLoggedIn: boolean = true): string {
     let id = uuidv4()
     if (this.deferreds[id]) {
       return ''
     }
     this.deferreds[id] = new Deferred()
-    this.send({id, action, data})
+    this.send({id, action, data},doWhenLoggedIn)
     return id
   }
 
   //main method for client's requests
-  public async sendAndWait(action: ActionInMsg, data: any): Promise<any>{
-    let requestId = await this.sendRequest(action,data)
+  public async sendAndWait(action: ActionInMsg, data: any, doWhenLoggedIn: boolean = true): Promise<any>{
+    let requestId = await this.sendRequest(action,data,doWhenLoggedIn)
     return this.waitFor(requestId)
   }
 
   public async login(userName: string, password: string): Promise<boolean>{
-    return ((await this.sendAndWait('login', {userName, password})) as any).success
+    let isLoggedIn =  ((await this.sendAndWait('login', {userName, password},false)) as any).success
+    if(isLoggedIn){
+      this.isLoggedIn.resolve()
+      console.log('logged in')
+    }
+    return isLoggedIn
   }
 
 }
