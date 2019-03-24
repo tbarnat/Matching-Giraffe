@@ -1,6 +1,6 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido} from "./DataModel";
+import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IInstructo, IKido} from "./DataModel";
 import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
 import EntriesValidator from "./validators/EntriesValidator";
@@ -21,6 +21,18 @@ export default class Dispatch {
   private async isLimitExceeded(collName: Collection): Promise<boolean>{
     let count = await this.db.count(collName)
     return (count + 1 >= this.dbEntriesLimitsByCollName[collName])
+  }
+
+  public async getAsset(userName: string): Promise<IBackendMsg> {
+    let promiseArr: any[] = []
+    promiseArr.push(this.db.find('horsos', {userName}))
+    promiseArr.push(this.db.find('kidos', {userName}))
+    promiseArr.push(this.db.find('trainers', {userName}))
+    let resolvedArr = await Promise.all(promiseArr)
+    let horses = (resolvedArr[0] as IHorso[])
+    let kids = (resolvedArr[1]  as IKido[])
+    let trainers = (resolvedArr[2]  as IInstructo[])
+    return ({success: true, data: {horses, kids, trainers}})
   }
 
   // request.data: IHorseRidingDayQ
@@ -334,8 +346,8 @@ export default class Dispatch {
   }
 
   public async haveAny(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
-    let horsos = (await this.db.find(collName, {userName})) as IHorso[]
-    if (horsos && horsos.length) {
+    let count = (await this.db.count(collName, {userName}))
+    if (count) {
       return {success: true, data: true}
     }
     return {success: true, data: false}

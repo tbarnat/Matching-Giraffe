@@ -5,7 +5,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import {IBackendMsg} from "../../App";
-import {ActionInMsg} from "../../../../dist/DataModel";
+import {ActionInMsg} from "../../Client";
 
 class App extends React.Component<any, any> {
 

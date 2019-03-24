@@ -1,6 +1,5 @@
 Backend
 
-0) add 'get_whole_asset' action and return whole db for user - this can be used on frontend
 0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
@@ -19,6 +18,5 @@ WS frn-bck
 1) is there any reason to disconnect client (?)
 
 Frontend
-1) create api description with interfaces
-2) maxWorkload
-2) default trainer for user (?)
+1) component with filtering list and input
+2) adminPanel

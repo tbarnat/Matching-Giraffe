@@ -69,6 +69,7 @@ export default class Server {
     const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
     this.log.info(`client (${ip}) connected`);
+    // set ip limits for requests?
 
     ws.on('close', () => {
       this.log.info(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
@@ -80,11 +81,10 @@ export default class Server {
 
     ws.on('message', async (msg) => {
       try {
-        if (msg === '"ping"') {
+        /*if (msg === '"ping"') {
           ws.send('"pong"')
           return
-        }
-
+        }*/
         let request = JSON.parse(msg.toString()) as IFrontendMsg;
         if (userName) {
           this.log.debug(`message received: ${msg} \n`);
@@ -108,6 +108,9 @@ export default class Server {
             }
           }
           this.sendMsg(ws, request, reply)
+        } else if (request.action == 'logout'){
+          userName = undefined
+          this.sendMsg(ws, request, {success: true, data: {}})
         }
       } catch (error) {
         this.log.warn(error, 'Incorrect data type')
@@ -119,6 +122,9 @@ export default class Server {
     let reply: IBackendMsg
     let data = request.data
     switch (request.action) {
+      case 'get_whole_asset':
+        reply = await this.dispatch.getAsset(userName);
+        break;
       case 'get_matches':
         reply = await this.dispatch.getMatches(userName, data);
         break;
