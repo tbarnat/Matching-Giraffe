@@ -25,7 +25,7 @@ interface IState extends IHorseRidingDayQ {
 
 class DayPlan extends React.Component<any, any> {
   state = {
-    day: '2019-01-01',
+    day: '2019-01-08',
     remarks: 'Bla bla',
     dailyExcludes: ['Bracio'],
     // hours: [
@@ -69,7 +69,7 @@ class DayPlan extends React.Component<any, any> {
         trainingsDetails: [
           { kidName: 'Agnieszka E', horse: 'Bella' },
           { kidName: 'Julka R' },
-          { kidName: 'Ania P' },
+          { kidName: 'Ania P.' },
           { kidName: undefined },
         ]
       },
@@ -337,16 +337,21 @@ class DayPlan extends React.Component<any, any> {
   //Generate
   //===========================================================================================================
   generate = async () => {
+    const hours = this.state.hours.map(hour => {
+      return {
+        ...hour,
+        trainingsDetails: hour.trainingsDetails.filter(td => td.kidName)
+      }
+    })
     const query = {
-      hours: this.state.hours,
+      hours: hours,
       day: this.state.day,
       remarks: this.state.remarks,
       dailyExcludes: this.state.dailyExcludes
     }
-    console.log(query);
 
-    let asset = (await window.hmClient.sendAndWait('get_matches', query));
-    console.log(asset)
+    let asset = await window.hmClient.sendAndWait('get_matches', query);
+    this.setState({ ...asset.data.solution })
   }
 
 
