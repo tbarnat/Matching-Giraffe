@@ -4,9 +4,9 @@ import classes from './AdminPanel.module.scss';
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
-import {IBackendMsg} from "../../App";
-import {ActionInMsg} from "../../Client";
-import {Typeahead} from 'react-bootstrap-typeahead';
+import { IBackendMsg } from "../../App";
+import { ActionInMsg } from "../../Client";
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 class App extends React.Component<any, any> {
 
@@ -25,15 +25,15 @@ class App extends React.Component<any, any> {
         trainer: []
       },
       horse: {
-        input: '',
+        input: [],
         existingEntry: false
       },
       kid: {
-        input: '',
+        input: [],
         existingEntry: false
       },
       trainer: {
-        input: '',
+        input: [],
         existingEntry: false
       },
       active: undefined
@@ -52,7 +52,7 @@ class App extends React.Component<any, any> {
       options[keyBezS].sort()
     })
     //console.log(options)
-    this.setState({options})
+    this.setState({ options })
   }
 
   private getReqName(stateObjectName: string): ActionInMsg {
@@ -71,54 +71,55 @@ class App extends React.Component<any, any> {
     let currInput = ''
     if (Array.isArray(e) && e[0]) {
       currInput = e[0]
-      this.setState({[fieldName]: {input: currInput},})
+      this.setState({ [fieldName]: { input: currInput }, })
     }
-    this.setState({active: fieldName})
-    let getResponse: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name: currInput})
-    this.setState({[fieldName]: {existingEntry: getResponse.success}})
+    this.setState({ active: fieldName })
+    let getResponse: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), { name: currInput })
+    this.setState({ [fieldName]: { existingEntry: getResponse.success } })
   }
 
   onFocusHandler = (fieldName: string) => {
-    this.setState({active: fieldName})
+    this.setState({ active: fieldName })
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
-        this.setState({[typeName]: {input: ''},})
+        this.setState({ [typeName]: { input: [] }, })
       }
     }
   }
 
   render() {
-
+    console.log(this.state)
     let content = (
       <div className={classes.AdminPanelRow} key={'costam'}>
         <Row>
           <Col className={classes.Labels}>Dane 1</Col>
-          <Col className={classes.Labels}><input/></Col>
-          <Col/><Col/>
+          <Col className={classes.Labels}><input /></Col>
+          <Col /><Col />
         </Row>
         <Row>
           <Col className={classes.Labels}>Dane 2</Col>
-          <Col className={classes.Labels}><input/></Col>
-          <Col/><Col/>
+          <Col className={classes.Labels}><input /></Col>
+          <Col /><Col />
         </Row>
       </div>
     )
 
-    const types = [{type: 'kid', label: 'Bachory'}, {type: 'horse', label: 'Horsesy'}, {
+    const types = [{ type: 'kid', label: 'Bachory' }, { type: 'horse', label: 'Horsesy' }, {
       type: 'trainer',
       label: 'Kadra'
     },]
     const rows = types.map((row: { type: string, label: string }) => {
       let name = row.type
+      console.log(row)
       return (
-        <div className={classes.AdminPanelRow} key={row.type + '_adm'} style={{width: 1000}}>
+        <div className={classes.AdminPanelRow} key={row.type + '_adm'} style={{ width: 1000 }}>
           <Row>
             <Col className={classes.Labels}>
               <strong>{row.label}</strong>
             </Col>
-            <Col/><Col/>
+            <Col /><Col />
           </Row>
-          <hr/>
+          <hr />
           <Row>
             <Col>Nazwa</Col>
             <Col className={classes.AutocompleteSelectOne}>
@@ -132,6 +133,7 @@ class App extends React.Component<any, any> {
                 onChange={(e: any) => this.changeTypeaheadHandler(e, name)}
                 onFocus={() => this.onFocusHandler(row.type)}
                 options={this.state.options[name]}
+                // selected={this.state[name].input}
                 allowNew={true}
                 newSelectionPrefix={'Dodaj nowy: '}
                 clearButton
@@ -140,31 +142,31 @@ class App extends React.Component<any, any> {
                 }}
               />
             </Col>
-            <Col/><Col/>
+            <Col /><Col />
           </Row>
           {/*{content}*/}
-          <br/>
+          <br />
           <Row>
-            <Col/><Col/>
+            <Col /><Col />
             <Col>
               <Row>
 
                 <Col><Button variant="secondary" onClick={() => console.log('new ' + name)}
-                             disabled={this.state[row.type].existingEntry || (this.state.active != name)}>
+                  disabled={this.state[row.type].existingEntry || (this.state.active != name)}>
                   Utwórz</Button></Col>
                 <Col><Button variant="secondary" onClick={() => console.log('edit ' + name)}
-                             disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
+                  disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
                   Edytuj</Button></Col>
-                <span/>
+                <span />
                 <Col><Button variant="secondary" onClick={() => console.log('remove ' + name)}
-                             disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
+                  disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
                   Usuń</Button></Col>
 
               </Row>
             </Col>
           </Row>
-          <br/>
-          <hr/>
+          <br />
+          <hr />
         </div>
       );
     })
@@ -177,4 +179,3 @@ class App extends React.Component<any, any> {
 }
 
 export default App;
- 
