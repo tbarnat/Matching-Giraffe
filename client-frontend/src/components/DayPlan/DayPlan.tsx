@@ -16,14 +16,14 @@ import classes from './DayPlan.module.scss';
 interface IState extends IHorseRidingDayQ {
 
   options?: {
-    kids?: { id: number, label: string }[] | string[],
-    trainers?: { id: number, label: string }[] | string[],
-    horses?: { id: number, label: string }[] | string[],
+    kid?: { id: number, label: string }[] | string[],
+    trainer?: { id: number, label: string }[] | string[],
+    horse?: { id: number, label: string }[] | string[],
   }
 }
 
 
-class DayPlan extends React.Component<any, IState> {
+class DayPlan extends React.Component<any, any> {
   state = {
     day: '',
     remarks: '',
@@ -59,7 +59,7 @@ class DayPlan extends React.Component<any, IState> {
     //       { kidName: 'Paula' },
     //       { kidName: 'Kalina' },
     //       { kidName: undefined },
-    //     ]
+    //     ]auto
     //   },
     // ],
     hours: [
@@ -76,11 +76,12 @@ class DayPlan extends React.Component<any, IState> {
       },
     ],
     options: {
-      kids: ['Julka Mala', 'Maja', 'Julka Lonza', 'Ola C', 'Weronika', 'Emilka', 'Kalina', 'Paula'],
+      kid: [],
       // kids: ['Helena', 'Stefan', 'Marian', 'Olaf'].map((kid, index) => ({id: index, label: kid})),
-      horses: ['Koń 1', 'Koń 2', 'Jakiś koń', 'Bucefał'],
-      trainers: ['Trener1', 'Trener2', 'Trener3']
+      horse: [],
+      trainer: []
     },
+    options2: {}
   };
   // state = {
   //   day: '',
@@ -300,6 +301,46 @@ class DayPlan extends React.Component<any, IState> {
   }
 
 
+  //Reset Form
+  //===========================================================================================================
+  resetForm = () => {
+    this.setState((prevState: any) => ({
+      ...prevState,
+      hours: [
+        {
+          hour: '',
+          trainer: [],
+          trainingsDetails: [
+            { kidName: undefined }
+          ]
+        },
+      ],
+    }))
+  }
+
+
+  //Init options from server
+  //===========================================================================================================
+  async init() {
+    let asset = (await window.hmClient.sendAndWait('get_whole_asset', {})).data;
+    console.log(asset)
+    let options: { [key: string]: string[] } = {}
+    Object.keys(asset).forEach(key => {
+      let keyBezS = key.substr(0, key.length - 1)
+      options[keyBezS] = asset[key].map((object: any) => {
+        return object.name
+      })
+      options[keyBezS].sort()
+    })
+    this.setState({ options })
+  }
+
+
+  componentDidMount() {
+    this.init();
+    // this.resetForm();
+  }
+
   render() {
     console.log('=======================')
     console.log('STATE: ', this.state)
@@ -313,7 +354,7 @@ class DayPlan extends React.Component<any, IState> {
               placeholder="Dziecko"
               onInputChange={(value: string) => this.inputChangeKidHandler(value, [hourIndex, trainingIndex])}
               onChange={(e: any) => this.changeKidHandler(e, [hourIndex, trainingIndex])}
-              options={this.state.options.kids}
+              options={this.state.options.kid}
               selected={training.kidName === undefined ? [] : [training.kidName]}
               // clearButton
               inputProps={{
@@ -345,7 +386,7 @@ class DayPlan extends React.Component<any, IState> {
               id={trainingIndex}
               placeholder="Koń"
               onChange={(e: any) => this.changeHorseHandler(e, [hourIndex, trainingIndex])}
-              options={this.state.options.horses}
+              options={this.state.options.horse}
               selected={training.horse ? [training.horse] : []}
               //   allowNew
               //   clearButton
@@ -361,7 +402,7 @@ class DayPlan extends React.Component<any, IState> {
           placeholder="Trenerzy"
           id={`Trainers-${hourIndex}`}
           onChange={(selected: string[]) => this.changeTrainerHandler(selected, [hourIndex])}
-          options={this.state.options.trainers}
+          options={this.state.options.trainer}
           selected={this.state.hours[hourIndex].trainer}
           multiple
           selectHintOnEnter
@@ -435,7 +476,7 @@ class DayPlan extends React.Component<any, IState> {
               placeholder="Wyłączone konie"
               id={'dailyExcludes'}
               onChange={(e: any) => this.setState({ dailyExcludes: e })}
-              options={this.state.options.horses}
+              options={this.state.options.horse}
               selected={this.state.dailyExcludes}
               multiple
               selectHintOnEnter
@@ -455,6 +496,7 @@ class DayPlan extends React.Component<any, IState> {
         {hours}
         <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>
+        <Button color="orange" variant="secondary" onClick={this.resetForm}>Reset Form</Button>
         {/* <Button variant="secondary" onClick={this.updateState}>change state</Button> */}
       </Container >
     )
