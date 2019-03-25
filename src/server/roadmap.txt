@@ -1,5 +1,9 @@
-Backend
+MOST RECENT TODOS:
+- action for listing saved dates (as Date type)
+- solve typescript error on  DayPlan.tsx
 
+
+Backend
 0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
