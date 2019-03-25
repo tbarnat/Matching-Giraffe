@@ -65,7 +65,7 @@ class DayPlan extends React.Component<any, IState> {
     hours: [
       {
         hour: '',
-        trainer: ['k'],
+        trainer: ['test1'],
         trainingsDetails: [
           { kidName: 'Julka Mala', horse: '' },
           { kidName: 'Maja' },
