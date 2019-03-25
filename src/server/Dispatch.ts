@@ -1,6 +1,6 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IKido} from "./DataModel";
+import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IInstructo, IKido} from "./DataModel";
 import QueryValidator from "./validators/QueryValidator";
 import {Logger} from "./utils/Logger";
 import EntriesValidator from "./validators/EntriesValidator";
@@ -8,7 +8,31 @@ import Utils from "./utils/Utils";
 
 export default class Dispatch {
 
+  private readonly dbEntriesLimitsByCollName: {[collName: string]: number } = {
+    diary: 10000,
+    horsos: 200,
+    kidos: 500,
+    trainers: 100,
+  }
+
   constructor(protected db: Database, private log: Logger) {
+  }
+
+  private async isLimitExceeded(collName: Collection): Promise<boolean>{
+    let count = await this.db.count(collName)
+    return (count + 1 >= this.dbEntriesLimitsByCollName[collName])
+  }
+
+  public async getAsset(userName: string): Promise<IBackendMsg> {
+    let promiseArr: any[] = []
+    promiseArr.push(this.db.find('horsos', {userName}))
+    promiseArr.push(this.db.find('kidos', {userName}))
+    promiseArr.push(this.db.find('trainers', {userName}))
+    let resolvedArr = await Promise.all(promiseArr)
+    let horses = (resolvedArr[0] as IHorso[])
+    let kids = (resolvedArr[1]  as IKido[])
+    let trainers = (resolvedArr[2]  as IInstructo[])
+    return ({success: true, data: {horses, kids, trainers}})
   }
 
   // request.data: IHorseRidingDayQ
@@ -30,12 +54,16 @@ export default class Dispatch {
 
   // data: IHorseRidingDay
   public async saveMatches(userName: string, data: any): Promise<IBackendMsg> {
+    let collName: Collection = 'diary'
+    if(await this.isLimitExceeded(collName)){
+      return {success: false, data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}}
+    }
     let day: string = data.day
-    let existingEntry: IHorseRidingDay[] = await this.db.find('diary', {userName, day})
+    let existingEntry: IHorseRidingDay[] = await this.db.find(collName, {userName, day})
     if (existingEntry && existingEntry[0]) {
       return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}
     }
-    await this.db.insertOne('diary', Object.assign({userName}, data))
+    await this.db.insertOne(collName, Object.assign({userName}, data))
     return {success: true, data: data.day}
   }
 
@@ -60,6 +88,9 @@ export default class Dispatch {
 
   // data: INewHorse / IKido / IInstructo
   public async newDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+    if(await this.isLimitExceeded(collName)){
+      return {success: false, data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}}
+    }
     if (collName === 'horsos') {  // horso is kinda special case entity
       return await this.newHorso(userName, data, collName)
     }
@@ -315,8 +346,8 @@ export default class Dispatch {
   }
 
   public async haveAny(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
-    let horsos = (await this.db.find(collName, {userName})) as IHorso[]
-    if (horsos && horsos.length) {
+    let count = (await this.db.count(collName, {userName}))
+    if (count) {
       return {success: true, data: true}
     }
     return {success: true, data: false}

@@ -5,6 +5,8 @@ import {Database, DbConfig} from "./Database";
 import Dispatch from "./Dispatch";
 import {Collection, IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
 import {Logger, LoggerConfig} from "./utils/Logger";
+import repl = require("repl");
+
 
 const crypto = require('crypto');
 
@@ -48,6 +50,11 @@ export default class Server {
     }).catch((err) => {
       this.log.error('Db init failed', err)
     })
+    this.initRepl(config.port)
+  }
+
+  protected initRepl(port: number) {
+    repl.start(`deribot:${port}> `).context.server = this
   }
 
   private async initDb(config: IServerConfig) {
@@ -62,6 +69,7 @@ export default class Server {
     const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
     this.log.info(`client (${ip}) connected`);
+    // set ip limits for requests?
 
     ws.on('close', () => {
       this.log.info(`client (${ip}) disconnected. Still active: ${this.wsClients.length - 1} client(s).`);
@@ -73,11 +81,10 @@ export default class Server {
 
     ws.on('message', async (msg) => {
       try {
-        if (msg === '"ping"') {
+        /*if (msg === '"ping"') {
           ws.send('"pong"')
           return
-        }
-
+        }*/
         let request = JSON.parse(msg.toString()) as IFrontendMsg;
         if (userName) {
           this.log.debug(`message received: ${msg} \n`);
@@ -101,6 +108,9 @@ export default class Server {
             }
           }
           this.sendMsg(ws, request, reply)
+        } else if (request.action == 'logout'){
+          userName = undefined
+          this.sendMsg(ws, request, {success: true, data: {}})
         }
       } catch (error) {
         this.log.warn(error, 'Incorrect data type')
@@ -112,6 +122,9 @@ export default class Server {
     let reply: IBackendMsg
     let data = request.data
     switch (request.action) {
+      case 'get_whole_asset':
+        reply = await this.dispatch.getAsset(userName);
+        break;
       case 'get_matches':
         reply = await this.dispatch.getMatches(userName, data);
         break;

@@ -2,13 +2,14 @@ export default abstract class BaseClient {
 
   private webSocket: WebSocket
   private initialized: Deferred
+  protected isLoggedIn: Deferred
   private readonly url: string // 'ws://localhost:8080';
   private readonly pingTimeout: number = 10000
   private readonly reconnectTimeout: number = 30000
   private pingTimer: NodeJS.Timer
   private reconnectTimer: NodeJS.Timer
 
-  protected constructor(url: string) {
+  public constructor(url: string) {
     this.url = url
     this.connectToBackend()
   }
@@ -19,11 +20,10 @@ export default abstract class BaseClient {
     }, (this.pingTimeout + this.reconnectTimeout))
     try {
       this.initialized = new Deferred()
+      this.isLoggedIn = new Deferred()
       this.webSocket = new WebSocket(this.url);
       this.webSocket.onopen = () => {
         this.initialized.resolve()
-        console.log('ws ready')
-        //this.webSocket.send(JSON.stringify(key));
 
         this.pingTimer = setInterval(() => {
           this.ping()
@@ -43,7 +43,7 @@ export default abstract class BaseClient {
           this.reconnect()
         }, (this.pingTimeout + this.reconnectTimeout))
 
-        let contents = JSON.parse(msg.toString())
+        let contents = JSON.parse(msg.data.toString())
 
         if (contents.replyTo) {
           //console.log('got a valid reply')
@@ -82,9 +82,12 @@ export default abstract class BaseClient {
     this.connectToBackend()
   }
 
-  protected async send(request: any) {
+  protected async send(request: any, doWhenLoggedIn: boolean = true) {
     try {
       await this.confirmInitialized()
+      if(doWhenLoggedIn){
+        await this.confirmLoggedIn()
+      }
       await this.webSocket.send(JSON.stringify(request));
     } catch (err) {
       console.log(err, 'ws msg error', err)
@@ -93,6 +96,11 @@ export default abstract class BaseClient {
 
   public async confirmInitialized(): Promise<void>{
     await this.initialized.promise
+    return
+  }
+
+  public async confirmLoggedIn(): Promise<void>{
+    await this.isLoggedIn.promise
     return
   }
 

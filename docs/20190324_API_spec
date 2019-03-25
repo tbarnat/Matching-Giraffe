@@ -1,0 +1,72 @@
+
+======================== SENDING REQUESTS ========================
+Send request via:
+
+    ------ code snippet ------
+    let client = new Client('ws://3.122.192.224:8080')
+    let response = await client.sendAndWait(...)
+
+
+====== optionally ======
+it is possible to send request and process it later
+
+    ------ code snippet ------
+    let client = new Client('ws://3.122.192.224:8080')
+    let uniqueId = client.sendRequest()
+    ...
+    let response = await waitFor(...)
+
+
+
+===================== REQUESTS SPECIFICATION =====================
+
+Request takes two params: (action: ActionInMsg, data; any)
+List of possible actions and corresponding data:
+
+    ------ general ------
+    'login', {userName: string, password: string}
+    'logout', {}
+    'get_whole_asset', {} // get all kids, horses and trainers for users - avoid requests for every list
+
+    ------ matches ------
+    'get_matches', DataModel.IHorseRidingDayQ
+    'save_matches', DataModel.IHorseRidingDay
+    'remove_day', {name: string}
+
+    ------- kids -------
+    'get_kid', {name: string}
+    'new_kid', { name: string, remarks?: string, prefs: {best?: string[], nice?: string[], isok?: string[], limp?: string[], excl?: string[]} }
+    'edit_kid', { name: string, newName: string, remarks?: string, prefs: {best?: string[], nice?: string[], isok?: string[], limp?: string[], excl?: string[]} }
+    'remove_kid', {name: string}
+    'list_kid', {query: string} //only starting from the beginning of phrase to find
+    'haveAny_kid', any
+    'prefs_template', {name: string} // prefs_template is sent when we want to duplicate other kidos preferences when adding new one
+
+    ------ horses ------
+    'get_horse', {name: string}
+    'new_horse', {name: string, maxDailyWorkload?: number, descr?: string, remarks?: string, addAsHorse?: string, addToPrefLevel?: string} (if there are kids in db one of the fields: addAsHorse / addToPrefLevel)
+    'edit_horse', {name: string, newName?: string, maxDailyWorkload?: number, descr?: string, remarks?: string, addAsHorse?: string, addToPrefLevel?: string} (if there are kids in db one of the fields: addAsHorse / addToPrefLevel)
+    'remove_horse', {name: string}
+    'list_horse', {query: string} //only starting from the beginning of phrase to find
+    'haveAny_horse', any
+
+    ------ trainers ------
+    'get_trainer', {name: string}
+    'new_trainer', {name: string, descr?: string, remarks?: string, isDefault?: boolean}
+    'edit_trainer', {name: string, newName?: string, descr?: string, remarks?: string, isDefault?: boolean}
+    'remove_trainer', {name: string}
+    'list_trainer', {query: string} //only starting from the beginning of phrase to find
+    'haveAny_trainer', any
+
+
+
+===================== RESPONSE SPECIFICATION =====================
+
+Response always comprise 'success' field informing if the request
+was valid, and could be completely processed
+
+export interface IBackendMsg {
+  replyTo?: string //id of incoming message
+  success: boolean
+  data: any | BackendData
+}

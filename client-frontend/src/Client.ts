@@ -2,11 +2,13 @@ import BaseClient, {Deferred} from "./BaseClient";
 
 const uuidv4 = require('uuid/v4');
 
-type Action = 'login' | 'get_matches' | 'save_matches' | 'delete_day' |
-'new_user' | 'edit_user' | 'delete_user' |
-'new_horse' | 'edit_horse' | 'delete_horse' |
-'new_kid' | 'edit_kid' | 'delete_kid' |
-'new_trainer' | 'edit_trainer' | 'delete_trainer'
+export type ActionInMsg =
+  'login' | 'logout' | 'get_whole_asset' |
+  //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
+  'get_matches'  | 'save_matches' | 'remove_day' |
+  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  | 'prefs_template' |
+  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'
 
 export default class Client extends BaseClient {
 
@@ -28,25 +30,29 @@ export default class Client extends BaseClient {
   }
 
   //creates new deferred
-  public sendRequest(action: Action, data: any): string {
+  public sendRequest(action: ActionInMsg, data: any, doWhenLoggedIn: boolean = true): string {
     let id = uuidv4()
     if (this.deferreds[id]) {
       return ''
     }
     this.deferreds[id] = new Deferred()
-    this.send({id, action, data})
+    this.send({id, action, data},doWhenLoggedIn)
     return id
   }
 
   //main method for client's requests
-  public async sendAndWait(action: Action, data: any): Promise<any>{
-    let requestId = await this.sendRequest(action,data)
+  public async sendAndWait(action: ActionInMsg, data: any, doWhenLoggedIn: boolean = true): Promise<any>{
+    let requestId = await this.sendRequest(action,data,doWhenLoggedIn)
     return this.waitFor(requestId)
   }
 
-  public login(userName: string, password: string): string{
-    return this.sendRequest('login', {userName, password})
-
+  public async login(userName: string, password: string): Promise<boolean>{
+    let isLoggedIn =  ((await this.sendAndWait('login', {userName, password},false)) as any).success
+    if(isLoggedIn){
+      this.isLoggedIn.resolve()
+      console.log('logged in')
+    }
+    return isLoggedIn
   }
 
 }

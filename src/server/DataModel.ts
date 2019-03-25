@@ -89,7 +89,6 @@ export interface INewUser extends ILoginAttempt{
 }
 */
 
-
 /* ---------- Horse Riding Day - QUERY ---------- */
 
 export interface IHorseRidingDayQ {
@@ -195,14 +194,12 @@ export interface BackendData {
 }
 
 export type ActionInMsg =
-  'get_matches'  | 'save_matches' | 'remove_day' |
-  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  |
-  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
-  'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'  |
+  'login' | 'logout' | 'get_whole_asset' |
   //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
-  'prefs_template' | 'login'
-
-// prefs_template is sent when we want to duplicate other kidos preferences when adding new one
+  'get_matches'  | 'save_matches' | 'remove_day' |
+  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  | 'prefs_template' |
+  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'
 
 export interface ILoginAttempt {
   userName: string // unique
