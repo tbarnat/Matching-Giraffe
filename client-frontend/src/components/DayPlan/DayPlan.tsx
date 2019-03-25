@@ -25,9 +25,9 @@ interface IState extends IHorseRidingDayQ {
 
 class DayPlan extends React.Component<any, any> {
   state = {
-    day: '',
-    remarks: '',
-    dailyExcludes: [],
+    day: '2019-01-01',
+    remarks: 'Bla bla',
+    dailyExcludes: ['Bracio'],
     // hours: [
     //   {
     //     hour: '1230',
@@ -64,13 +64,12 @@ class DayPlan extends React.Component<any, any> {
     // ],
     hours: [
       {
-        hour: '',
-        trainer: ['test1'],
+        hour: '1200',
+        trainer: ['Eva'],
         trainingsDetails: [
-          { kidName: 'Julka Mala', horse: '' },
-          { kidName: 'Maja' },
-          { kidName: 'Julka Lonza' },
-          { kidName: 'Ola C' },
+          { kidName: 'Agnieszka E', horse: 'Bella' },
+          { kidName: 'Julka R' },
+          { kidName: 'Ania P' },
           { kidName: undefined },
         ]
       },
@@ -335,6 +334,21 @@ class DayPlan extends React.Component<any, any> {
     this.setState({ options })
   }
 
+  //Generate
+  //===========================================================================================================
+  generate = async () => {
+    const query = {
+      hours: this.state.hours,
+      day: this.state.day,
+      remarks: this.state.remarks,
+      dailyExcludes: this.state.dailyExcludes
+    }
+    console.log(query);
+
+    let asset = (await window.hmClient.sendAndWait('get_matches', query));
+    console.log(asset)
+  }
+
 
   componentDidMount() {
     this.init();
@@ -497,6 +511,7 @@ class DayPlan extends React.Component<any, any> {
         <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>
         <Button color="orange" variant="secondary" onClick={this.resetForm}>Reset Form</Button>
+        <Button color="orange" variant="secondary" onClick={this.generate}>Generate</Button>
         {/* <Button variant="secondary" onClick={this.updateState}>change state</Button> */}
       </Container >
     )
