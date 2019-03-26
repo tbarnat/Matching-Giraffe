@@ -34,7 +34,7 @@ exports.genericTest = async (testName, testUser, testPswd, req_res_arr) => {
           t.comment(`Testno:${req_res.no}   <|>   Action: '${req_res.action}'   <|>   Request: ${reqData.substring(0,reqDataLength-3)}...   <|>   Success: expected:${req_res.success} / received:${response.success}`)
         }
         //assertions
-        console.log(response)
+        console.log(JSON.stringify(response,null,2))
 
         t.equal(req_res.success, response.success)
         if (!req_res.success && !response.success && req_res.errorMsg) {

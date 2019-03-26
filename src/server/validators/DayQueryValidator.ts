@@ -145,8 +145,8 @@ export default class DayQueryValidator extends DayValidator {
         ]
       case 'hourKeys':
         return [
-          {req: true, key: 'hour', type: 'number', minV: 0, maxV: 2400}, //todo regEx
-          {req: true, key: 'trainer', type: 'object', isArr: true, minL: 2, maxL: 20},
+          {req: true, key: 'hour', type: 'string', minV: 0, maxV: 2400}, //todo regEx
+          {req: true, key: 'trainer', type: 'object', isArr: true},
           {req: true, key: 'trainingsDetails', type: 'object', isArr: true, minL: 1},
           {req: false, key: 'remarks', type: 'string', maxL: 200},
         ]

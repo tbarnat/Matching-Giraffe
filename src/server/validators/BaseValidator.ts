@@ -76,16 +76,16 @@ export abstract class BaseValidator {
         if (fieldPattern.isArr && !Array.isArray(data[actualKey])) {
           return `Internal error: ${actualKey} is not an array`
         }
-        if ((fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL)
-          || (fieldPattern.minL && data[actualKey].length < fieldPattern.minL)) {
-          return `Internal error: ${actualKey} length out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
+        if (((fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL)
+          || (fieldPattern.minL && data[actualKey].length < fieldPattern.minL)) && fieldPattern.req) {
+          return `Internal error: ${actualKey}: '${data[actualKey]}' length out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
-        if ((fieldPattern.minV && data[actualKey] > fieldPattern.minV) ||
-          (fieldPattern.maxV && data[actualKey] < fieldPattern.maxV)) {
-          return `Internal error: ${actualKey} value out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
+        if (((fieldPattern.minV && +data[actualKey] < fieldPattern.minV) ||
+          (fieldPattern.maxV && +data[actualKey] > fieldPattern.maxV)) && fieldPattern.req) {
+          return `Internal error: ${actualKey}: '${data[actualKey]}' value out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
         if (fieldPattern.anyOf && !fieldPattern.anyOf.includes(data[actualKey])) {
-          return `Internal error: ${actualKey} should be any of ${fieldPattern.anyOf.join(', ')}`
+          return `Internal error: ${actualKey}: '${data[actualKey]}' should be any of ${fieldPattern.anyOf.join(', ')}`
         }
         if (fieldPattern.regEx) {
           regex = RegExp(fieldPattern.regEx)

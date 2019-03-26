@@ -23,8 +23,8 @@ export abstract class  DayValidator extends BaseValidator {
   protected allTrainers: IInstructo[]
   protected allTrainersString: string[]
 
-  protected kidosStrInQuery: string[]
-  protected kidosInQuery: IKido[]
+  protected kidosStrInQuery: string[] = []
+  protected kidosInQuery: IKido[] = []
 
   public async init() {
     let promiseArr: any[] = []
@@ -45,18 +45,18 @@ export abstract class  DayValidator extends BaseValidator {
     if (errorMsg) {
       return errorMsg
     }
-    toBeDailyQuery.hours.forEach((hour: any) => {
-      let errorMsg = this.patternCheck(hour, 'hourKeys')
+    for(let hour of toBeDailyQuery.hours){
+      errorMsg = this.patternCheck(hour, 'hourKeys')
       if (errorMsg) {
         return errorMsg
       }
-      hour.trainingsDetails.forEach((training: any) => {
+      for( let training of hour.trainingsDetails){
         let errorMsg = this.patternCheck(training, 'trainingKeys')
         if (errorMsg) {
           return errorMsg
         }
-      })
-    })
+      }
+    }
     return ''
   }
 
@@ -73,7 +73,7 @@ export abstract class  DayValidator extends BaseValidator {
       validDate = validDate && !isNaN(date.getTime()) && (daySplitNo[2] === date.getDate())
     }
     if (!validDate) {
-      return `Day name: ${day.day} is not ok. Apply following format: YYYY-MM-DD or YYYY-MM-DD-xxxx`
+      return `Day name: ${day.day} is not ok. Apply following format: YYYY-MM-DD`
     }
     return
   }
@@ -109,7 +109,7 @@ export abstract class  DayValidator extends BaseValidator {
     let kidosStrInQuery: string[] = []
     for (let hourInfo of day.hours) {
       for (let trainingDetails of hourInfo.trainingsDetails) {
-        if (!kidosStrInQuery.includes(trainingDetails.kidName)) {
+        if (!this.allKidosString.includes(trainingDetails.kidName)) {
           return `Kid by the name: ${trainingDetails.kidName} does not exist in db`
         }
         kidosStrInQuery.push(trainingDetails.kidName)

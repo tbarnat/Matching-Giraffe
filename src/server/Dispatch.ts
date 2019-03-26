@@ -43,7 +43,12 @@ export default class Dispatch {
     Object.assign(data, {timeResInMinutes: 60})
     let DQV = new DayQueryValidator(userName, this.db)
     await DQV.init()
-    let errorMsg = await DQV.validateDailyQuery(data)
+    let errorMsg
+    try {
+      errorMsg = await DQV.validateDailyQuery(data)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
@@ -72,7 +77,12 @@ export default class Dispatch {
     Object.assign(data, {timeResInMinutes: 60})
     let DSV = new DaySaveValidator(userName, this.db)
     await DSV.init()
-    let errorMsg = await DSV.validateDay(data)
+    let errorMsg
+    try {
+      errorMsg = await DSV.validateDay(data)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
@@ -88,7 +98,9 @@ export default class Dispatch {
 
   public async listDays(userName: string, data: any): Promise<IBackendMsg> {
     let msgList = await this.listEntriesNames(userName, data, 'diary')
-    msgList.data = msgList.data.map((dateString: string) => {return new Date(dateString)})
+    msgList.data = msgList.data.map((dateString: string) => {
+      return new Date(dateString)
+    })
     return msgList
   }
 
@@ -122,8 +134,13 @@ export default class Dispatch {
     if (collName === 'horsos') {  // horso is kinda special case entity
       return await this.newHorso(userName, data, collName)
     }
-    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
-    let errorMsg = await DV.validateNewEntry(data, collName)
+    let EV: EntriesValidator = new EntriesValidator(userName, this.db)
+    let errorMsg
+    try {
+      errorMsg = await EV.validateNewEntry(data, collName)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
@@ -146,8 +163,13 @@ export default class Dispatch {
       }
       Object.assign(data, {addedBeforeKids: true})
     }
-    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
-    let errorMsg = await DV.validateNewEntry(data, collName)
+    let EV: EntriesValidator = new EntriesValidator(userName, this.db)
+    let errorMsg
+    try {
+      errorMsg = await EV.validateNewEntry(data, collName)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
@@ -197,8 +219,14 @@ export default class Dispatch {
       return await this.editHorso(userName, data, collName)
     }
 
-    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
-    let errorMsg = await DV.validateEditEntry(data, collName)
+    let EV: EntriesValidator = new EntriesValidator(userName, this.db)
+    let errorMsg
+    try {
+      errorMsg = await EV.validateEditEntry(data, collName)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
+
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
@@ -234,8 +262,13 @@ export default class Dispatch {
 
   private async editHorso(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
 
-    let DV: EntriesValidator = new EntriesValidator(userName, this.db)
-    let errorMsg = await DV.validateEditEntry(data, collName)
+    let EV: EntriesValidator = new EntriesValidator(userName, this.db)
+    let errorMsg
+    try {
+      errorMsg = await EV.validateEditEntry(data, collName)
+    } catch (err) {
+      errorMsg = err.stack.substring(0, 170)
+    }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }

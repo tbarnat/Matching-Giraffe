@@ -1,4 +1,4 @@
-const Client = require('../client-frontend/build/dist/Client').default;
+const Client = require('../dist/client/Client').default;
 let client = new Client('ws://localhost:8080')
 const tableHelper = require('./tableHelper.js')
 
@@ -13,11 +13,10 @@ let getSomeInteraction = async () => {
 
   await client.confirmInitialized()
 
-  let requestId
-  requestId = client.login('qwe', 'asd')
-  let resultLogin = await client.waitFor(requestId)
-  if (!resultLogin.success) {
-    console.log('ERROR: could not log in')
+  let loggedIn = client.login(testUser, testPswd)
+  if (!loggedIn) {
+    console.log('ERROR: login')
+    return null
   }
   console.log('making request')
 
