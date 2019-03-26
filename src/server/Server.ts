@@ -108,7 +108,7 @@ export default class Server {
             }
           }
           this.sendMsg(ws, request, reply)
-        } else if (request.action == 'logout'){
+        } else if (request.action == 'logout') {
           userName = undefined
           this.sendMsg(ws, request, {success: true, data: {}})
         }
@@ -130,6 +130,12 @@ export default class Server {
         break;
       case 'save_matches':
         reply = await this.dispatch.saveMatches(userName, data)
+        break;
+      case 'get_day':
+        reply = await this.dispatch.getDay(userName, data)
+        break;
+      case'list_days':
+        reply = await this.dispatch.listDays(userName, data)
         break;
       case 'remove_day':
         reply = await this.dispatch.deleteDay(userName, data)

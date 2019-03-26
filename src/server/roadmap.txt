@@ -1,7 +1,8 @@
 MOST RECENT TODOS:
-- action for listing saved dates (as Date type)
-- solve typescript error on  DayPlan.tsx
 
+- correct old tests
+- test for new api actions
+- solve typescript error on DayPlan.tsx
 
 Backend
 0) token/cookies to keep ws alive
@@ -24,3 +25,4 @@ WS frn-bck
 Frontend
 1) component with filtering list and input
 2) adminPanel
+3) sharing saved days via facebook/ twitter (?)

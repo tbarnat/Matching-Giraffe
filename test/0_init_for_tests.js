@@ -1,4 +1,4 @@
-const Database = require('../dist/Database').Database;
+const Database = require('../dist/server/Database').Database;
 
 
 const config = {
@@ -141,7 +141,9 @@ let horsosTEST_USER1 = [
   {name: 'aaa5', userName: 'test_user1'},
   {name: 'aab1', userName: 'test_user1'},
   {name: 'aab3', userName: 'test_user1'},
-  {name: 'Abb6', userName: 'test_user1'}]
+  {name: 'Abb6', userName: 'test_user1'},
+  {name: 'Xxx1', userName: 'test_user1'},
+  {name: 'Xxx2', userName: 'test_user1'},]
 
 
 fillInDatabase = async () => {

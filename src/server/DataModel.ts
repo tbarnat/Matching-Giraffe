@@ -194,11 +194,17 @@ export interface BackendData {
 }
 
 export type ActionInMsg =
+  /*base actions*/
   'login' | 'logout' | 'get_whole_asset' |
   //'new_user'    | 'edit_user'    | 'remove_user' | 'list_user' |
-  'get_matches'  | 'save_matches' | 'remove_day' |
-  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'   | 'list_kid'  | 'haveAny_kid'  | 'prefs_template' |
-  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse' | 'list_horse'  | 'haveAny_horse'  |
+  'get_matches'  | 'save_matches' |
+
+  /*day actions*/
+  'get_day'                                      | 'remove_day'     | 'list_days'  |
+
+  /*regular entries actions*/
+  'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'     | 'list_kid'     | 'haveAny_kid'    | 'prefs_template' |
+  'get_horse'   | 'new_horse'   | 'edit_horse'   | 'remove_horse'   | 'list_horse'   | 'haveAny_horse'  |
   'get_trainer' | 'new_trainer' | 'edit_trainer' | 'remove_trainer' | 'list_trainer' | 'haveAny_trainer'
 
 export interface ILoginAttempt {

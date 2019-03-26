@@ -1,7 +1,7 @@
 //execute db_init first to get proper db values for test - user 'qwe'
 
 //case:0 - calibrating CORRECT query
-exports.dailyQuery0 = {
+exports.dailyQueries = [{
     day: '2019-03-14',
     hours: [
         {
@@ -34,10 +34,10 @@ exports.dailyQuery0 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case1: to many fields
-exports.dailyQuery1 = {
+{
     day: '2019-03-14',
     hours: [
         {
@@ -50,10 +50,10 @@ exports.dailyQuery1 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case2: to fewfields
-exports.dailyQuery2 = {
+{
     day: '2019-03-14',
     hours: [
         {
@@ -67,10 +67,10 @@ exports.dailyQuery2 = {
     ],
     remarks: '',
     dailyExcludes: []
-}
+},
 
 //case3: to incorrect structure
-exports.dailyQuery3 = {
+{
     day: '2019-03-14',
     hours: [
         {
@@ -83,10 +83,10 @@ exports.dailyQuery3 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case4: misspelled keys
-exports.dailyQuery4 = {
+{
     day: '2019-03-14',
     hours: [
         {
@@ -99,10 +99,10 @@ exports.dailyQuery4 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case5: incorrect day format - to long
-exports.dailyQuery5 = {
+{
     day: '2019-03-14-bugbug', // <-INCORRECT
     hours: [
         {
@@ -115,7 +115,7 @@ exports.dailyQuery5 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case6: incorrect day format - not number
 exports.dailyQuery6 = {
@@ -131,7 +131,7 @@ exports.dailyQuery6 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case7: incorrect day format - not convertable to date
 exports.dailyQuery7 = {
@@ -147,7 +147,7 @@ exports.dailyQuery7 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case8: day already exists
 exports.dailyQuery8 = {
@@ -166,7 +166,7 @@ exports.dailyQuery8 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case9: hour format incorrect
 exports.dailyQuery9 = {
@@ -182,7 +182,7 @@ exports.dailyQuery9 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case10: hours not sorted
 exports.dailyQuery10 = {
@@ -206,7 +206,7 @@ exports.dailyQuery10 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case11: kid does not exist
 exports.dailyQuery11 = {
@@ -222,7 +222,7 @@ exports.dailyQuery11 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case12: kid does not exist
 exports.dailyQuery12 = {
@@ -238,7 +238,7 @@ exports.dailyQuery12 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case13: horse does not exist
 exports.dailyQuery13 = {
@@ -257,7 +257,7 @@ exports.dailyQuery13 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case14 trainer does not exist
 exports.dailyQuery14 = {
@@ -273,7 +273,7 @@ exports.dailyQuery14 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case:15 excluded horse does not exist
 exports.dailyQuery15 = {
@@ -289,7 +289,7 @@ exports.dailyQuery15 = {
         },
     ],
     dailyExcludes: ['Bug horse'] // <-INCORRECT
-}
+},
 
 //case:16 repeated data - trainers
 exports.dailyQuery16 = {
@@ -305,7 +305,7 @@ exports.dailyQuery16 = {
         },
     ],
     dailyExcludes: ['Parys']
-}
+},
 
 //case:17 repeated data - kids
 exports.dailyQuery17 = {
@@ -322,7 +322,7 @@ exports.dailyQuery17 = {
         },
     ],
     dailyExcludes: ['Parys']
-}
+},
 
 
 //case:18 repeated data - predefined horses
@@ -340,7 +340,7 @@ exports.dailyQuery18 = {
         },
     ],
     dailyExcludes: ['Parys']
-}
+},
 
 //case:19 repeated data - horse in excluded and in predefined match
 exports.dailyQuery19 = {
@@ -357,7 +357,7 @@ exports.dailyQuery19 = {
         },
     ],
     dailyExcludes: ['Parys']
-}
+},
 
 //case:20 incomplete preferences
 exports.dailyQuery20 = {
@@ -373,7 +373,7 @@ exports.dailyQuery20 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case:21 incomplete preferences
 exports.dailyQuery21 = {
@@ -389,7 +389,7 @@ exports.dailyQuery21 = {
         },
     ],
     dailyExcludes: []
-}
+},
 
 //case:22 - nothing to solve
 exports.dailyQuery22 = {
@@ -408,4 +408,4 @@ exports.dailyQuery22 = {
         },
     ],
     dailyExcludes: []
-}
+}]

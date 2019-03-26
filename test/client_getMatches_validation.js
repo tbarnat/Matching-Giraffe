@@ -2,29 +2,29 @@ const Client = require('../client-frontend/build/dist/Client').default;
 
 let client = new Client()
 
-const dailyQuery0 = require('./zDailyQueriesInvalid').dailyQuery0
-const dailyQuery1 = require('./zDailyQueriesInvalid').dailyQuery1
-const dailyQuery2 = require('./zDailyQueriesInvalid').dailyQuery2
-const dailyQuery3 = require('./zDailyQueriesInvalid').dailyQuery3
-const dailyQuery4 = require('./zDailyQueriesInvalid').dailyQuery4
-const dailyQuery5 = require('./zDailyQueriesInvalid').dailyQuery5
-const dailyQuery6 = require('./zDailyQueriesInvalid').dailyQuery6
-const dailyQuery7 = require('./zDailyQueriesInvalid').dailyQuery7
-const dailyQuery8 = require('./zDailyQueriesInvalid').dailyQuery8
-const dailyQuery9 = require('./zDailyQueriesInvalid').dailyQuery9
-const dailyQuery10 = require('./zDailyQueriesInvalid').dailyQuery10
-const dailyQuery11 = require('./zDailyQueriesInvalid').dailyQuery11
-const dailyQuery12 = require('./zDailyQueriesInvalid').dailyQuery12
-const dailyQuery13 = require('./zDailyQueriesInvalid').dailyQuery13
-const dailyQuery14 = require('./zDailyQueriesInvalid').dailyQuery14
-const dailyQuery15 = require('./zDailyQueriesInvalid').dailyQuery15
-const dailyQuery16 = require('./zDailyQueriesInvalid').dailyQuery16
-const dailyQuery17 = require('./zDailyQueriesInvalid').dailyQuery17
-const dailyQuery18 = require('./zDailyQueriesInvalid').dailyQuery18
-const dailyQuery19 = require('./zDailyQueriesInvalid').dailyQuery19
-const dailyQuery20 = require('./zDailyQueriesInvalid').dailyQuery20
-const dailyQuery21 = require('./zDailyQueriesInvalid').dailyQuery21
-const dailyQuery22 = require('./zDailyQueriesInvalid').dailyQuery22
+const dailyQuery0 = require('./4_input').dailyQuery0
+const dailyQuery1 = require('./4_input').dailyQuery1
+const dailyQuery2 = require('./4_input').dailyQuery2
+const dailyQuery3 = require('./4_input').dailyQuery3
+const dailyQuery4 = require('./4_input').dailyQuery4
+const dailyQuery5 = require('./4_input').dailyQuery5
+const dailyQuery6 = require('./4_input').dailyQuery6
+const dailyQuery7 = require('./4_input').dailyQuery7
+const dailyQuery8 = require('./4_input').dailyQuery8
+const dailyQuery9 = require('./4_input').dailyQuery9
+const dailyQuery10 = require('./4_input').dailyQuery10
+const dailyQuery11 = require('./4_input').dailyQuery11
+const dailyQuery12 = require('./4_input').dailyQuery12
+const dailyQuery13 = require('./4_input').dailyQuery13
+const dailyQuery14 = require('./4_input').dailyQuery14
+const dailyQuery15 = require('./4_input').dailyQuery15
+const dailyQuery16 = require('./4_input').dailyQuery16
+const dailyQuery17 = require('./4_input').dailyQuery17
+const dailyQuery18 = require('./4_input').dailyQuery18
+const dailyQuery19 = require('./4_input').dailyQuery19
+const dailyQuery20 = require('./4_input').dailyQuery20
+const dailyQuery21 = require('./4_input').dailyQuery21
+const dailyQuery22 = require('./4_input').dailyQuery22
 
 
 let getSomeInteraction = async () => {

@@ -1,5 +1,5 @@
 const path = require('path')
-const Server = require('../dist/Server').default;
+const Server = require('../dist/server/Server').default;
 
 const config = {
     port: 8080,

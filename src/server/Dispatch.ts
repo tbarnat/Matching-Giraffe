@@ -1,14 +1,17 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
 import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IInstructo, IKido} from "./DataModel";
-import QueryValidator from "./validators/QueryValidator";
+import DayQueryValidator from "./validators/DayQueryValidator";
+import DaySaveValidator from "./validators/DaySaveValidator";
 import {Logger} from "./utils/Logger";
 import EntriesValidator from "./validators/EntriesValidator";
 import Utils from "./utils/Utils";
 
+const uuidv4 = require('uuid/v4');
+
 export default class Dispatch {
 
-  private readonly dbEntriesLimitsByCollName: {[collName: string]: number } = {
+  private readonly dbEntriesLimitsByCollName: { [collName: string]: number } = {
     diary: 10000,
     horsos: 200,
     kidos: 500,
@@ -18,7 +21,7 @@ export default class Dispatch {
   constructor(protected db: Database, private log: Logger) {
   }
 
-  private async isLimitExceeded(collName: Collection): Promise<boolean>{
+  private async isLimitExceeded(collName: Collection): Promise<boolean> {
     let count = await this.db.count(collName)
     return (count + 1 >= this.dbEntriesLimitsByCollName[collName])
   }
@@ -38,16 +41,16 @@ export default class Dispatch {
   // request.data: IHorseRidingDayQ
   public async getMatches(userName: string, data: any): Promise<IBackendMsg> {
     Object.assign(data, {timeResInMinutes: 60})
-    let QV = new QueryValidator(userName, this.db)
-    await QV.init()
-    let errorMsg = await QV.validateDailyQuery(data)
+    let DQV = new DayQueryValidator(userName, this.db)
+    await DQV.init()
+    let errorMsg = await DQV.validateDailyQuery(data)
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    if (QV.checkIfQueryIsAlreadySolved(data)) {
+    if (DQV.checkIfQueryIsAlreadySolved(data)) {
       return ({success: true, data: {solution: data}} as IBackendMsg)
     }
-    let result = await (new MatchingEngine(QV.getAllHorsosString(), QV.getAllKidos(), this.log.child({userName}))).getMatches(data)
+    let result = await (new MatchingEngine(DQV.getAllHorsosString(), DQV.getAllKidos(), this.log.child({userName}))).getMatches(data)
     return ({success: !result.errorMsg, data: result} as IBackendMsg)
 
   }
@@ -55,16 +58,38 @@ export default class Dispatch {
   // data: IHorseRidingDay
   public async saveMatches(userName: string, data: any): Promise<IBackendMsg> {
     let collName: Collection = 'diary'
-    if(await this.isLimitExceeded(collName)){
-      return {success: false, data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}}
+    if (await this.isLimitExceeded(collName)) {
+      return {
+        success: false,
+        data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}
+      }
     }
     let day: string = data.day
     let existingEntry: IHorseRidingDay[] = await this.db.find(collName, {userName, day})
     if (existingEntry && existingEntry[0]) {
       return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}
     }
+    Object.assign(data, {timeResInMinutes: 60})
+    let DSV = new DaySaveValidator(userName, this.db)
+    await DSV.init()
+    let errorMsg = await DSV.validateDay(data)
+    if (errorMsg) {
+      return ({success: false, data: {errorMsg}} as IBackendMsg)
+    }
+    let uniqueHash = uuidv4()
+    Object.assign(data, {uniqueHash})
     await this.db.insertOne(collName, Object.assign({userName}, data))
     return {success: true, data: data.day}
+  }
+
+  public async getDay(userName: string, data: any): Promise<IBackendMsg> {
+    return await this.getDbEntry(userName, data, 'diary')
+  }
+
+  public async listDays(userName: string, data: any): Promise<IBackendMsg> {
+    let msgList = await this.listEntriesNames(userName, data, 'diary')
+    msgList.data = msgList.data.map((dateString: string) => {return new Date(dateString)})
+    return msgList
   }
 
   // data: {day: string}   4ex: '2019-03-13' or '2019-03-15-a'
@@ -88,8 +113,11 @@ export default class Dispatch {
 
   // data: INewHorse / IKido / IInstructo
   public async newDbEntry(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
-    if(await this.isLimitExceeded(collName)){
-      return {success: false, data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}}
+    if (await this.isLimitExceeded(collName)) {
+      return {
+        success: false,
+        data: {errorMsg: `Limit for max number of entries reached - please remove some old stuff`}
+      }
     }
     if (collName === 'horsos') {  // horso is kinda special case entity
       return await this.newHorso(userName, data, collName)
@@ -178,12 +206,14 @@ export default class Dispatch {
     let oldName = data.name
     let newEntry: any = {}
     let keys = Object.keys(data)
-    if(keys.includes('newName')){
+    if (keys.includes('newName')) {
       keys.filter(key => key != 'name').forEach(field => {
         field == 'newName' ? newEntry['name'] = data['newName'] : newEntry[field] = data[field]
       })
-    }else{
-      keys.forEach(field => {newEntry[field] = data[field]})
+    } else {
+      keys.forEach(field => {
+        newEntry[field] = data[field]
+      })
     }
     let oldEntry = (await this.db.find(collName, {userName, name: oldName}))[0]
     oldEntry = Dispatch.stripFromUserNameAnd_Id(oldEntry)
@@ -213,12 +243,14 @@ export default class Dispatch {
     let oldName = data.name
     let newEntry: any = {}
     let keys = Object.keys(data)
-    if(keys.includes('newName')){
-     keys.filter(key => key != 'name').forEach(field => {
-       field == 'newName' ? newEntry['name'] = data['newName'] : newEntry[field] = data[field]
+    if (keys.includes('newName')) {
+      keys.filter(key => key != 'name').forEach(field => {
+        field == 'newName' ? newEntry['name'] = data['newName'] : newEntry[field] = data[field]
       })
-    }else{
-      keys.forEach(field => {newEntry[field] = data[field]})
+    } else {
+      keys.forEach(field => {
+        newEntry[field] = data[field]
+      })
     }
     let oldEntries = (await this.db.find(collName, {userName, name: oldName}))
     let oldEntry = oldEntries[0]
@@ -304,7 +336,7 @@ export default class Dispatch {
     this.log.info(entries, `for '${action}' by '${userName}' on '${name}' as '${collName}'`)
   }
 
-  // data.query; string (incomplete string)  data.taken: string[] (list of taken, already selected)
+  // data.query: string (incomplete string)  data.taken: string[] (list of taken, already selected)
   public async listEntriesNames(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
     let items: string[] = []
     if (collName === 'users') {
@@ -331,8 +363,8 @@ export default class Dispatch {
       })
     }
     items = items.sort((a, b) => {
-      return a.toLowerCase().localeCompare(b.toUpperCase())
-    }).slice(0, 10)
+      return a.toLowerCase().localeCompare(b.toLowerCase())
+    })
     return {success: true, data: items}
   }
 
@@ -364,7 +396,7 @@ export default class Dispatch {
     }
   }
 
-  private static stripFromUserNameAnd_Id(entry: any): any{
+  private static stripFromUserNameAnd_Id(entry: any): any {
     delete entry._id
     delete entry.userName
     return entry
