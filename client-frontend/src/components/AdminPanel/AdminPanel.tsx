@@ -83,8 +83,8 @@ class App extends React.Component<any, any> {
     this.setState({ active: fieldName })
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
-        console.log(this.state[typeName])
-        this.setState({ [typeName]: { input: [] }, })
+        this.typeAhead[typeName].getInstance().clear()
+        this.setState({[typeName]: {input: []},})
       }
     }
   }
@@ -106,6 +106,7 @@ class App extends React.Component<any, any> {
   }
 
   render() {
+    console.log(this.state)
     let content = (
       <div className={classes.AdminPanelRow} key={'costam'}>
         <Row>
@@ -157,7 +158,7 @@ class App extends React.Component<any, any> {
                 inputProps={{
                   width: '20px'
                 }}
-                //todo ref = {(ref) => {this.}} clear() !!!
+                ref={(ref) => this.typeAhead[name] = ref}
               />
             </Col>
             <Col /><Col />
@@ -179,6 +180,7 @@ class App extends React.Component<any, any> {
                 <Col><Button variant="secondary" onClick={() => console.log('remove ' + name)}
                   disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
                   Usuń</Button></Col>
+                {/*todo remember to call get list after any button is pressed*/}
 
               </Row>
             </Col>
