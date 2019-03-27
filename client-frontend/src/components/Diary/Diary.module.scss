@@ -6,11 +6,23 @@
 
     .Hours,
     .Kids,
-    .Trainers,
     .Horses {
       input {
         margin-bottom: 10px;
       }
+    }
+    .Hours {
+      margin-bottom: 30px;
+    }
+  }
+
+  .LabelSection {
+    .Label {
+      display: inline-block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      transition: 0.2s;
+      position: relative;
     }
   }
 
