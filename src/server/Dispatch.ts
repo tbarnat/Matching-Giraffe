@@ -7,7 +7,7 @@ import {Logger} from "./utils/Logger";
 import EntriesValidator from "./validators/EntriesValidator";
 import Utils from "./utils/Utils";
 
-const uuidv4 = require('uuid/v4');
+const short = require('short-uuid');
 
 export default class Dispatch {
 
@@ -74,7 +74,6 @@ export default class Dispatch {
     if (existingEntry && existingEntry[0]) {
       return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}
     }
-    Object.assign(data, {timeResInMinutes: 60})
     let DSV = new DaySaveValidator(userName, this.db)
     await DSV.init()
     let errorMsg
@@ -86,18 +85,24 @@ export default class Dispatch {
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    let uniqueHash = uuidv4()
+    let uniqueHash = short.generate()
     Object.assign(data, {uniqueHash})
-    await this.db.insertOne(collName, Object.assign({userName}, data))
-    return {success: true, data: data.day}
+    await this.db.insertOne(collName, Object.assign(data, {userName} ))
+    return {success: true, data}
   }
 
   public async getDay(userName: string, data: any): Promise<IBackendMsg> {
-    return await this.getDbEntry(userName, data, 'diary')
+    let entry = (await this.db.find('diary', {userName, day: data.name}))[0]
+    if (entry) {
+      entry = Dispatch.stripFromUserNameAnd_Id(entry)
+      return {success: true, data: entry}
+    }
+    return {success: false, data: {}}
   }
 
   public async listDays(userName: string, data: any): Promise<IBackendMsg> {
-    let msgList = await this.listEntriesNames(userName, data, 'diary')
+    let msgList = await this.listEntriesNames(userName, data, 'diary','day')
+    console.log(msgList)
     msgList.data = msgList.data.map((dateString: string) => {
       return new Date(dateString)
     })
@@ -106,7 +111,7 @@ export default class Dispatch {
 
   // data: {day: string}   4ex: '2019-03-13' or '2019-03-15-a'
   public async deleteDay(userName: string, data: any): Promise<IBackendMsg> {
-    let day: string = data.day
+    let day: string = data.name
     let mongoDelObj = await this.db.deleteOne('diary', {userName, day})
     if (!mongoDelObj.deletedCount) {
       return {success: false, data: {errorMsg: `Deleted none by the day: ${day}`}}
@@ -370,7 +375,7 @@ export default class Dispatch {
   }
 
   // data.query: string (incomplete string)  data.taken: string[] (list of taken, already selected)
-  public async listEntriesNames(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
+  public async listEntriesNames(userName: string, data: any, collName: Collection, identifier: string = 'name'): Promise<IBackendMsg> {
     let items: string[] = []
     if (collName === 'users') {
       return {success: true, data: items}
@@ -379,7 +384,7 @@ export default class Dispatch {
     let entries: any[] = await this.db.find(collName, {userName})
     if (entries.length) {
       items = entries.map(entry => {
-        return entry.name
+        return entry[identifier]
       })
     }
     if (query) {

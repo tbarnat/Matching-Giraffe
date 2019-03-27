@@ -159,7 +159,7 @@ export abstract class  DayValidator extends BaseValidator {
       let allHorsesInPrefs: string[] = Preferences.flatListForAllLevels(kido.prefs)
       for (let horse of allHorsesInPrefs) {
         if (!this.allHorsosString.includes(horse)) {
-          return `: ${kido.name} have a non-existing horse: ${horse} in preferences`
+          return `${kido.name} have a non-existing horse: ${horse} in preferences`
         }
       }
     }

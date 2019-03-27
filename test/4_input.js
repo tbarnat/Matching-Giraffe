@@ -101,7 +101,7 @@ exports.dailyQueries = [{
   },
   //5
   {
-    day: '2019-03-14-bugbug', // <-INCORRECT
+    day: '2019-03-142', // <-INCORRECT
     hours: [
       {
         hour: '1230',
@@ -442,5 +442,28 @@ exports.response0 = {
         ]
       }
     ]
+  }
+}
+
+exports.response22 = {
+  solution: {
+    day: "2019-03-14",
+    hours: [
+      {
+        hour: "1230",
+        trainer: [
+          "Paulina"
+        ],
+        remarks: "",
+        trainingsDetails: [
+          {
+            kidName: "Julka Mala",
+            horse: "Bracio"
+          }
+        ]
+      }
+    ],
+    dailyExcludes: [],
+    timeResInMinutes: 60
   }
 }

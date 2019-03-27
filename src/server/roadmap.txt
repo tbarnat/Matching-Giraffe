@@ -1,7 +1,5 @@
 MOST RECENT TODOS:
 
-- correct old tests
-- test for new api actions
 - solve typescript error on DayPlan.tsx
 
 Backend

@@ -76,12 +76,12 @@ export abstract class BaseValidator {
         if (fieldPattern.isArr && !Array.isArray(data[actualKey])) {
           return `Internal error: ${actualKey} is not an array`
         }
-        if (((fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL)
-          || (fieldPattern.minL && data[actualKey].length < fieldPattern.minL)) && fieldPattern.req) {
+        if ((fieldPattern.maxL && data[actualKey].length > fieldPattern.maxL)
+          || ((fieldPattern.minL && data[actualKey].length < fieldPattern.minL)) && fieldPattern.req) { //if field is not required empty string is allowed
           return `Internal error: ${actualKey}: '${data[actualKey]}' length out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
-        if (((fieldPattern.minV && +data[actualKey] < fieldPattern.minV) ||
-          (fieldPattern.maxV && +data[actualKey] > fieldPattern.maxV)) && fieldPattern.req) {
+        if ((fieldPattern.maxV && +data[actualKey] > fieldPattern.maxV) ||
+          (fieldPattern.minV && +data[actualKey] < fieldPattern.minV)) {
           return `Internal error: ${actualKey}: '${data[actualKey]}' value out of bounds (${fieldPattern.minL ? fieldPattern.minL : 0}-${fieldPattern.maxL ? fieldPattern.maxL : 200})`
         }
         if (fieldPattern.anyOf && !fieldPattern.anyOf.includes(data[actualKey])) {
