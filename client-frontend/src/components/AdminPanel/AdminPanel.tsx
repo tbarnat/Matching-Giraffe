@@ -14,7 +14,8 @@ class App extends React.Component<any, any> {
   *  -> typeahead does not clear out on selecting the others typeahead fields
   *  -> buttons reveals the further options
   * */
-  private objectTypes = ['horse', 'kid', 'trainer']
+  private objectTypes = ['kid', 'horse', 'trainer']
+  private typeAhead: {[name:string]: any} = {}
 
   constructor(props: any) {
     super(props)
@@ -82,13 +83,29 @@ class App extends React.Component<any, any> {
     this.setState({ active: fieldName })
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
+        console.log(this.state[typeName])
         this.setState({ [typeName]: { input: [] }, })
       }
     }
   }
 
+  getMoreFormForEntry(name: string){
+    if(this.state.active == name){
+      switch (name) {
+        case this.objectTypes[0]:
+          return <p>dodatkowe dane bachory</p>
+        case this.objectTypes[1]:
+          return <p>dodatkowe dane horses</p>
+        case this.objectTypes[2]:
+          return <p>dodatkowe dane trenerios</p>
+        default:
+          return
+      }
+
+    }
+  }
+
   render() {
-    console.log(this.state)
     let content = (
       <div className={classes.AdminPanelRow} key={'costam'}>
         <Row>
@@ -104,15 +121,15 @@ class App extends React.Component<any, any> {
       </div>
     )
 
-    const types = [{ type: 'kid', label: 'Bachory' }, { type: 'horse', label: 'Horsesy' }, {
-      type: 'trainer',
-      label: 'Kadra'
-    },]
+    const types = [
+      { type: 'kid', label: 'Bachory' },
+      { type: 'horse', label: 'Horsesy' },
+      { type: 'trainer', label: 'Kadra'},]
     const rows = types.map((row: { type: string, label: string }) => {
       let name = row.type
-      console.log(row)
       return (
         <div className={classes.AdminPanelRow} key={row.type + '_adm'} style={{ width: 1000 }}>
+          {/*tabIndex={1} onFocus={() => console.log('dsdsdsdsdsds')}*/}
           <Row>
             <Col className={classes.Labels}>
               <strong>{row.label}</strong>
@@ -140,11 +157,12 @@ class App extends React.Component<any, any> {
                 inputProps={{
                   width: '20px'
                 }}
+                //todo ref = {(ref) => {this.}} clear() !!!
               />
             </Col>
             <Col /><Col />
           </Row>
-          {/*{content}*/}
+          {this.getMoreFormForEntry(name)}
           <br />
           <Row>
             <Col /><Col />
