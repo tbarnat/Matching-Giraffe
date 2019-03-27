@@ -23,7 +23,7 @@ let req_res_arr = [
   {no:16, action:'prefs_template',reqData:'Steven',success:true,resData:{ best: [], nice: [ 'Jolly Jumper', 'Hasty Harry' ], isok: [], limp: [], excl: [] } },
 
   {no:17, action:'new_horse', reqData:{name: 'Foxy'}, success:false, resData:{}},// no adding scheme
-  {no:18, action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'good'}, success:false, errorMsg: 'Internal error: addToPrefLevel should be any of best, nice, isok, limp, excl' },
+  {no:18, action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'good'}, success:false, errorMsg: "Internal error: addToPrefLevel: 'good' should be any of best, nice, isok, limp, excl" },
   {no:19, action:'new_horse', reqData:{name: 'Foxy', addToPrefLevel:'best'}, success:true, resData:{}},
   {no:20, action:'get_kid', reqData:{name: 'Jessica'}, success: true, resData:{name:'Jessica', prefs:{'best':['Foxy'], 'nice':[], 'isok':['Hasty Harry'], 'limp':['Jolly Jumper'], 'excl':[]}}},
 

@@ -12,6 +12,7 @@
     "mongodb": "^3.1.10",
     "pino": "^5.11.1",
     "rotating-file-stream": "^1.4.0",
+    "short-uuid": "^3.1.0",
     "uuid": "^3.3.2",
     "ws": "^6.1.3"
   },
