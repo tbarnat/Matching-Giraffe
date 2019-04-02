@@ -12,10 +12,10 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 
 // fake data generator
-const getItems = (count: any) =>
+const getItems = (count: number, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map(k => ({
-    id: `item-${k}`,
-    content: `item ${k}`,
+    id: `item-${k + offset}`,
+    content: `item ${k + offset}`
   }));
 
 const grid = 8;
@@ -51,7 +51,6 @@ class App extends React.Component<any, any> {
   * */
   private objectTypes = ['kid', 'horse', 'trainer']
   private typeAhead: { [name: string]: any } = {}
-  private tempDndContent = {best:['Bucefał'],nice:['Grzmot'],isok:[],limp:['Kumak'],excl:[]}
 
   constructor(props: any) {
     super(props)
@@ -64,20 +63,24 @@ class App extends React.Component<any, any> {
       horse: {
         input: [],
         existingEntry: false,
-        selected: {}
       },
       kid: {
         input: [],
         existingEntry: false,
-        selected: {}
       },
       trainer: {
         input: [],
         existingEntry: false,
-        selected: {}
       },
+      activeForm: {},
       active: undefined,
-      items: getItems(6)
+      tempPrefs: {
+        best: getItems(3),
+        nice: getItems(3, 3),
+        isok: getItems(3, 6),
+        limp: getItems(3, 9),
+        excl: getItems(3, 12),
+      }
     }
     this.init()
   }
@@ -110,12 +113,12 @@ class App extends React.Component<any, any> {
       this.setState({
         [fieldName]: {
           input: currInput,
-          existingEntry: receivedResponse.success,
-          selected: receivedResponse.data
-        }
+          existingEntry: true
+        },
+        activeForm: receivedResponse.data,
       })
     } else {
-      this.setState({[fieldName]: {input: currInput, existingEntry: receivedResponse.success}})
+      this.setState({[fieldName]: {input: currInput, existingEntry: false}})
     }
   }
 
@@ -155,16 +158,19 @@ class App extends React.Component<any, any> {
         </Form.Group>
       )
     }
-    let prefs = (
-      <DragDropContext onDragEnd={this.onDragEnd}>
-        <Droppable droppableId="droppable" direction="horizontal">
+
+    const allPrefCat = ['best', 'nice', 'isok', 'limp', 'excl']
+    let prefs = allPrefCat.map(categoryName => {
+      let droppableId = `${categoryName}_droppable_area`
+      return(
+        <Droppable droppableId={droppableId} direction="horizontal">
           {(provided, snapshot) => (
             <div
               ref={provided.innerRef}
               style={getListStyle(snapshot.isDraggingOver)}
               {...provided.droppableProps}
             >
-              {this.state.items.map((item: any, index: any) => (
+              {this.state.tempPrefs[categoryName].map((item: any, index: any) => (
                 <Draggable key={item.id} draggableId={item.id} index={index}>
                   {(provided, snapshot) => (
                     <div
@@ -185,8 +191,9 @@ class App extends React.Component<any, any> {
             </div>
           )}
         </Droppable>
-      </DragDropContext>
-    );
+      )
+    })
+
     return (
       <Form>
         {newName}
@@ -194,33 +201,67 @@ class App extends React.Component<any, any> {
           <Form.Label>Uwagi (opcjonalnie)</Form.Label>
           <Form.Control as="textarea" rows={'1'}/>
         </Form.Group>
-        {prefs}
+        <DragDropContext onDragEnd={(res) => this.onDragEnd(res)}>
+          {prefs}
+        </DragDropContext>
       </Form>
     )
   }
 
-  onDragEnd(result: any) {
+  onDragEnd(result: any){
+    const { source, destination } = result;
+
     // dropped outside the list
-    if (!result.destination) {
+    if (!destination) {
       return;
     }
+    let categoryNameForSource = source.droppableId.split('_')[0]
+    let categoryNameForDestination = destination.droppableId.split('_')[0]
 
-    /*const items = this.reorder(
-      this.state.items,
-      result.source.index,
-      result.destination.index
-    );*/
+    if (source.droppableId === destination.droppableId) {
 
-    /*this.setState({
-      items,
-    });*/
+      let prefs = this.state.tempPrefs
+
+      const listCopy = Array.from(this.state.tempPrefs[categoryNameForSource]);
+      const [removed] = listCopy.splice(source.index, 1);
+      listCopy.splice(destination.index, 0, removed);
+
+      this.state.tempPrefs[categoryNameForSource] = listCopy
+
+      this.setState({
+        tempPrefs: prefs
+      })
+    } else {
+      const sourceClone = Array.from(this.state.tempPrefs[categoryNameForSource]);
+      const destClone = Array.from(this.state.tempPrefs[categoryNameForDestination]);
+      const [removed] = sourceClone.splice(source.index, 1);
+
+      destClone.splice(destination.index, 0, removed);
+
+      let prefs = this.state.tempPrefs
+      prefs[categoryNameForSource] = sourceClone
+      prefs[categoryNameForDestination] = destClone
+
+      for(let catName of Object.keys(prefs)){
+        prefs[catName].sort()
+      }
+
+      this.setState({
+        tempPrefs: prefs
+      })
+    }
   }
 
-  // a little function to help us with reordering the result
-  reorder = (list: any, startIndex: any, endIndex: any) => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
+  move(source: string, destination: string, droppableSource: any, droppableDestination: any){
+    const sourceClone = Array.from(source);
+    const destClone = Array.from(destination);
+    const [removed] = sourceClone.splice(droppableSource.index, 1);
+
+    destClone.splice(droppableDestination.index, 0, removed);
+
+    const result: any = {};
+    result[source] = sourceClone;
+    result[destination] = destClone;
 
     return result;
   };
