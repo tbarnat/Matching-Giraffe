@@ -43,9 +43,6 @@ class DayPlan extends React.Component<any, any> {
   };
 
 
-  componentDidMount() {
-    // this.init();
-  }
 
   render() {
     console.log('=======================')
@@ -130,7 +127,7 @@ class DayPlan extends React.Component<any, any> {
 
 
     return (
-      <Container className={classes.DayPlan} fluid>
+      <Container className={classes.Diary} fluid>
         <Row>
           <Col className={classes.LabelSection}>
             <span className={classes.Label}>Dzień</span>
