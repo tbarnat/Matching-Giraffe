@@ -23,8 +23,11 @@ class DiaryList extends React.Component<RouteComponentProps> {
   }
 
   dateChangeHandler = (date: Date | Date[]) => {
-    this.setState({ date })
-    this.props.history.push(this.props.match.url + '/' + dateToString(date)[0]);
+    // this.setState({ date })
+    const checkedDate = dateToString(date)[0];
+    if ((this.state.plannedDays as string[]).indexOf(checkedDate) > -1) {
+      this.props.history.push(this.props.match.url + '/' + dateToString(date)[0]);
+    }
   }
 
   getTileContent = ({ date, view }: CalendarTileProperties) => {
@@ -37,9 +40,6 @@ class DiaryList extends React.Component<RouteComponentProps> {
       return null;
     } else {
       const checkedDate = dateToString(date)[0];
-      if ((this.state.plannedDays as string[]).indexOf(checkedDate) > -1) {
-
-      }
       return [classes.CalendarDay, (this.state.plannedDays as string[]).indexOf(checkedDate) > -1 ? classes.PlannedDay : null].join(' ')
     }
   }
@@ -66,7 +66,7 @@ class DiaryList extends React.Component<RouteComponentProps> {
             <div className={classes.Calendar}>
               <Calendar
                 onChange={this.dateChangeHandler}
-                value={this.state.date}
+                // value={this.state.date}
                 tileClassName={this.getTileClass}
                 tileContent={this.getTileContent}
               />

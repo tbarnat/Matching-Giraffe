@@ -43,10 +43,12 @@ class DayPlan extends React.Component<any, any> {
   };
 
 
+  componentDidMount() {
+
+  }
+
 
   render() {
-    console.log('=======================')
-    console.log('STATE: ', this.state)
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
