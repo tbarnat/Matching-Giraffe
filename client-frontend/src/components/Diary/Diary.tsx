@@ -44,12 +44,11 @@ class DayPlan extends React.Component<any, any> {
 
 
   componentDidMount() {
-    // this.init();
+
   }
 
+
   render() {
-    console.log('=======================')
-    console.log('STATE: ', this.state)
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
@@ -130,7 +129,7 @@ class DayPlan extends React.Component<any, any> {
 
 
     return (
-      <Container className={classes.DayPlan} fluid>
+      <Container className={classes.Diary} fluid>
         <Row>
           <Col className={classes.LabelSection}>
             <span className={classes.Label}>Dzień</span>

@@ -1,4 +1,6 @@
-.DayPlan {
+@import "../../bootstrap_stylesheets/custom.scss";
+
+.Diary {
   .OneHour {
     padding: 20px 10px;
     margin: 15px 0;
@@ -30,31 +32,42 @@
     border: 1px solid #ced4da;
     box-shadow: none;
   }
+}
 
-  .DiaryList {
+//==============================================================
+.DiaryList {
+  .Calendar {
     display: flex;
     justify-content: center;
   }
-}
+  // Calendar
+  .CalendarDay {
+    position: relative;
+    height: 40px;
+    abbr {
+      display: none;
+    }
+    &.PlannedDay {
+      background-color: orange;
+      &:hover {
+        .DayElement {
+          background-color: orangered;
+        }
+      }
+    }
 
-// Calendar
-.CalendarDay {
-  position: relative;
-  height: 40px;
-  abbr {
-    display: none;
-  }
-}
-
-.DayElement {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  &:hover {
+    .DayElement {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      &:hover {
+        // background-color: ;
+      }
+    }
   }
 }
