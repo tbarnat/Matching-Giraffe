@@ -10,7 +10,6 @@ import {ActionInMsg} from "../../Client";
 import {Typeahead} from 'react-bootstrap-typeahead';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 
-
 // fake data generator
 const getItems = (count: number, offset = 0) =>
   Array.from({length: count}, (v, k) => k).map(k => ({
@@ -27,21 +26,24 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
   margin: `0 ${grid}px 0 0`,
 
   // change background colour if dragging
-  background: isDragging ? 'lightgreen' : 'grey',
+  background: isDragging ? '#fc720c' : '#ff9749',
+  borderRadius: '15px',
 
   // styles we need to apply on draggables
   ...draggableStyle,
 });
 
 const getListStyle = (isDraggingOver: any) => ({
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  background: isDraggingOver ? '#ffd0ad' : '#fff1e8',
+  borderRadius: '25px',
+  border: '1px solid darkgrey',
   display: 'flex',
   padding: grid,
+  bottomMargin: '10px',
   overflow: 'auto',
 });
 
 
-//zmiana onFocus na onChange
 //todo getPrefsAs - only for new kidos
 //todo podczytywanie wartosci do formularza
 //todo pola w bachorach się wykluczają (addAs)
@@ -56,6 +58,16 @@ class App extends React.Component<any, any> {
   * */
   private objectTypes = ['kid', 'horse', 'trainer']
   private typeAhead: { [name: string]: any } = {}
+  private fcl: any = {label: {xs: 4, md: 3}, input: {xs: 8, md: 8}}
+  private allPrefCat: string[] = ['best', 'nice', 'isok', 'limp', 'excl']
+  private readonly prefLabel: { [key: string]: string } = {
+    best: 'Naj <3',
+    nice: 'Dobrze',
+    isok: 'Średnio',
+    limp: 'Słabo',
+    excl: 'Nigdy'
+  }
+
 
   constructor(props: any) {
     super(props)
@@ -65,9 +77,9 @@ class App extends React.Component<any, any> {
         kid: [],
         trainer: []
       },
-      activeForm: {},
       active: undefined,
       existingEntry: false,
+      activeForm: {},
       tempPrefs: {
         best: getItems(3),
         nice: getItems(3, 3),
@@ -105,16 +117,23 @@ class App extends React.Component<any, any> {
     let receivedResponse: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name: currInput})
     if (receivedResponse.success) {
       this.setState({
+        active: fieldName,
         existingEntry: true,
         activeForm: receivedResponse.data,
       })
     } else {
-      this.setState({existingEntry: false})
+      this.setState({
+        active: fieldName,
+        existingEntry: false,
+        activeForm: {}
+      })
     }
   }
 
   onFocusHandler = (fieldName: string) => {
-    this.setState({active: fieldName, activeForm: {}})
+    if (this.state.active != fieldName) {
+      this.setState({active: undefined})
+    }
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
         this.typeAhead[typeName].getInstance().clear()
@@ -124,74 +143,102 @@ class App extends React.Component<any, any> {
 
   getMoreFormForEntry(name: string) {
     if (this.state.active == name) {
+      let newName
+      if (this.state.existingEntry) {
+        newName = (
+          <Form.Group>
+            <Row>
+              <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>
+                <Form.Label column>Nowe imię (opcjonalnie)</Form.Label>
+              </Col>
+              <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
+                <Form.Control/>
+              </Col>
+            </Row>
+          </Form.Group>
+        )
+      }
+      let remarks
+      remarks = (
+        <Form.Group>
+          <Row>
+            <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>
+              <Form.Label>Uwagi (opcjonalnie)</Form.Label>
+            </Col>
+            <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
+              <Form.Control as="textarea" rows={'1'}/>
+            </Col>
+          </Row>
+        </Form.Group>
+      )
       switch (name) {
         case this.objectTypes[0]:
-          return this.getKidForm()
+          return this.getKidForm(newName, remarks)
         case this.objectTypes[1]:
-          return this.getHorseForm()
+          return this.getHorseForm(newName, remarks)
         case this.objectTypes[2]:
-          return this.getTrainerForm()
+          return this.getTrainerForm(newName, remarks)
         default:
           return
       }
-
     }
   }
 
-  getKidForm() {
-    let newName
-    if (this.state.existingEntry) {
-      newName = (
-        <Form.Group>
-          <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
-          <Form.Control/>
-        </Form.Group>
-      )
-    }
-
-    const allPrefCat = ['best', 'nice', 'isok', 'limp', 'excl']
-    let prefs = allPrefCat.map(categoryName => {
+  getKidForm(newName: any, remarks: any) {
+    let prefs = this.allPrefCat.map((categoryName: string) => {
       let droppableId = `${categoryName}_droppable_area`
       return (
-        <Droppable droppableId={droppableId} direction="horizontal">
-          {(provided, snapshot) => (
-            <div
-              ref={provided.innerRef}
-              style={getListStyle(snapshot.isDraggingOver)}
-              {...provided.droppableProps}
-            >
-              {this.state.tempPrefs[categoryName].map((item: any, index: any) => (
-                <Draggable key={item.id} draggableId={item.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={getItemStyle(
-                        snapshot.isDragging,
-                        provided.draggableProps.style
+        <Row>
+          <Col xs={2}>{this.prefLabel[categoryName]}</Col>
+          <Col>
+            <Droppable droppableId={droppableId} direction="horizontal">
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  style={getListStyle(snapshot.isDraggingOver)}
+                  {...provided.droppableProps}
+                >
+                  {this.state.tempPrefs[categoryName].map((item: any, index: any) => (
+                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={getItemStyle(
+                            snapshot.isDragging,
+                            provided.draggableProps.style
+                          )}
+                        >
+                          {item.content}
+                        </div>
                       )}
-                    >
-                      {item.content}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </Col>
+        </Row>
+
+
       )
     })
+
 
     return (
       <Form>
         {newName}
-        <Form.Group>
-          <Form.Label>Uwagi (opcjonalnie)</Form.Label>
-          <Form.Control as="textarea" rows={'1'}/>
-        </Form.Group>
+        {remarks}
+        <Row style={{paddingBottom: 15}}>
+          <Col><strong>Preferencje</strong></Col>
+        </Row>
         <DragDropContext onDragEnd={(res) => this.onDragEnd(res)}>
+          {/*<Col xs="auto">
+            placeholder
+            todo div z labelkami preferencji
+          </Col>*/}
           {prefs}
         </DragDropContext>
       </Form>
@@ -256,62 +303,64 @@ class App extends React.Component<any, any> {
     return result;
   };
 
-  getHorseForm() {
-    let newName
-    if (this.state.existingEntry) {
-      newName = (
-        <Form.Group>
-          <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
-          <Form.Control/>
-        </Form.Group>
-      )
-    }
+  getHorseForm(newName: any, remarks: any) {
     let howToAddToPrefs
     if (!this.state.existingEntry && this.state.options.kid.length > 0) {
       let addAsHorso
       if (this.state.options.horse.length > 0) {
         addAsHorso = (
           <Form.Group>
-            <Form.Label>Dodaj jak innego konia</Form.Label>
-            <Typeahead
-              key={'horse_typeahead_adm_adsAsHorse'}
-              placeholder='Horses'
-              //todo onFocus clear addToPrefs
-              onChange={(e: any) => this.changeAddAsHorseTypeaheadHandler(e)}
-              options={this.state.options['horse']}
-              allowNew={false}
-              inputProps={{
-                width: '20px'
-              }}
-              ref={(ref) => this.typeAhead[''] = ref}
-            />
+            <Row>
+              <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>
+                <Form.Label>Dodaj jak innego konia</Form.Label>
+              </Col>
+              <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
+                <Typeahead
+                  key={'horse_typeahead_adm_adsAsHorse'}
+                  placeholder='Koniaś'
+                  //todo onFocus clear addToPrefs
+                  onChange={(e: any) => this.changeAddAsHorseTypeaheadHandler(e)}
+                  options={this.state.options['horse']}
+                  allowNew={false}
+                  inputProps={{
+                    width: '20px'
+                  }}
+                  ref={(ref) => this.typeAhead[''] = ref}
+                />
+              </Col>
+            </Row>
           </Form.Group>
         )
       }
       howToAddToPrefs = (
         <Form.Group>
-          <Form.Label>Metoda dopisywania do preferencji dla istniejących dzieciaków</Form.Label>
+          <Row style={{paddingBottom: 15}}>
+            <Col><strong>Metoda dopisywania do preferencji dla istniejących dzieciaków</strong></Col>
+          </Row>
           {addAsHorso}
           <Form.Group>
-            <Form.Label>Dodaj wszędzie do preferencji</Form.Label>
-            <Form.Control as="select" defaultValue='Dobrze'> //todo onFocus - clear addAsHorso
-              <option>Najlepiej</option>
-              <option>Dobrze</option>
-              <option>Średnio</option>
-              <option>Słabo</option>
-              <option>Nigdy</option>
-            </Form.Control>
+            <Row>
+              <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>
+                <Form.Label>Dodaj wszędzie do preferencji</Form.Label>
+              </Col>
+              <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
+                <Form.Control as="select" defaultValue='Dobrze'> //todo onFocus - clear addAsHorso
+                  <option>{this.prefLabel.best}</option>
+                  <option>{this.prefLabel.nice}</option>
+                  <option>{this.prefLabel.isok}</option>
+                  <option>{this.prefLabel.limp}</option>
+                  <option>{this.prefLabel.excl}</option>
+                </Form.Control>
+              </Col>
+            </Row>
           </Form.Group>
         </Form.Group>
       )
     }
     return (
       <Form>
-        <Form.Group>
-          {newName}
-          <Form.Label>Uwagi (opcjonalnie)</Form.Label>
-          <Form.Control as="textarea" rows={'1'}/>
-        </Form.Group>
+        {newName}
+        {remarks}
         {howToAddToPrefs}
       </Form>
     )
@@ -325,23 +374,11 @@ class App extends React.Component<any, any> {
     //todo
   }
 
-  getTrainerForm() {
-    let newName
-    if (this.state.existingEntry) {
-      newName = (
-        <Form.Group>
-          <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
-          <Form.Control/>
-        </Form.Group>
-      )
-    }
+  getTrainerForm(newName: any, remarks: any) {
     return (
       <Form>
-        <Form.Group>
-          {newName}
-          <Form.Label>Uwagi (opcjonalnie)</Form.Label>
-          <Form.Control as="textarea" rows={'1'}/>
-        </Form.Group>
+        {newName}
+        {remarks}
       </Form>
     )
   }
@@ -370,58 +407,58 @@ class App extends React.Component<any, any> {
       let name = row.type
       if (name != 'kid' || this.state.options.horse.length > 0) {
         return (
-          <div className={classes.AdminPanelRow} key={row.type + '_adm'} style={{width: 1000}}>
+          <div className={classes.AdminPanelRow} key={row.type + '_adm'}>
             {/*tabIndex={1} onFocus={() => console.log('dsdsdsdsdsds')}*/}
             <Row>
               <Col className={classes.Labels}>
                 <strong>{row.label}</strong>
               </Col>
-              <Col/><Col/>
             </Row>
             <hr/>
             <Row>
-              <Col>Imię</Col>
-              <Col className={classes.AutocompleteSelectOne}>
-                <Typeahead
-                  key={row.type + '_typeahead_adm'}
-                  placeholder={row.label}
-                  onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, name)}
-                  onFocus={() => this.onFocusHandler(row.type)}
-                  options={this.state.options[name]}
-                  // selected={this.state[name].input}
-                  allowNew={true}
-                  newSelectionPrefix={'Dodaj nowy: '}
-                  clearButton
-                  inputProps={{
-                    width: '20px'
-                  }}
-                  ref={(ref) => this.typeAhead[name] = ref}
-                />
+              <Col xs={1} md={1}/>
+              <Col>
+                <Row style={{paddingBottom: 15}}>
+                  <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>Imię</Col>
+                  <Col xs={this.fcl.input.xs} md={this.fcl.input.md} className={classes.AutocompleteSelectOne}>
+                    <Typeahead
+                      key={row.type + '_typeahead_adm'}
+                      placeholder={row.label}
+                      onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, name)}
+                      onFocus={() => this.onFocusHandler(row.type)}
+                      options={this.state.options[name]}
+                      // selected={this.state[name].input}
+                      allowNew={true}
+                      newSelectionPrefix={'Dodaj nowy: '}
+                      clearButton
+                      inputProps={{
+                        width: '20px'
+                      }}
+                      ref={(ref) => this.typeAhead[name] = ref}
+                    />
+                  </Col>
+                </Row>
+                {this.getMoreFormForEntry(name)}
+                {/*<Row>
+                </Row>*/}
               </Col>
-              <Col/><Col/>
+              <Col xs={1} md={4}/>
             </Row>
-            {this.getMoreFormForEntry(name)}
-            <Col/><Col/>
             <br/>
             <Row>
-              <Col/><Col/>
-              <Col>
-                <Row>
-
-                  <Col><Button variant="secondary" onClick={() => console.log('new ' + name)}
-                               disabled={this.state.existingEntry || (this.state.active != name)}>
-                    Utwórz</Button></Col>
-                  <Col><Button variant="secondary" onClick={() => console.log('edit ' + name)}
-                               disabled={!this.state.existingEntry || (this.state.active != name)}>
-                    Edytuj</Button></Col>
-                  <span/>
-                  <Col><Button variant="secondary" onClick={() => console.log('remove ' + name)}
-                               disabled={!this.state.existingEntry || (this.state.active != name)}>
-                    Usuń</Button></Col>
-                  {/*todo remember to call get list after any button is pressed*/}
-
-                </Row>
-              </Col>
+              <Col/>
+              <Col xs={"auto"}><Button variant="secondary" onClick={() => console.log('new ' + name)}
+                                       disabled={this.state.existingEntry || (this.state.active != name)}>
+                Utwórz</Button></Col>
+              <Col xs={"auto"}><Button variant="secondary" onClick={() => console.log('edit ' + name)}
+                                       disabled={!this.state.existingEntry || (this.state.active != name)}>
+                Edytuj</Button></Col>
+              <span/>
+              <Col xs={"auto"}><Button variant="secondary" onClick={() => console.log('remove ' + name)}
+                                       disabled={!this.state.existingEntry || (this.state.active != name)}>
+                Usuń</Button></Col>
+              {/*todo remember to call get list after any button is pressed*/}
+              <Col/>
             </Row>
             <br/>
             <hr/>
