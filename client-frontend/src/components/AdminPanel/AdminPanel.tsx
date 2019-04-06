@@ -41,7 +41,12 @@ const getListStyle = (isDraggingOver: any) => ({
 });
 
 
+//zmiana onFocus na onChange
+//todo getPrefsAs - only for new kidos
 //todo podczytywanie wartosci do formularza
+//todo pola w bachorach się wykluczają (addAs)
+//todo przyciski zapisują
+
 
 class App extends React.Component<any, any> {
 
@@ -61,15 +66,12 @@ class App extends React.Component<any, any> {
         trainer: []
       },
       horse: {
-        input: [],
         existingEntry: false,
       },
       kid: {
-        input: [],
         existingEntry: false,
       },
       trainer: {
-        input: [],
         existingEntry: false,
       },
       activeForm: {},
@@ -112,22 +114,20 @@ class App extends React.Component<any, any> {
     if (receivedResponse.success) {
       this.setState({
         [fieldName]: {
-          input: currInput,
           existingEntry: true
         },
         activeForm: receivedResponse.data,
       })
     } else {
-      this.setState({[fieldName]: {input: currInput, existingEntry: false}})
+      this.setState({[fieldName]: {existingEntry: false}})
     }
   }
 
   onFocusHandler = (fieldName: string) => {
-    this.setState({active: fieldName})
+    this.setState({active: fieldName, activeForm: {}})
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
         this.typeAhead[typeName].getInstance().clear()
-        this.setState({[typeName]: {input: []},})
       }
     }
   }
