@@ -8,12 +8,12 @@ import Form from 'react-bootstrap/Form';
 import {IBackendMsg} from "../../App";
 import {ActionInMsg} from "../../Client";
 import {Typeahead} from 'react-bootstrap-typeahead';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 
 
 // fake data generator
 const getItems = (count: number, offset = 0) =>
-  Array.from({ length: count }, (v, k) => k).map(k => ({
+  Array.from({length: count}, (v, k) => k).map(k => ({
     id: `item-${k + offset}`,
     content: `item ${k + offset}`
   }));
@@ -65,17 +65,9 @@ class App extends React.Component<any, any> {
         kid: [],
         trainer: []
       },
-      horse: {
-        existingEntry: false,
-      },
-      kid: {
-        existingEntry: false,
-      },
-      trainer: {
-        existingEntry: false,
-      },
       activeForm: {},
       active: undefined,
+      existingEntry: false,
       tempPrefs: {
         best: getItems(3),
         nice: getItems(3, 3),
@@ -113,13 +105,11 @@ class App extends React.Component<any, any> {
     let receivedResponse: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name: currInput})
     if (receivedResponse.success) {
       this.setState({
-        [fieldName]: {
-          existingEntry: true
-        },
+        existingEntry: true,
         activeForm: receivedResponse.data,
       })
     } else {
-      this.setState({[fieldName]: {existingEntry: false}})
+      this.setState({existingEntry: false})
     }
   }
 
@@ -150,7 +140,7 @@ class App extends React.Component<any, any> {
 
   getKidForm() {
     let newName
-    if (this.state['kid'].existingEntry) {
+    if (this.state.existingEntry) {
       newName = (
         <Form.Group>
           <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
@@ -162,7 +152,7 @@ class App extends React.Component<any, any> {
     const allPrefCat = ['best', 'nice', 'isok', 'limp', 'excl']
     let prefs = allPrefCat.map(categoryName => {
       let droppableId = `${categoryName}_droppable_area`
-      return(
+      return (
         <Droppable droppableId={droppableId} direction="horizontal">
           {(provided, snapshot) => (
             <div
@@ -208,8 +198,8 @@ class App extends React.Component<any, any> {
     )
   }
 
-  onDragEnd(result: any){
-    const { source, destination } = result;
+  onDragEnd(result: any) {
+    const {source, destination} = result;
 
     // dropped outside the list
     if (!destination) {
@@ -242,7 +232,7 @@ class App extends React.Component<any, any> {
       prefs[categoryNameForSource] = sourceClone
       prefs[categoryNameForDestination] = destClone
 
-      for(let catName of Object.keys(prefs)){
+      for (let catName of Object.keys(prefs)) {
         prefs[catName].sort()
       }
 
@@ -252,7 +242,7 @@ class App extends React.Component<any, any> {
     }
   }
 
-  move(source: string, destination: string, droppableSource: any, droppableDestination: any){
+  move(source: string, destination: string, droppableSource: any, droppableDestination: any) {
     const sourceClone = Array.from(source);
     const destClone = Array.from(destination);
     const [removed] = sourceClone.splice(droppableSource.index, 1);
@@ -268,7 +258,7 @@ class App extends React.Component<any, any> {
 
   getHorseForm() {
     let newName
-    if (this.state['horse'].existingEntry) {
+    if (this.state.existingEntry) {
       newName = (
         <Form.Group>
           <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
@@ -277,7 +267,7 @@ class App extends React.Component<any, any> {
       )
     }
     let howToAddToPrefs
-    if (!this.state.horse.existingEntry && this.state.options.kid.length > 0) {
+    if (!this.state.existingEntry && this.state.options.kid.length > 0) {
       let addAsHorso
       if (this.state.options.horse.length > 0) {
         addAsHorso = (
@@ -337,7 +327,7 @@ class App extends React.Component<any, any> {
 
   getTrainerForm() {
     let newName
-    if (this.state['trainer'].existingEntry) {
+    if (this.state.existingEntry) {
       newName = (
         <Form.Group>
           <Form.Label>Nowe Imię (opcjonalnie)</Form.Label>
@@ -378,7 +368,7 @@ class App extends React.Component<any, any> {
       {type: 'trainer', label: 'Kadra'},]
     const rows = types.map((row: { type: string, label: string }) => {
       let name = row.type
-      if(name != 'kid' || this.state.options.horse.length > 0){
+      if (name != 'kid' || this.state.options.horse.length > 0) {
         return (
           <div className={classes.AdminPanelRow} key={row.type + '_adm'} style={{width: 1000}}>
             {/*tabIndex={1} onFocus={() => console.log('dsdsdsdsdsds')}*/}
@@ -419,14 +409,14 @@ class App extends React.Component<any, any> {
                 <Row>
 
                   <Col><Button variant="secondary" onClick={() => console.log('new ' + name)}
-                               disabled={this.state[row.type].existingEntry || (this.state.active != name)}>
+                               disabled={this.state.existingEntry || (this.state.active != name)}>
                     Utwórz</Button></Col>
                   <Col><Button variant="secondary" onClick={() => console.log('edit ' + name)}
-                               disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
+                               disabled={!this.state.existingEntry || (this.state.active != name)}>
                     Edytuj</Button></Col>
                   <span/>
                   <Col><Button variant="secondary" onClick={() => console.log('remove ' + name)}
-                               disabled={!this.state[row.type].existingEntry || (this.state.active != name)}>
+                               disabled={!this.state.existingEntry || (this.state.active != name)}>
                     Usuń</Button></Col>
                   {/*todo remember to call get list after any button is pressed*/}
 
