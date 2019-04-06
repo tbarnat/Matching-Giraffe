@@ -22,7 +22,7 @@ const grid = 8;
 const getItemStyle = (isDragging: any, draggableStyle: any) => ({
   // some basic styles to make the items look a bit nicer
   userSelect: 'none',
-  padding: grid * 2,
+  padding: `${grid}px ${grid*2}px ${grid}px ${grid*2}px`,
   margin: `0 ${grid}px 0 0`,
 
   // change background colour if dragging
@@ -41,13 +41,15 @@ const getListStyle = (isDraggingOver: any) => ({
   padding: grid,
   bottomMargin: '10px',
   overflow: 'auto',
+  minHeight: '50px'
 });
 
 
-//todo getPrefsAs - only for new kidos
+
 //todo podczytywanie wartosci do formularza
-//todo pola w bachorach się wykluczają (addAs)
-//todo przyciski zapisują
+// przyciski tworza modale
+//todo przyciski wysylaja request i przeladowuja listy
+
 
 
 class App extends React.Component<any, any> {
@@ -57,7 +59,8 @@ class App extends React.Component<any, any> {
   *  -> buttons reveals the further options
   * */
   private objectTypes = ['kid', 'horse', 'trainer']
-  private typeAhead: { [name: string]: any } = {}
+  private typeaheadRef: { [name: string]: any } = {}
+  private inputRef: { [name: string]: any } = {}
   private fcl: any = {label: {xs: 4, md: 3}, input: {xs: 8, md: 8}}
   private allPrefCat: string[] = ['best', 'nice', 'isok', 'limp', 'excl']
   private readonly prefLabel: { [key: string]: string } = {
@@ -79,14 +82,16 @@ class App extends React.Component<any, any> {
       },
       active: undefined,
       existingEntry: false,
-      activeForm: {},
-      tempPrefs: {
-        best: getItems(3),
-        nice: getItems(3, 3),
-        isok: getItems(3, 6),
-        limp: getItems(3, 9),
-        excl: getItems(3, 12),
-      }
+      activeForm: {
+        /*prefs: {
+          best: getItems(3),
+          nice: getItems(3, 3),
+          isok: getItems(3, 6),
+          limp: getItems(3, 9),
+          excl: getItems(3, 12),
+        }*/
+      },
+
     }
     this.init()
   }
@@ -122,21 +127,23 @@ class App extends React.Component<any, any> {
         activeForm: receivedResponse.data,
       })
     } else {
+      if(!this.state.activeForm.prefs){
+        this.getNewRandomPrefs()
+      }
       this.setState({
         active: fieldName,
-        existingEntry: false,
-        activeForm: {}
+        existingEntry: false
       })
     }
   }
 
-  onFocusHandler = (fieldName: string) => {
+  focusMainLevelHandler = (fieldName: string) => {
     if (this.state.active != fieldName) {
       this.setState({active: undefined})
     }
     for (let typeName of this.objectTypes) {
       if (typeName != fieldName) {
-        this.typeAhead[typeName].getInstance().clear()
+        this.typeaheadRef[typeName].getInstance().clear()
       }
     }
   }
@@ -185,46 +192,72 @@ class App extends React.Component<any, any> {
   }
 
   getKidForm(newName: any, remarks: any) {
-    let prefs = this.allPrefCat.map((categoryName: string) => {
-      let droppableId = `${categoryName}_droppable_area`
-      return (
-        <Row>
-          <Col xs={2}>{this.prefLabel[categoryName]}</Col>
-          <Col>
-            <Droppable droppableId={droppableId} direction="horizontal">
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  style={getListStyle(snapshot.isDraggingOver)}
-                  {...provided.droppableProps}
-                >
-                  {this.state.tempPrefs[categoryName].map((item: any, index: any) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={getItemStyle(
-                            snapshot.isDragging,
-                            provided.draggableProps.style
-                          )}
-                        >
-                          {item.content}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </Col>
-        </Row>
 
-
+    let prefs = {}
+    if(this.state.activeForm.prefs){
+      prefs = this.allPrefCat.map((categoryName: string) => {
+        let droppableId = `${categoryName}_droppable_area`
+        return (
+          <Row>
+            <Col xs={2}>{this.prefLabel[categoryName]}</Col>
+            <Col>
+              <Droppable droppableId={droppableId} direction="horizontal">
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    style={getListStyle(snapshot.isDraggingOver)}
+                    {...provided.droppableProps}
+                  >
+                    {this.state.activeForm.prefs[categoryName].map((item: string, index: any) => (
+                      <Draggable key={item} draggableId={item} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={getItemStyle(
+                              snapshot.isDragging,
+                              provided.draggableProps.style
+                            )}
+                          >
+                            {item}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </Col>
+          </Row>
+        )
+      })
+    }
+    let prefsTemplate
+    if(!this.state.existingEntry){
+      prefsTemplate = (
+        <Form.Group>
+          <Row>
+            <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>
+              <Form.Label>Kopiuj preferencje od</Form.Label>
+            </Col>
+            <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
+              <Typeahead
+                key={'kid_typeahead_adm_prefs_template'}
+                placeholder='Dzieciaczek'
+                onChange={(e: any) => this.onChangeSetPrefsTemplate(e)}
+                options={this.state.options['kid']}
+                allowNew={false}
+                inputProps={{
+                  width: '20px'
+                }}
+              />
+            </Col>
+          </Row>
+        </Form.Group>
       )
-    })
+    }
 
 
     return (
@@ -235,12 +268,10 @@ class App extends React.Component<any, any> {
           <Col><strong>Preferencje</strong></Col>
         </Row>
         <DragDropContext onDragEnd={(res) => this.onDragEnd(res)}>
-          {/*<Col xs="auto">
-            placeholder
-            todo div z labelkami preferencji
-          </Col>*/}
           {prefs}
         </DragDropContext>
+        <br/>
+        {prefsTemplate}
       </Form>
     )
   }
@@ -257,35 +288,38 @@ class App extends React.Component<any, any> {
 
     if (source.droppableId === destination.droppableId) {
 
-      let prefs = this.state.tempPrefs
-
-      const listCopy = Array.from(this.state.tempPrefs[categoryNameForSource]);
+      let prefs = this.state.activeForm.prefs
+  console.log(prefs)
+  console.log(categoryNameForSource)
+  console.log(prefs[categoryNameForSource])
+      const listCopy = Array.from(this.state.activeForm.prefs[categoryNameForSource]);
       const [removed] = listCopy.splice(source.index, 1);
       listCopy.splice(destination.index, 0, removed);
 
-      this.state.tempPrefs[categoryNameForSource] = listCopy
+      this.state.activeForm.prefs[categoryNameForSource] = listCopy
 
-      this.setState({
-        tempPrefs: prefs
-      })
+      let activeForm = this.state.activeForm
+      Object.assign(activeForm,{prefs})
+      this.setState({activeForm})
+
     } else {
-      const sourceClone = Array.from(this.state.tempPrefs[categoryNameForSource]);
-      const destClone = Array.from(this.state.tempPrefs[categoryNameForDestination]);
+      const sourceClone = Array.from(this.state.activeForm.prefs[categoryNameForSource]);
+      const destClone = Array.from(this.state.activeForm.prefs[categoryNameForDestination]);
       const [removed] = sourceClone.splice(source.index, 1);
 
       destClone.splice(destination.index, 0, removed);
 
-      let prefs = this.state.tempPrefs
+      let prefs = this.state.activeForm.prefs
       prefs[categoryNameForSource] = sourceClone
       prefs[categoryNameForDestination] = destClone
 
-      for (let catName of Object.keys(prefs)) {
+      /*for (let catName of Object.keys(prefs)) {
         prefs[catName].sort()
-      }
+      }*/
 
-      this.setState({
-        tempPrefs: prefs
-      })
+      let activeForm = this.state.activeForm
+      Object.assign(activeForm,{prefs})
+      this.setState({activeForm})
     }
   }
 
@@ -303,6 +337,65 @@ class App extends React.Component<any, any> {
     return result;
   };
 
+  getNewRandomPrefs(){
+    let numberOfAllCat = this.allPrefCat.length
+    let prefs: {[key:string]: string[]} = {}
+
+    //random distribution of all horses in pref categories
+    let horses = this.state.options.horse
+    for(let horse of horses){
+      let randIndex = Math.floor(Math.random() * Math.floor(numberOfAllCat))
+      if(!prefs[this.allPrefCat[randIndex]]){
+        prefs[this.allPrefCat[randIndex]] = []
+      }
+      prefs[this.allPrefCat[randIndex]].push(horse)
+    }
+    //make sure all prefs are initialized
+    for(let prefCat of this.allPrefCat){
+      if( !prefs[prefCat] ){
+        prefs[prefCat] = []
+      }
+    }
+    //if any preference category have to many horses try to reduce length
+    for(let prefCat of this.allPrefCat){
+      if( prefs[prefCat].length > Math.ceil(horses.length/numberOfAllCat)){
+        [1,2,3].forEach(i => {
+          let randIndex = Math.floor(Math.random() * Math.floor(numberOfAllCat))
+          let h1 = prefs[this.allPrefCat[randIndex]].shift()
+          if(h1){
+            if(!prefs[this.allPrefCat[randIndex]]){
+              prefs[this.allPrefCat[randIndex]] = []
+            }
+            prefs[this.allPrefCat[randIndex]].push(h1)
+          }
+        })
+      }
+    }
+
+    this.setState({activeForm: {prefs}})
+
+  }
+
+  onChangeSetPrefsTemplate = async (e: any) => {
+    let currInput = ''
+    if (Array.isArray(e) && e[0]) {
+      currInput = e[0]
+    }
+    console.log(currInput)
+    let response = (await window.hmClient.sendAndWait('prefs_template', currInput));
+    if(response.success){
+      console.log(response.data)
+      let prefs = response.data
+
+      let activeForm = this.state.activeForm
+      Object.assign(activeForm,{prefs})
+      this.setState({activeForm})
+
+    }else{
+      //todo modal
+    }
+  }
+
   getHorseForm(newName: any, remarks: any) {
     let howToAddToPrefs
     if (!this.state.existingEntry && this.state.options.kid.length > 0) {
@@ -318,14 +411,15 @@ class App extends React.Component<any, any> {
                 <Typeahead
                   key={'horse_typeahead_adm_adsAsHorse'}
                   placeholder='Koniaś'
-                  //todo onFocus clear addToPrefs
+                  //todo onFocus clear addToPrefs and disabled
                   onChange={(e: any) => this.changeAddAsHorseTypeaheadHandler(e)}
+                  onFocus={() => this.focusAddAsHorseHandler()}
                   options={this.state.options['horse']}
                   allowNew={false}
                   inputProps={{
                     width: '20px'
                   }}
-                  ref={(ref) => this.typeAhead[''] = ref}
+                  ref={(ref) => this.typeaheadRef['addAsHorse'] = ref}
                 />
               </Col>
             </Row>
@@ -335,7 +429,7 @@ class App extends React.Component<any, any> {
       howToAddToPrefs = (
         <Form.Group>
           <Row style={{paddingBottom: 15}}>
-            <Col><strong>Metoda dopisywania do preferencji dla istniejących dzieciaków</strong></Col>
+            <Col><strong>Metoda dopisywania do preferencji dla istniejących dzieciaków (jedna z dwóch)</strong></Col>
           </Row>
           {addAsHorso}
           <Form.Group>
@@ -344,7 +438,13 @@ class App extends React.Component<any, any> {
                 <Form.Label>Dodaj wszędzie do preferencji</Form.Label>
               </Col>
               <Col xs={this.fcl.input.xs} md={this.fcl.input.md}>
-                <Form.Control as="select" defaultValue='Dobrze'> //todo onFocus - clear addAsHorso
+                <Form.Control
+                  as="select"
+                  default={''}
+                  ref={(ref) => this.inputRef['addToPrefLevel'] = ref}
+                  onFocus={() => this.focusAddToPrefLevelHandler()}
+                >
+                  <option>{''}</option>
                   <option>{this.prefLabel.best}</option>
                   <option>{this.prefLabel.nice}</option>
                   <option>{this.prefLabel.isok}</option>
@@ -366,12 +466,29 @@ class App extends React.Component<any, any> {
     )
   }
 
+  focusAddAsHorseHandler = () => {
+    this.inputRef['addToPrefLevel'].value = ''
+    let activeForm = this.state.activeForm
+    activeForm =  delete activeForm.addToPrefLevel
+    this.setState({activeForm})
+  }
+
+  focusAddToPrefLevelHandler = () => {
+    this.typeaheadRef['addAsHorse'].getInstance().clear()
+    let activeForm = this.state.activeForm
+    activeForm =  delete activeForm.addAsHorse
+    this.setState({activeForm})
+  }
+
   changeAddAsHorseTypeaheadHandler(e: any) {
     let currInput = ''
     if (Array.isArray(e) && e[0]) {
       currInput = e[0]
     }
-    //todo
+
+    let activeForm = this.state.activeForm
+    Object.assign(activeForm,{addAsHorse:currInput})
+    this.setState({activeForm})
   }
 
   getTrainerForm(newName: any, remarks: any) {
@@ -408,7 +525,6 @@ class App extends React.Component<any, any> {
       if (name != 'kid' || this.state.options.horse.length > 0) {
         return (
           <div className={classes.AdminPanelRow} key={row.type + '_adm'}>
-            {/*tabIndex={1} onFocus={() => console.log('dsdsdsdsdsds')}*/}
             <Row>
               <Col className={classes.Labels}>
                 <strong>{row.label}</strong>
@@ -425,7 +541,7 @@ class App extends React.Component<any, any> {
                       key={row.type + '_typeahead_adm'}
                       placeholder={row.label}
                       onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, name)}
-                      onFocus={() => this.onFocusHandler(row.type)}
+                      onFocus={() => this.focusMainLevelHandler(row.type)}
                       options={this.state.options[name]}
                       // selected={this.state[name].input}
                       allowNew={true}
@@ -434,7 +550,7 @@ class App extends React.Component<any, any> {
                       inputProps={{
                         width: '20px'
                       }}
-                      ref={(ref) => this.typeAhead[name] = ref}
+                      ref={(ref) => this.typeaheadRef[name] = ref}
                     />
                   </Col>
                 </Row>

@@ -44,7 +44,7 @@ List of possible actions and corresponding data:
     'remove_kid', {name: string}
     'list_kid', {query?: string, taken?:string[]} //only starting from the beginning of phrase to find
     'haveAny_kid', any
-    'prefs_template', {name: string} // prefs_template is sent when we want to duplicate other kidos preferences when adding new one
+    'prefs_template', name: string // prefs_template is sent when we want to duplicate other kidos preferences when adding new one
 
     ------ horses ------
     'get_horse', {name: string}
