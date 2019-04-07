@@ -6,7 +6,7 @@ Backend
 0) token/cookies to keep ws alive
 1) timeout in asyncWhile does not work (?)
 2) add commons for typings (mess around with package.json)
-3) api limits (request dependent)
+3) IP limits (request dependent)
 
     ----later on----
     2) possibly some users would like to set different workload for different horses - it is doable, tho not that easy
@@ -21,6 +21,12 @@ WS frn-bck
 1) is there any reason to disconnect client (?)
 
 Frontend
-1) component with filtering list and input
-2) adminPanel
-3) sharing saved days via facebook/ twitter (?)
+ correct interfaces in DayPlan
+ validation on fields, excluded horses etc..
+ login
+ register/create account (with conformation email)
+ languages (all fields as labels)
+1) sharing saved days via facebook/ twitter (?)
+2) assetStats (how popular are each horses)
+
+Deploy

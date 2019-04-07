@@ -10,6 +10,7 @@ import DiaryList from './components/Diary/DiaryList';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import Client from './Client'
 import {BackendData} from "../../src/server/DataModel";
+import {About} from "./components/About";
 
 export interface IBackendMsg {
   replyTo?: string //id of incoming message
@@ -48,6 +49,7 @@ class App extends React.Component {
             <Route path="/diary/:chosendate" component={Diary} />
             <Route path="/diary" component={DiaryList} />
             <Route path="/admin" component={AdminPanel} />
+            <Route path="/about" component={About} />
             <Route path="/test" component={DayPlanTest} />
           </Switch>
         </div>

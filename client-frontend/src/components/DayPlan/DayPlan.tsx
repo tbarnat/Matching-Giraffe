@@ -10,67 +10,31 @@ import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
-import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
+import { IHorseRidingDayQ } from '../../DataModel';
 import classes from './DayPlan.module.scss';
 
 
-interface IState extends IHorseRidingDayQ {
+/*interface IState extends IHorseRidingDayQ {
 
   options?: {
     kid?: { id: number, label: string }[] | string[],
     trainer?: { id: number, label: string }[] | string[],
     horse?: { id: number, label: string }[] | string[],
   }
-}
+}*/
 
 
 class DayPlan extends React.Component<any, any> {
   state = {
-    day: '2019-01-08',
-    remarks: 'Bla bla',
-    dailyExcludes: ['Bracio'],
-    // hours: [
-    //   {
-    //     hour: '1230',
-    //     trainer: ['Paulina'],
-    //     trainingsDetails: [
-    //       { kidName: 'Julka Mala', horse: '' },
-    //       { kidName: 'Maja' },
-    //       { kidName: 'Julka Lonza' },
-    //       { kidName: 'Ola C' },
-    //       { kidName: undefined },
-    //     ]
-    //   },
-    //   {
-    //     hour: '1430',
-    //     trainer: ['Eva'],
-    //     trainingsDetails: [
-    //       { kidName: 'Ola C' },
-    //       { kidName: 'Weronika' },
-    //       { kidName: 'Emilka' },
-    //       { kidName: 'Kalina' },
-    //       { kidName: 'Paula' },
-    //       { kidName: undefined },
-    //     ]
-    //   },
-    //   {
-    //     hour: '1530',
-    //     trainer: ['Eva'],
-    //     trainingsDetails: [
-    //       { kidName: 'Paula' },
-    //       { kidName: 'Kalina' },
-    //       { kidName: undefined },
-    //     ]auto
-    //   },
-    // ],
+    day: this.getTodayString(),
+    remarks: 'Twórcy apki to miszcze',
+    dailyExcludes: [],
     hours: [
       {
-        hour: '1200',
+        hour: '1100',
         trainer: ['Eva'],
         trainingsDetails: [
           { kidName: 'Agnieszka E', horse: 'Bella' },
-          { kidName: 'Julka R' },
-          { kidName: 'Ania P.' },
           { kidName: undefined },
         ]
       },
@@ -85,6 +49,10 @@ class DayPlan extends React.Component<any, any> {
     errorMsg: null,
   };
 
+  public getTodayString(): string{
+    let today = new Date
+    return today.toISOString().split('T')[0]
+  }
 
   changeHourHandler = (e: any, index: number) => {
     const value = e.target.value;
@@ -382,8 +350,8 @@ class DayPlan extends React.Component<any, any> {
         <Row>
           <Col className={classes.ButtonSection}>
             <Button variant="secondary" onClick={this.resetForm}>Reset Form</Button>
-            <Button variant="orange" onClick={this.generate}>Generate</Button>
-            <Button variant="outline-orange" onClick={this.saveDay}>{'Save Day'}</Button>
+            <Button variant="primary" onClick={this.generate}>Generate</Button>
+            <Button variant="outline-primary" onClick={this.saveDay}>{'Save Day'}</Button>
           </Col>
         </Row>
       </Container >

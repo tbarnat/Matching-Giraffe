@@ -32,9 +32,9 @@ class AppMenu extends React.Component {
                   <Nav.Link>Dziennik</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to="/admin">
-                  <Nav.Link style={{color: 'red'}}>Panel Szefa</Nav.Link>
+                  <Nav.Link style={{color: 'red'}}>Panel Szeryfa</Nav.Link>
                 </LinkContainer>
-                <LinkContainer to="/about-us">
+                <LinkContainer to="/about">
                   <Nav.Link>O apce</Nav.Link>
                 </LinkContainer>
               </Nav>
