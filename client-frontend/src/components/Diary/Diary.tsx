@@ -23,11 +23,11 @@ interface IState extends IHorseRidingDayQ {
 }
 
 
-class DayPlan extends React.Component<any, any> {
+class Diary extends React.Component<any, any> {
   state = {
-    day: '2019-01-08',
-    remarks: 'Bla bla',
-    dailyExcludes: ['Bracio'],
+    day: '',
+    remarks: '',
+    dailyExcludes: [],
     hours: [
       {
         hour: '1200',
@@ -43,8 +43,20 @@ class DayPlan extends React.Component<any, any> {
   };
 
 
-  componentDidMount() {
-
+  async componentDidMount() {
+    const chosendate = this.props.match.params.chosendate;
+    const splittedDate = chosendate.match(/(\d{4})(\d{2})(\d{2})/);
+    const query = { name: `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}` };
+    let asset = await window.hmClient.sendAndWait('get_day', query);
+    console.log(asset)
+    if (asset.success) {
+      this.setState({ ...asset.data, error: null })
+    } else {
+      this.setState({
+        isError: true,
+        errorMsg: asset.data.errorMsg
+      })
+    }
   }
 
 
@@ -85,7 +97,7 @@ class DayPlan extends React.Component<any, any> {
 
       const trainers = (
         <Typeahead
-          placeholder="Trenerzy"
+          // placeholder="Trenerzy"
           id={`Trainers-${hourIndex}`}
           options={[]}
           selected={this.state.hours[hourIndex].trainer}
@@ -103,7 +115,7 @@ class DayPlan extends React.Component<any, any> {
                 <span className={classes.Label}>Godzina</span>
                 <Form.Control
                   // label="Godzina"
-                  placeholder="Godzina"
+                  // placeholder="Godzina"
                   value={hour.hour}
                   disabled
                 />
@@ -134,7 +146,7 @@ class DayPlan extends React.Component<any, any> {
           <Col className={classes.LabelSection}>
             <span className={classes.Label}>Dzień</span>
             <Form.Control
-              placeholder="Dzień"
+              // placeholder="Dzień"
               value={this.state.day}
               disabled
             />
@@ -142,7 +154,7 @@ class DayPlan extends React.Component<any, any> {
           <Col className={classes.LabelSection}>
             <span className={classes.Label}>Wyłączone konie</span>
             <Typeahead
-              placeholder="Wyłączone konie"
+              // placeholder="Wyłączone konie"
               id={'dailyExcludes'}
               onChange={(e: any) => this.setState({ dailyExcludes: e })}
               options={[]}
@@ -155,7 +167,7 @@ class DayPlan extends React.Component<any, any> {
           <Col className={classes.LabelSection}>
             <span className={classes.Label}>Uwagi</span>
             <Form.Control
-              placeholder="Uwagi"
+              // placeholder="Uwagi"
               value={this.state.remarks}
               disabled
             />
@@ -171,4 +183,4 @@ class DayPlan extends React.Component<any, any> {
   }
 };
 
-export default DayPlan;
+export default Diary;
