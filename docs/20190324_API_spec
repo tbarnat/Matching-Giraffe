@@ -4,7 +4,7 @@ Send request via:
 
     ------ code snippet ------
     let client = new Client('ws://3.122.192.224:8080')
-    let response = await client.sendAndWait(...)
+    let response: any = await client.sendAndWait(...)
 
 
 ====== optionally ======
@@ -12,9 +12,9 @@ it is possible to send request and process it later
 
     ------ code snippet ------
     let client = new Client('ws://3.122.192.224:8080')
-    let uniqueId = client.sendRequest()
+    let uniqueId: string = client.sendRequest()
     ...
-    let response = await waitFor(...)
+    let response: any = await waitFor(uniqueId)
 
 
 
@@ -44,7 +44,7 @@ List of possible actions and corresponding data:
     'remove_kid', {name: string}
     'list_kid', {query?: string, taken?:string[]} //only starting from the beginning of phrase to find
     'haveAny_kid', any
-    'prefs_template', {name: string} // prefs_template is sent when we want to duplicate other kidos preferences when adding new one
+    'prefs_template', name: string // prefs_template is sent when we want to duplicate other kidos preferences when adding new one
 
     ------ horses ------
     'get_horse', {name: string}
@@ -69,8 +69,14 @@ List of possible actions and corresponding data:
 Response always comprise 'success' field informing if the request
 was valid, and could be completely processed
 
-export interface IBackendMsg {
-  replyTo?: string //id of incoming message
-  success: boolean
-  data: any | BackendData
-}
+    export interface IBackendMsg {
+      replyTo?: string //id of incoming message
+      success: boolean
+      data: any | BackendData
+    }
+
+if success == false 'data' object will always comprise errorMsg field
+
+    if(!response.success){
+        console.log(response.data.errorMsg)
+    }
