@@ -169,6 +169,7 @@ class DayPlan extends React.Component<any, any> {
       remarks: this.state.remarks,
       dailyExcludes: this.state.dailyExcludes
     }
+    console.log(query)
     let asset = await window.hmClient.sendAndWait('get_matches', query);
     if (asset.success) {
       this.setState({ ...asset.data.solution, error: null })

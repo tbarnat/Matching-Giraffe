@@ -1,5 +1,4 @@
 import * as React from 'react';
-import update from 'immutability-helper';
 
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
@@ -11,6 +10,7 @@ import { Typeahead } from 'react-bootstrap-typeahead';
 
 import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
 import classes from './Diary.module.scss';
+import {ConformationModal} from "../Modal";
 
 
 interface IState extends IHorseRidingDayQ {
@@ -40,6 +40,7 @@ class Diary extends React.Component<any, any> {
         ]
       },
     ],
+    showConfModal: false
   };
 
 
@@ -59,6 +60,16 @@ class Diary extends React.Component<any, any> {
     }
   }
 
+  async removeDay() {
+    let day = this.state.day
+    console.log(day)
+    let response = (await window.hmClient.sendAndWait('remove_day', {day}));
+    if(response.success){
+      //redirect
+    }else{
+      console.log('cos sie ryplo', response.data.errorMsg)
+    }
+  }
 
   render() {
     const hours = this.state.hours.map((hour, hourIndex) => {
@@ -175,8 +186,24 @@ class Diary extends React.Component<any, any> {
         </Row>
         <hr />
         {hours}
-        <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
-        <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>
+        {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
+        <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>*/}
+        <Row>
+          <Col className={classes.ButtonSection}>
+            <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
+            <Button variant="secondary" onClick={() => {
+              this.props.history.push(this.props.match.url) //todo????
+            }}>Wróc</Button>
+          </Col>
+        </Row>
+
+        <ConformationModal
+          show={this.state.showConfModal}
+          onHide={() => {
+            this.setState({showConfModal: false})
+          }}
+          callAfterConfirm={async () => {await this.removeDay()}}
+        />
       </Container >
     )
 
