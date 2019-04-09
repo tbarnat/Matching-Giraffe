@@ -10,7 +10,7 @@ import {IBackendMsg} from "../../App";
 import {ActionInMsg} from "../../Client";
 import {Typeahead} from 'react-bootstrap-typeahead';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
-import {AlertModal} from "../Modal";
+import {AlertModal, ConformationModal} from "../Modal";
 
 const grid = 8;
 
@@ -621,7 +621,7 @@ class App extends React.Component<any, any> {
                                        disabled={!this.state.existingEntry || (this.state.active != type)}>
                 Edytuj</Button></Col>
               <span/>
-              <Col xs={"auto"}><Button variant="secondary" onClick={() => this.removeEntry(type)}
+              <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
                                        disabled={!this.state.existingEntry || (this.state.active != type)}>
                 Usuń</Button></Col>
               <Col/>
@@ -641,6 +641,13 @@ class App extends React.Component<any, any> {
             this.setState({showAlertModal: false})
           }}
           msg={this.state.errorMsg}
+        />
+        <ConformationModal
+          show={this.state.showConfModal}
+          onHide={() => {
+            this.setState({showConfModal: false})
+          }}
+          callAfterConfirm={async () => {await this.removeEntry(this.state.active)}}
         />
       </div>
     )
