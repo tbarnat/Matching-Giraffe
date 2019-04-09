@@ -110,27 +110,33 @@ class App extends React.Component<any, any> {
   changeMainLevelTypeaheadHandler = async (e: any, fieldName: string) => {
     if (Array.isArray(e) && e[0]) {
       let name = e[0]
-      let receivedResponse: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name})
+      let response: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name})
       //clear the form after new name was selected
       for(let inputName of Object.keys(this.inputRef)){
         if(this.inputRef[inputName]){
           this.inputRef[inputName].value = ''
         }
       }
-      if (receivedResponse.success) {
+      if (response.success) {
         this.setState({
           active: fieldName,
           existingEntry: true,
-          activeForm: receivedResponse.data,
+          activeForm: response.data,
         })
+        if(response.data.remarks){
+          this.inputRef['remarks'].value = response.data.remarks
+        }
       } else {
         name = e[0].label
-        if (this.state.active == 'kid' && !this.state.activeForm.prefs) {
-          this.getNewRandomPrefs()
+        let activeForm = {}
+        if (fieldName == 'kid' && !this.state.activeForm.prefs) {
+          let randPrefs = this.getNewRandomPrefs()
+          activeForm = {prefs:randPrefs}
         }
         this.setState({
           active: fieldName,
-          existingEntry: false
+          existingEntry: false,
+          activeForm
         })
       }
       this.updateFormBySingleField({name})
@@ -220,9 +226,7 @@ class App extends React.Component<any, any> {
 
   onChangeRemarks(e: any) {
     let remarks = e.target.value
-    if (remarks) {
-      this.updateFormBySingleField({remarks})
-    }
+    this.updateFormBySingleField({remarks})
   }
 
   getKidForm(newName: any, remarks: any) {
@@ -356,7 +360,7 @@ class App extends React.Component<any, any> {
     return result;
   };
 
-  getNewRandomPrefs() {
+  getNewRandomPrefs(): any {
     let numberOfAllCat = this.allPrefCat.length
     let prefs: { [key: string]: string[] } = {}
 
@@ -390,9 +394,7 @@ class App extends React.Component<any, any> {
         })
       }
     }
-
-    this.setState({activeForm: {prefs}})
-
+    return prefs
   }
 
   onChangeSetPrefsTemplate = async (e: any) => {
@@ -483,19 +485,19 @@ class App extends React.Component<any, any> {
   focusAddAsHorseHandler = () => {
     this.inputRef['addToPrefLevel'].value = ''
     let activeForm = this.state.activeForm
-    activeForm = delete activeForm.addToPrefLevel
+    delete activeForm.addToPrefLevel
     this.setState({activeForm})
   }
 
   focusAddToPrefLevelHandler = () => {
     this.typeaheadRef['addAsHorse'].getInstance().clear()
     let activeForm = this.state.activeForm
-    activeForm = delete activeForm.addAsHorse
+    delete activeForm.addAsHorse
     this.setState({activeForm})
   }
 
   changeAddAsHorseTypeaheadHandler(e: any) {
-    let addAsHorse = ''
+    let addAsHorse = undefined
     if (Array.isArray(e) && e[0]) {
       addAsHorse = e[0]
     }
@@ -505,6 +507,12 @@ class App extends React.Component<any, any> {
   changeAddToPrefLevelHandler(e: any) {
     let addToPrefLevel = e.target.value
     if (addToPrefLevel) {
+      //convert label to prefLevel type
+      for(let prefLevel of Object.keys(this.prefLabel)){
+        if(addToPrefLevel == this.prefLabel[prefLevel]){
+          addToPrefLevel = prefLevel
+        }
+      }
       this.updateFormBySingleField({addToPrefLevel})
     }
   }
@@ -534,8 +542,15 @@ class App extends React.Component<any, any> {
 
   async editEntry(entryType: string) {
     let action = `edit_${entryType}` as ActionInMsg
-    //do it smart
-    await this.refreshAsset()
+    let entry = this.state.activeForm
+    console.log(entry)
+    let response = (await window.hmClient.sendAndWait(action, entry));
+    console.log(response)
+    if(response.success){
+      await this.refreshAsset()
+    }else{
+      this.setState({showAlertModal: true, errorMsg: response.data.errorMsg})
+    }
   }
 
   async removeEntry(entryType: string) {

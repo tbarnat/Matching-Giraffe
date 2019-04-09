@@ -349,9 +349,9 @@ class DayPlan extends React.Component<any, any> {
 
         <Row>
           <Col className={classes.ButtonSection}>
-            <Button variant="secondary" onClick={this.resetForm}>Reset Form</Button>
-            <Button variant="primary" onClick={this.generate}>Generate</Button>
-            <Button variant="outline-primary" onClick={this.saveDay}>{'Save Day'}</Button>
+            <Button variant="warning" onClick={this.resetForm}>Czyść</Button>
+            <Button variant="secondary" onClick={this.generate}>Znajdź</Button>
+            <Button variant="outline-secondary" onClick={this.saveDay}>{'Zapisz'}</Button>
           </Col>
         </Row>
       </Container >
