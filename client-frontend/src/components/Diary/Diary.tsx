@@ -61,13 +61,11 @@ class Diary extends React.Component<any, any> {
   }
 
   async removeDay() {
-    let day = this.state.day
-    console.log(day)
-    let response = (await window.hmClient.sendAndWait('remove_day', {day}));
-    if(response.success){
-      //redirect
-    }else{
-      console.log('cos sie ryplo', response.data.errorMsg)
+    let name = this.state.day
+    console.log({name})
+    let response = (await window.hmClient.sendAndWait('remove_day', {name}));
+    if(!response.success){
+      console.log('#smt not right:', response.data.errorMsg)
     }
   }
 

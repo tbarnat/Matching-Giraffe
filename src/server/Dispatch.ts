@@ -44,6 +44,7 @@ export default class Dispatch {
     let DQV = new DayQueryValidator(userName, this.db)
     await DQV.init()
     let errorMsg
+    data = DQV.truncateEmptyAndUndefinedRecursively(data)
     try {
       errorMsg = await DQV.validateDailyQuery(data)
     } catch (err) {

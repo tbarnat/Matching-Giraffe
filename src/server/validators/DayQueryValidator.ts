@@ -10,33 +10,49 @@ export default class DayQueryValidator extends DayValidator {
     super()
   }
 
+  //todo test
+  public truncateEmptyAndUndefinedRecursively(data: any): any {
+    Object.keys(data).forEach(key => {
+      if (Array.isArray(data[key])) {
+        data[key].forEach((lowerLevel: any) => {this.truncateEmptyAndUndefinedRecursively(lowerLevel)})
+      }
+      else if (typeof data[key] == 'object') {
+        this.truncateEmptyAndUndefinedRecursively(data[key])
+      }
+      if(data[key] == '' || data[key] == undefined){
+        delete data[key]
+      }
+    })
+    return data
+  }
+
   // returns error msg or empty string
   public async validateDailyQuery(toBeDailyQuery: any): Promise<string> {
 
     let errorMsg: string | undefined
     errorMsg = this.patternHorseRidingDay(toBeDailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
     let dailyQuery = toBeDailyQuery as IHorseRidingDayQ
 
     errorMsg = this.dayNameIsValid(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
     errorMsg = await this.dayAlreadyExists(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
     errorMsg = await this.hourFieldIsValid(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
     errorMsg = await this.entriesInQueryExistsInDbForQuery(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
@@ -47,7 +63,7 @@ export default class DayQueryValidator extends DayValidator {
     }
 
     errorMsg = await this.entriesForEachHourDoesNotRepeatForQuery(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
@@ -56,12 +72,12 @@ export default class DayQueryValidator extends DayValidator {
     })
 
     errorMsg = await this.kidosInQueryHasAllHorsesInPrefs(dailyQuery)
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
     errorMsg = await this.kidosHasOnlyValidHorsesInPrefs()
-    if(errorMsg){
+    if (errorMsg) {
       return errorMsg
     }
 
@@ -70,8 +86,8 @@ export default class DayQueryValidator extends DayValidator {
 
   protected entriesInQueryExistsInDbForQuery(day: IHorseRidingDayQ): string | undefined {
     let errorMsg: string | undefined
-    errorMsg =  this.entriesInQueryExistsInDb(day)
-    if(errorMsg){
+    errorMsg = this.entriesInQueryExistsInDb(day)
+    if (errorMsg) {
       return errorMsg
     }
     for (let horseName of day.dailyExcludes) {
@@ -82,10 +98,10 @@ export default class DayQueryValidator extends DayValidator {
     return
   }
 
-  protected entriesForEachHourDoesNotRepeatForQuery(day: IHorseRidingDayQ): string | undefined{
+  protected entriesForEachHourDoesNotRepeatForQuery(day: IHorseRidingDayQ): string | undefined {
     let errorMsg: string | undefined
-    errorMsg =  this.entriesForEachHourDoesNotRepeat(day)
-    if(errorMsg){
+    errorMsg = this.entriesForEachHourDoesNotRepeat(day)
+    if (errorMsg) {
       return errorMsg
     }
     for (let hourInfo of day.hours) {
@@ -102,7 +118,7 @@ export default class DayQueryValidator extends DayValidator {
     }
   }
 
-  protected kidosInQueryHasAllHorsesInPrefs(dailyQuery: IHorseRidingDayQ): string | undefined{
+  protected kidosInQueryHasAllHorsesInPrefs(dailyQuery: IHorseRidingDayQ): string | undefined {
     let allHorsosInStables = this.allHorsosString.length
     for (let kido of this.kidosInQuery) {
       if (Preferences.countItemsInPrefType(kido.prefs) != allHorsosInStables) {
