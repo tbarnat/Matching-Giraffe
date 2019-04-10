@@ -192,7 +192,7 @@ class Diary extends React.Component<any, any> {
           <Col className={classes.ButtonSection}>
             <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
             <Button variant="secondary" onClick={() => {
-              this.props.history.push(this.props.match.url) //todo????
+              this.props.history.push('/diary')
             }}>Wróc</Button>
           </Col>
         </Row>
@@ -202,7 +202,10 @@ class Diary extends React.Component<any, any> {
           onHide={() => {
             this.setState({showConfModal: false})
           }}
-          callAfterConfirm={async () => {await this.removeDay()}}
+          callAfterConfirm={async () => {
+            await this.removeDay()
+            this.props.history.replace('/diary')
+          }}
         />
       </Container >
     )
