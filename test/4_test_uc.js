@@ -19,7 +19,7 @@ let req_res_arr = [
   {no:9, action:'get_matches', reqData:dailyQueries[9], success:false, errorMsg: "Hour name: 12:30 is not ok. Apply following format: hhmm"}, //case9: hour format incorrect
   {no:10, action:'get_matches', reqData:dailyQueries[10], success:false, errorMsg: "Hours are entered in non-ascending order"}, //case10: hours not sorted
   {no:11, action:'get_matches', reqData:dailyQueries[11], success:false, errorMsg: "Kid by the name: Bug kid does not exist in db"}, //case11: kid does not exist
-  {no:12, action:'get_matches', reqData:dailyQueries[12], success:false, errorMsg: "Internal error: kidName: '' length out of bounds (2-20)"}, //case12: kid does not exist
+  {no:12, action:'get_matches', reqData:dailyQueries[12], success:false, errorMsg: "Internal error: kidName: 'x' length out of bounds (2-20)"}, //case12: kid does not exist
   {no:13, action:'get_matches', reqData:dailyQueries[13], success:false, errorMsg: "Horse by the name: Bug horse does not exist in db"}, //case13: horse does not exist
   {no:14, action:'get_matches', reqData:dailyQueries[14], success:false, errorMsg: "Trainer by the name: Bug trainer does not exist in db"}, //case14 trainer does not exist
   {no:15, action:'get_matches', reqData:dailyQueries[15], success:false, errorMsg: "Excluded horse by the name: Bug horse does not exist in db"}, //case:15 excluded horse does not exist

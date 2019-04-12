@@ -1,5 +1,6 @@
 MOST RECENT TODOS:
 
+- add error codes
 - get_day should return string not Date
 - date should be plain number 20190412 without hyphens
 - prapare daily query before validation (remove undefines and empty strings)

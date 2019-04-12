@@ -17,6 +17,46 @@ export interface IInterfaceObj {
 
 export abstract class BaseValidator {
 
+
+  public peelFromEmptyAndUndefined(data: any) {
+    this.deleteEmptyStringAndUndefinedRecursively(data)
+    let removedSomeEmptyObject = true
+    while(removedSomeEmptyObject){
+      removedSomeEmptyObject = this.deleteEmptyObjectsRecursively(data)
+    }
+  }
+
+  private deleteEmptyStringAndUndefinedRecursively(data: any) {
+    Object.keys(data).forEach(key => {
+      if (Array.isArray(data[key]) && data[key].length) {
+        data[key].forEach((lowerLevel: any) => {this.deleteEmptyStringAndUndefinedRecursively(lowerLevel)})
+      }
+      else if (typeof data[key] == 'object') {
+        this.deleteEmptyStringAndUndefinedRecursively(data[key])
+      }
+      if(data[key] === '' || data[key] === undefined){
+        delete data[key]
+      }
+    })
+  }
+
+  private deleteEmptyObjectsRecursively(data: any){
+    let removedSomeEmptyObject = false
+    Object.keys(data).forEach(key => {
+      if (Array.isArray(data[key]) && data[key].length) {
+        data[key].forEach((lowerLevel: any) => {this.deleteEmptyObjectsRecursively(lowerLevel)})
+      }
+      else if (typeof data[key] === 'object') {
+        this.deleteEmptyObjectsRecursively(data[key])
+      }
+      if(typeof data[key] === 'object' && Object.keys(data[key]).length === 0 && !Array.isArray(data[key])){
+        removedSomeEmptyObject = true
+        delete data[key]
+      }
+    })
+    return removedSomeEmptyObject
+  }
+
   protected patternCheck(data: any, patternName: string, type?: string): string {
     let objPatternArr = this.getPatternByName(patternName, type)
     if (!objPatternArr) {

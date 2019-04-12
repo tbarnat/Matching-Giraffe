@@ -91,7 +91,7 @@ exports.dailyQueries = [{
       {
         hour: '1230',
         trainer: ['Paulina'],
-        remaks: '', // <-INCORRECT
+        remaks: 'x', // <-INCORRECT
         trainingsDetails: [
           {kidName: 'Julka Mala'},
         ],
@@ -224,7 +224,7 @@ exports.dailyQueries = [{
         trainer: ['Paulina'],
         remarks: '',
         trainingsDetails: [
-          {kidName: '', horse: ''},// <-INCORRECT
+          {kidName: 'x', horse: 'x'},// <-INCORRECT
         ],
       },
     ],
@@ -454,7 +454,6 @@ exports.response22 = {
         trainer: [
           "Paulina"
         ],
-        remarks: "",
         trainingsDetails: [
           {
             kidName: "Julka Mala",

@@ -17,6 +17,7 @@ export default class Dispatch {
     kidos: 500,
     trainers: 100,
   }
+  private maxErrorLength = 250
 
   constructor(protected db: Database, private log: Logger) {
   }
@@ -44,11 +45,11 @@ export default class Dispatch {
     let DQV = new DayQueryValidator(userName, this.db)
     await DQV.init()
     let errorMsg
-    data = DQV.truncateEmptyAndUndefinedRecursively(data)
+    DQV.peelFromEmptyAndUndefined(data)
     try {
       errorMsg = await DQV.validateDailyQuery(data)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -81,7 +82,7 @@ export default class Dispatch {
     try {
       errorMsg = await DSV.validateDay(data)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -145,7 +146,7 @@ export default class Dispatch {
     try {
       errorMsg = await EV.validateNewEntry(data, collName)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -174,7 +175,7 @@ export default class Dispatch {
     try {
       errorMsg = await EV.validateNewEntry(data, collName)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -230,7 +231,7 @@ export default class Dispatch {
     try {
       errorMsg = await EV.validateEditEntry(data, collName)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
 
     if (errorMsg) {
@@ -273,7 +274,7 @@ export default class Dispatch {
     try {
       errorMsg = await EV.validateEditEntry(data, collName)
     } catch (err) {
-      errorMsg = err.stack.substring(0, 170)
+      errorMsg = err.stack.substring(0, this.maxErrorLength)
     }
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
@@ -381,7 +382,7 @@ export default class Dispatch {
     if (collName === 'users') {
       return {success: true, data: items}
     }
-    let query: string = data.query
+    let query: string = data.query || ''
     let entries: any[] = await this.db.find(collName, {userName})
     if (entries.length) {
       items = entries.map(entry => {

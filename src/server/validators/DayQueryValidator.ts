@@ -10,22 +10,6 @@ export default class DayQueryValidator extends DayValidator {
     super()
   }
 
-  //todo test
-  public truncateEmptyAndUndefinedRecursively(data: any): any {
-    Object.keys(data).forEach(key => {
-      if (Array.isArray(data[key])) {
-        data[key].forEach((lowerLevel: any) => {this.truncateEmptyAndUndefinedRecursively(lowerLevel)})
-      }
-      else if (typeof data[key] == 'object') {
-        this.truncateEmptyAndUndefinedRecursively(data[key])
-      }
-      if(data[key] == '' || data[key] == undefined){
-        delete data[key]
-      }
-    })
-    return data
-  }
-
   // returns error msg or empty string
   public async validateDailyQuery(toBeDailyQuery: any): Promise<string> {
 
