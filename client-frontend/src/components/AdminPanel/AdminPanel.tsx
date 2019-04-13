@@ -112,8 +112,8 @@ class App extends React.Component<any, any> {
       let name = e[0]
       let response: IBackendMsg = await window.hmClient.sendAndWait(this.getReqName(fieldName), {name})
       //clear the form after new name was selected
-      for(let inputName of Object.keys(this.inputRef)){
-        if(this.inputRef[inputName]){
+      for (let inputName of Object.keys(this.inputRef)) {
+        if (this.inputRef[inputName]) {
           this.inputRef[inputName].value = ''
         }
       }
@@ -123,15 +123,16 @@ class App extends React.Component<any, any> {
           existingEntry: true,
           activeForm: response.data,
         })
-        if(response.data.remarks){
+        if (response.data.remarks) {
           this.inputRef['remarks'].value = response.data.remarks
         }
       } else {
         name = e[0].label
         let activeForm = {}
         if (fieldName == 'kid' && !this.state.activeForm.prefs) {
-          let randPrefs = this.getNewRandomPrefs()
-          activeForm = {prefs:randPrefs}
+          activeForm = {prefs: this.getNewRandomPrefs()}
+        } else {
+          activeForm = {prefs: this.state.activeForm.prefs}
         }
         this.setState({
           active: fieldName,
@@ -508,8 +509,8 @@ class App extends React.Component<any, any> {
     let addToPrefLevel = e.target.value
     if (addToPrefLevel) {
       //convert label to prefLevel type
-      for(let prefLevel of Object.keys(this.prefLabel)){
-        if(addToPrefLevel == this.prefLabel[prefLevel]){
+      for (let prefLevel of Object.keys(this.prefLabel)) {
+        if (addToPrefLevel == this.prefLabel[prefLevel]) {
           addToPrefLevel = prefLevel
         }
       }
@@ -532,10 +533,10 @@ class App extends React.Component<any, any> {
     console.log(entry)
     let response = (await window.hmClient.sendAndWait(action, entry));
     console.log(response)
-    if(response.success){
+    if (response.success) {
       this.setState({active: undefined})
       await this.refreshAsset()
-    }else{
+    } else {
       this.setState({showAlertModal: true, errorMsg: response.data.errorMsg})
     }
   }
@@ -546,9 +547,9 @@ class App extends React.Component<any, any> {
     console.log(entry)
     let response = (await window.hmClient.sendAndWait(action, entry));
     console.log(response)
-    if(response.success){
+    if (response.success) {
       await this.refreshAsset()
-    }else{
+    } else {
       this.setState({showAlertModal: true, errorMsg: response.data.errorMsg})
     }
   }
@@ -557,10 +558,10 @@ class App extends React.Component<any, any> {
     let action = `remove_${entryType}` as ActionInMsg
     let name = this.state.activeForm.name
     let response = (await window.hmClient.sendAndWait(action, {name}));
-    if(response.success){
+    if (response.success) {
       this.setState({active: undefined})
       await this.refreshAsset()
-    }else{
+    } else {
       this.setState({showAlertModal: true, errorMsg: response.data.errorMsg})
     }
   }
@@ -577,7 +578,7 @@ class App extends React.Component<any, any> {
         return (
           <Container className={classes.AdminPanelRow} key={row.type + '_adm'}>
             <Row>
-              <Col className={classes.Labels} >
+              <Col className={classes.Labels}>
                 <h4><strong>{row.label}</strong></h4>
               </Col>
             </Row>
@@ -647,7 +648,9 @@ class App extends React.Component<any, any> {
           onHide={() => {
             this.setState({showConfModal: false})
           }}
-          callAfterConfirm={async () => {await this.removeEntry(this.state.active)}}
+          callAfterConfirm={async () => {
+            await this.removeEntry(this.state.active)
+          }}
         />
       </div>
     )
