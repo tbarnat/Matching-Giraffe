@@ -54,12 +54,12 @@ class DiaryList extends React.Component<RouteComponentProps> {
     this.setState({ plannedDays })
   }
 
-  componentDidMount() {
-    this.listDays();
+  async componentDidMount() {
+    await this.listDays();
   }
 
   render() {
-    return (
+    return this.state.plannedDays.length ? (
       <Container className={classes.DiaryList} fluid>
         <Row>
           <Col>
@@ -74,10 +74,11 @@ class DiaryList extends React.Component<RouteComponentProps> {
           </Col>
         </Row>
       </Container>
+    ) : (
+      <span>Loading...</span>
     )
-
   }
-};
+}
 
 export default DiaryList;
 

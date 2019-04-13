@@ -143,7 +143,6 @@ class DayPlan extends React.Component<any, any> {
   //===========================================================================================================
   async init() {
     let asset = (await window.hmClient.sendAndWait('get_whole_asset', {})).data;
-    console.log(asset)
     let options: { [key: string]: string[] } = {}
     Object.keys(asset).forEach(key => {
       let keyBezS = key.substr(0, key.length - 1)
@@ -169,7 +168,6 @@ class DayPlan extends React.Component<any, any> {
       remarks: this.state.remarks,
       dailyExcludes: this.state.dailyExcludes
     }
-    console.log(query)
     let asset = await window.hmClient.sendAndWait('get_matches', query);
     if (asset.success) {
       this.setState({ ...asset.data.solution, error: null })
@@ -197,6 +195,8 @@ class DayPlan extends React.Component<any, any> {
     let asset = await window.hmClient.sendAndWait('save_matches', query);
     if (asset.success) {
       this.setState({ errorMsg: null, error: false, saveSucceed: true })
+      let plainDate = this.state.day.replace(/-/g,'')
+      this.props.history.push(`/diary/${plainDate}`)
     } else {
       this.setState({
         errorMsg: asset.data.errorMsg, isError: true
