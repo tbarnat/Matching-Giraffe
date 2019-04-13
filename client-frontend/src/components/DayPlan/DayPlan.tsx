@@ -9,39 +9,48 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert';
 import { Typeahead } from 'react-bootstrap-typeahead';
-
-import { IHorseRidingDayQ } from '../../DataModel';
 import classes from './DayPlan.module.scss';
 
 
-/*interface IState extends IHorseRidingDayQ {
+interface IDayPlanState {
+  day: string
+  remarks: string
+  dailyExcludes: string[]
+  hours: IHorseRidingHourFE[]
+  options: any
+  isError: boolean,
+  errorMsg: string | null
+}
 
-  options?: {
-    kid?: { id: number, label: string }[] | string[],
-    trainer?: { id: number, label: string }[] | string[],
-    horse?: { id: number, label: string }[] | string[],
-  }
-}*/
+interface IHorseRidingHourFE {
+  hour: string,
+  trainer: string[],
+  remarks?: string
+  trainingsDetails: ITrainingFE[]
+}
 
+interface ITrainingFE {
+  kidName: string | undefined,
+  horse?: string | undefined,
+}
 
-class DayPlan extends React.Component<any, any> {
+class DayPlan extends React.Component<any, IDayPlanState > {
   state = {
     day: this.getTodayString(),
     remarks: 'Twórcy apki to miszcze',
     dailyExcludes: [],
     hours: [
       {
-        hour: '1100',
+        hour: '',
         trainer: ['Eva'],
         trainingsDetails: [
-          { kidName: 'Agnieszka E', horse: 'Bella' },
-          { kidName: undefined },
+          { kidName: '', horse: ''},
+          { kidName: undefined}
         ]
       },
     ],
     options: {
       kid: [],
-      // kids: ['Helena', 'Stefan', 'Marian', 'Olaf'].map((kid, index) => ({id: index, label: kid})),
       horse: [],
       trainer: []
     },
@@ -69,7 +78,7 @@ class DayPlan extends React.Component<any, any> {
           trainingsDetails: [
             {
               kidName: undefined,
-              horse: undefined,
+              //horse: undefined,
             }
           ]
         }]
@@ -84,7 +93,7 @@ class DayPlan extends React.Component<any, any> {
     const [hourIndex, kidIndex] = indexes;
     // updatedKids is this.state.hours
     let updatedKids = update(this.state.hours, { [hourIndex]: { trainingsDetails: { [kidIndex]: { kidName: { $set: selected[0] } } } } });
-    if (!updatedKids[hourIndex]['trainingsDetails'].some(kid => kid.kidName === undefined)) {
+    if (!updatedKids[hourIndex]['trainingsDetails'].some((kid : any) => kid.kidName === undefined)) {
       updatedKids = update(updatedKids, { [hourIndex]: { trainingsDetails: { $push: [{ kidName: undefined, horse: undefined }] } } });
     }
     this.setState(() => ({ hours: updatedKids }))
@@ -194,7 +203,7 @@ class DayPlan extends React.Component<any, any> {
     }
     let asset = await window.hmClient.sendAndWait('save_matches', query);
     if (asset.success) {
-      this.setState({ errorMsg: null, error: false, saveSucceed: true })
+      this.setState({ errorMsg: null, isError: false })
       let plainDate = this.state.day.replace(/-/g,'')
       this.props.history.push(`/diary/${plainDate}`)
     } else {
@@ -207,7 +216,7 @@ class DayPlan extends React.Component<any, any> {
 
   componentDidMount() {
     this.init();
-    // this.resetForm();
+    this.resetForm();
   }
 
   render() {
@@ -342,7 +351,7 @@ class DayPlan extends React.Component<any, any> {
         {hours}
         {/* <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button> */}
         {/* <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button> */}
-        <Alert dismissible variant="danger" onClose={() => this.setState({ isError: null })} show={this.state.isError}>
+        <Alert dismissible variant="danger" onClose={() => this.setState({ isError: false })} show={this.state.isError}>
           <p>
             {this.state.errorMsg}
           </p>

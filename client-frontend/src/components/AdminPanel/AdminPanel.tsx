@@ -41,10 +41,6 @@ const getListStyle = (isDraggingOver: any) => ({
 
 class App extends React.Component<any, any> {
 
-  /*
-  *  -> typeahead does not clear out on selecting the others typeahead fields
-  *  -> buttons reveals the further options
-  * */
   private objectTypes = ['kid', 'horse', 'trainer']
   private typeaheadRef: { [name: string]: any } = {}
   private inputRef: { [name: string]: any } = {}
@@ -70,13 +66,6 @@ class App extends React.Component<any, any> {
       active: undefined,
       existingEntry: false,
       activeForm: {
-        /*prefs: {
-          best: getItems(3),
-          nice: getItems(3, 3),
-          isok: getItems(3, 6),
-          limp: getItems(3, 9),
-          excl: getItems(3, 12),
-        }*/
       },
       showAlertModal: false,
       errorMsg: 'no rsp',
