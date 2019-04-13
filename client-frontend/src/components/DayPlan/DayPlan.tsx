@@ -213,6 +213,25 @@ class DayPlan extends React.Component<any, IDayPlanState > {
     }
   }
 
+  getOptionsForKid(hour: string): string[] {
+    let allPreselectedHorsesThisHour: string[] = []
+    this.state.hours.filter(hourData => hourData.hour === hour).forEach(hourData => {
+      allPreselectedHorsesThisHour = hourData.trainingsDetails.filter(trainingDetails => !!trainingDetails.kidName).map(trainingDetails => {
+        return trainingDetails.kidName as string
+      })
+    })
+    return this.state.options.kid.filter(kid => !allPreselectedHorsesThisHour.includes(kid))
+  }
+
+
+  getOptionsForHorse(hour: string): string[]{
+    let allPreselectedHorsesThisHour: string[] = []
+    this.state.hours.filter(hourData => hourData.hour === hour).forEach(hourData => {
+      allPreselectedHorsesThisHour = hourData.trainingsDetails.filter(trainingDetails => !!trainingDetails.horse).map(trainingDetails => {
+      return trainingDetails.horse as string
+    })})
+    return this.state.options.horse.filter(horse => !this.state.dailyExcludes.includes(horse) && !allPreselectedHorsesThisHour.includes(horse))
+  }
 
   componentDidMount() {
     this.init();
@@ -220,8 +239,6 @@ class DayPlan extends React.Component<any, IDayPlanState > {
   }
 
   render() {
-    // console.log('=======================')
-    // console.log('STATE: ', this.state)
     const hours = this.state.hours.map((hour, hourIndex) => {
       const kids = hour.trainingsDetails.map((training, trainingIndex) => {
         return (
@@ -232,17 +249,12 @@ class DayPlan extends React.Component<any, IDayPlanState > {
               placeholder="Dziecko"
               onInputChange={(value: string) => this.inputChangeKidHandler(value, [hourIndex, trainingIndex])}
               onChange={(e: any) => this.changeKidHandler(e, [hourIndex, trainingIndex])}
-              options={this.state.options.kid}
+              options={this.getOptionsForKid(hour.hour)}
               selected={training.kidName === undefined ? [] : [training.kidName]}
               // clearButton
               inputProps={{
                 width: '20px'
               }}
-            // selected={[training.kidName] || undefined}
-            // allowNew
-            // clearButton
-            // selectHintOnEnter
-            // newSelectionPrefix="Dodań dziecko: "
             />
             {training.kidName && <Button className={classes.DeleteButton} variant="outline-danger" onClick={() => this.removeInput([hourIndex, trainingIndex])}>&times;</Button>}
           </div>
@@ -257,7 +269,7 @@ class DayPlan extends React.Component<any, IDayPlanState > {
               id={trainingIndex}
               placeholder="Koń"
               onChange={(e: any) => this.changeHorseHandler(e, [hourIndex, trainingIndex])}
-              options={this.state.options.horse}
+              options={this.getOptionsForHorse(hour.hour)}
               selected={training.horse ? [training.horse] : []}
               //   allowNew
               //   clearButton
@@ -371,42 +383,3 @@ class DayPlan extends React.Component<any, IDayPlanState > {
 };
 
 export default DayPlan;
-
-
-// let query = {
-//   day: '20190314',
-//   remarks: 'przyjade o 13stej',
-//   hours: [
-//       {
-//           hour: '1230',
-//           trainer: ['Paulina'],
-//           trainingsDetails: [
-//               {kidName: 'Julka Mala'},
-//               {kidName: 'Maja'},
-//               {kidName: 'Julka Lonza'},
-//               {kidName: 'Ola C'},
-//           ]
-//       },
-//       {
-//           hour: '1430',
-//           trainer: ['Eva'],
-//           trainingsDetails: [
-//               {kidName: 'Ola C'},
-//               {kidName: 'Weronika'},
-//               {kidName: 'Emilka'},
-//               {kidName: 'Kalina'},
-//               {kidName: 'Paula'},
-//           ]
-//       },
-//       {
-//           hour: '1530',
-//           trainer: ['Eva'],
-//           trainingsDetails: [
-//               {kidName: 'Paula'},
-//               {kidName: 'Kalina'},
-//           ]
-//       },
-
-//   ],
-//   dailyExcludes: ['Czejen'] //'Czejen','Parys','Bella','Jadzia','Dzidzia','Bracio','Lady'
-// }
