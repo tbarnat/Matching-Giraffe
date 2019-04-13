@@ -7,15 +7,15 @@ export class About extends React.Component<any, any> {
     return (
       <Container>
         <Row>
-          {'This app is dedicated for people working in horse riding school. It helps to distribute horses among riders, create and share a schedule'}
+          {'This app is dedicated for people working in a horse riding school. It helps to distribute horses among riders, create and share a schedule'}
         </Row>
-        <Row>
-          {'Video tutorial coming soon!'}
+        {/*<Row>
+          {'New features / languages / video tutorial coming soon!'}
         </Row>
         <br/>
         <Row>
           {'Thank\'s for using and sharing!'}
-        </Row>
+        </Row>*/}
         <Row>
           {'MIT licence'}
         </Row>

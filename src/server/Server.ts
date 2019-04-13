@@ -6,7 +6,8 @@ import Dispatch from "./Dispatch";
 import {Collection, IBackendMsg, IFrontendMsg, ILoginAttempt} from "./DataModel";
 import {Logger, LoggerConfig} from "./utils/Logger";
 import repl = require("repl");
-
+import express = require('express')
+import path = require('path')
 
 const crypto = require('crypto');
 
@@ -39,14 +40,8 @@ export default class Server {
       fs.mkdirSync(config.logger.pathLog)
     }
     this.log = new Logger(config.logger)
-
     this.initDb(config).then(() => {
-      this.dispatch = new Dispatch(this.db, this.log)
-      this.httpServer = http.createServer();
-      this.wss = new WebSocket.Server({server: this.httpServer});
-      this.wss.on('connection', this.onWssServerConnection.bind(this));
-      this.httpServer.listen(config.port)
-      this.log.info('Server started')
+      this.createHttpServer(config)
     }).catch((err) => {
       this.log.error('Db init failed', err)
     })
@@ -55,6 +50,20 @@ export default class Server {
 
   protected initRepl(port: number) {
     repl.start(`deribot:${port}> `).context.server = this
+  }
+
+  private createHttpServer(config: IServerConfig){
+    this.dispatch = new Dispatch(this.db, this.log)
+    let app = express()
+    app.use(express.static(path.join(__dirname, '../../client-fronted/build')))
+    this.httpServer = http.createServer(app);
+    //this.httpServer = http.createServer();
+    this.wss = new WebSocket.Server({server: this.httpServer});
+    this.wss.on('connection', this.onWssServerConnection.bind(this));
+    this.httpServer.listen(config.port, () => {
+      console.log(`listening on port ${config.port}`)
+    })
+    this.log.info(`Server started: listening on port ${config.port}`)
   }
 
   private async initDb(config: IServerConfig) {
