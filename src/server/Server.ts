@@ -55,7 +55,7 @@ export default class Server {
   private createHttpServer(config: IServerConfig){
     this.dispatch = new Dispatch(this.db, this.log)
     let app = express()
-    app.use(express.static(path.join(__dirname, '../../client-fronted/build')))
+    app.use('/', express.static(path.join(__dirname, '../../client-frontend/build')))
     this.httpServer = http.createServer(app);
     //this.httpServer = http.createServer();
     this.wss = new WebSocket.Server({server: this.httpServer});
