@@ -29,7 +29,7 @@ export default class MatchingEngine {
 
   /* --- Data structures --- */
   private avaHorsos: string[] = []
-  private kidosInQueryD: string[] = [] //those are distinguishable kidos, not all kidos in query
+  private kidosInQueryD: string[] = [] //this is set of kidos without predefined horse, not all kidos in query
   private allKidosInQuery: string[] = []
   private kidosPrefs: { [kidoName: string]: PrefType } = {}
   private hourlySearchOrder: HourlySearchList //kid-horse matches grouped by kid
@@ -64,12 +64,26 @@ export default class MatchingEngine {
         let hourName = hour.hour
         //this.breakHourlyCalc = false
         this.qInProc[hourName] = []
-        await this.hourlyMatching(hour, hourName)
-        if (!this.qInProc[hourName].length) {
-          return this.mapResultsToISolution({
-            results: [],
-            errorMsg: `There were no solutions for hour: ${hour.hour}`
-          })
+
+        let hourFullyPredefined: boolean = false
+        let predefinedSolution: IKidHorse[] = hour.trainingsDetails.filter(trainingDetail => trainingDetail.horse)
+          .map(trainingDetail => {return {kidName:trainingDetail.kidName, horse:trainingDetail.horse!}})
+        if(predefinedSolution.length === hour.trainingsDetails.length){
+          hourFullyPredefined = true
+        }
+        if(hourFullyPredefined){
+          //hour is fully predefined - nothing to solve
+          this.qInProc[hourName].push({solution:predefinedSolution,cost:0})
+        }else{
+          //hour need solving
+          await this.hourlyMatching(hour, hourName)
+          if (!this.qInProc[hourName].length) {
+            return this.mapResultsToISolution({
+              results: [],
+              errorMsg: `There were no solutions for hour: ${hour.hour}`
+            })
+          }
+
         }
       }
       let hoursCombined = await this.combineHours()

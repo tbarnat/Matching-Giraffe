@@ -55,6 +55,8 @@ export default class Dispatch {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
     if (DQV.checkIfQueryIsAlreadySolved(data)) {
+      delete data.dailyExcludes
+      delete data.timeResInMinutes
       return ({success: true, data: {solution: data}} as IBackendMsg)
     }
     let result = await (new MatchingEngine(DQV.getAllHorsosString(), DQV.getAllKidos(), this.log.child({userName}))).getMatches(data)
