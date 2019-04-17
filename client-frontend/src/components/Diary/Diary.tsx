@@ -6,15 +6,14 @@ import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import {Typeahead} from 'react-bootstrap-typeahead';
 
-import { IHorseRidingDayQ, IHorseRidingHourQ } from '../../DataModel';
+import {IHorseRidingDayQ, IHorseRidingHourQ, ITrainingQ} from '../../DataModel';
 import classes from './Diary.module.scss';
 import {ConformationModal} from "../Modal";
 
 
 interface IState extends IHorseRidingDayQ {
-
   options?: {
     kid?: { id: number, label: string }[] | string[],
     trainer?: { id: number, label: string }[] | string[],
@@ -30,13 +29,11 @@ class Diary extends React.Component<any, any> {
     dailyExcludes: [],
     hours: [
       {
-        hour: '1200',
-        trainer: ['Eva'],
+        hour: '',
+        trainer: [''],
         trainingsDetails: [
-          { kidName: 'Agnieszka E', horse: 'Bella' },
-          { kidName: 'Julka R' },
-          { kidName: 'Ania P.' },
-          { kidName: undefined },
+          {kidName: '', horse: ''},
+          {kidName: undefined},
         ]
       },
     ],
@@ -47,11 +44,11 @@ class Diary extends React.Component<any, any> {
   async componentDidMount() {
     const chosendate = this.props.match.params.chosendate;
     const splittedDate = chosendate.match(/(\d{4})(\d{2})(\d{2})/);
-    const query = { name: `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}` };
+    const query = {name: `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}`};
     let asset = await window.hmClient.sendAndWait('get_day', query);
     console.log(asset)
     if (asset.success) {
-      this.setState({ ...asset.data, error: null })
+      this.setState({...asset.data, error: null})
     } else {
       this.props.history.replace('/diary')
       this.setState({
@@ -65,7 +62,7 @@ class Diary extends React.Component<any, any> {
     let name = this.state.day
     console.log({name})
     let response = (await window.hmClient.sendAndWait('remove_day', {name}));
-    if(!response.success){
+    if (!response.success) {
       console.log('#smt not right:', response.data.errorMsg)
     }
   }
@@ -166,7 +163,7 @@ class Diary extends React.Component<any, any> {
             <Typeahead
               // placeholder="Wyłączone konie"
               id={'dailyExcludes'}
-              onChange={(e: any) => this.setState({ dailyExcludes: e })}
+              onChange={(e: any) => this.setState({dailyExcludes: e})}
               options={[]}
               selected={this.state.dailyExcludes}
               multiple
@@ -183,7 +180,7 @@ class Diary extends React.Component<any, any> {
             />
           </Col>
         </Row>
-        <hr />
+        <hr/>
         {hours}
         {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>*/}
@@ -191,6 +188,21 @@ class Diary extends React.Component<any, any> {
           <Col className={classes.ButtonSection}>
             <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
             <Button variant="secondary" onClick={() => {
+              let dayToEdit = JSON.parse(JSON.stringify(this.state))
+              delete dayToEdit.showConfModal
+              dayToEdit = dayToEdit as IHorseRidingDayQ
+              dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
+                let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
+                  return {kidName: trainingDetail.kidName}
+                }))
+                trainingsDetails.push({kidName:undefined})
+                Object.assign(hour, {trainingsDetails})
+                return hour
+              })
+              this.props.history.push({pathname:'/day',state: dayToEdit})
+
+            }}>Edytuj</Button>
+            <Button variant="outline-secondary" onClick={() => {
               this.props.history.push('/diary')
             }}>Wróc</Button>
           </Col>
@@ -206,7 +218,7 @@ class Diary extends React.Component<any, any> {
             this.props.history.replace('/diary')
           }}
         />
-      </Container >
+      </Container>
     )
 
   }

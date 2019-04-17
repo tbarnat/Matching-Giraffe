@@ -76,7 +76,8 @@ export default class Dispatch {
     let day: string = data.day
     let existingEntry: IHorseRidingDay[] = await this.db.find(collName, {userName, day})
     if (existingEntry && existingEntry[0]) {
-      return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}
+      this.log.info(`Dairy entry for the day: ${day} already exists, and might be overwritten`)
+      /*return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}*/
     }
     let DSV = new DaySaveValidator(userName, this.db)
     await DSV.init()
@@ -91,8 +92,12 @@ export default class Dispatch {
     }
     let uniqueHash = short.generate()
     Object.assign(data, {uniqueHash})
-    await this.db.insertOne(collName, Object.assign(data, {userName} ))
-    return {success: true, data}
+    let upsertRes = await this.db.updateOne(collName, {day: data.day}, {$set:Object.assign(data, {userName})},{upsert: true})
+    if (upsertRes) {
+      return {success: true, data}
+    } else {
+      return {success: false, data: {errorMsg: `Failed to upsert`}}
+    }
   }
 
   public async getDay(userName: string, data: any): Promise<IBackendMsg> {
@@ -105,7 +110,7 @@ export default class Dispatch {
   }
 
   public async listDays(userName: string, data: any): Promise<IBackendMsg> {
-    let msgList = await this.listEntriesNames(userName, data, 'diary','day')
+    let msgList = await this.listEntriesNames(userName, data, 'diary', 'day')
     console.log(msgList)
     msgList.data = msgList.data.map((dateString: string) => {
       return new Date(dateString)

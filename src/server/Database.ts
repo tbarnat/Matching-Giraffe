@@ -26,6 +26,10 @@ export interface DbConfig {
   dbName: string //'hmDev'
 }
 
+interface IMongoUpdateOptions {
+  upsert: boolean
+}
+
 export class Database implements IDatabase {
 
   protected db: Db;
@@ -52,8 +56,8 @@ export class Database implements IDatabase {
     return this.db.collection(collectionName).findOne(filter)
   }
 
-  updateOne(collectionName: string, filter: Object, update: Object) {
-    return this.db.collection(collectionName).updateOne(filter, update)
+  updateOne(collectionName: string, filter: Object, update: Object, options?: IMongoUpdateOptions) {
+    return this.db.collection(collectionName).updateOne(filter, update, options)
   }
 
   updateMany(collectionName: string, filter: Object, update: Object) {

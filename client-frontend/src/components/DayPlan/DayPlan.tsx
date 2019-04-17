@@ -10,6 +10,7 @@ import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import classes from './DayPlan.module.scss';
+import {IHorseRidingDayQ} from "../../DataModel";
 
 
 interface IDayPlanState {
@@ -35,9 +36,21 @@ interface ITrainingFE {
 }
 
 class DayPlan extends React.Component<any, IDayPlanState > {
+
+  private dayToEdit: IHorseRidingDayQ
+
+  constructor(props: any) {
+    super(props)
+
+    if(this.props.location && this.props.location.state){
+      this.dayToEdit = this.props.location.state
+      console.log(this.dayToEdit)
+    }
+  }
+
   state = {
     day: this.getTodayString(),
-    remarks: 'Twórcy apki to miszcze',
+    remarks: '',
     dailyExcludes: [],
     hours: [
       {
@@ -238,7 +251,17 @@ class DayPlan extends React.Component<any, IDayPlanState > {
 
   componentDidMount() {
     this.init();
-    this.resetForm();
+    if(!this.dayToEdit){
+      this.resetForm();
+    }else{
+      this.setState((prevState: any) => ({
+        ...prevState,
+        day: this.dayToEdit.day,
+        remarks: this.dayToEdit.remarks,
+        dailyExcludes: this.dayToEdit.dailyExcludes,
+        hours: this.dayToEdit.hours,
+      }))
+    }
   }
 
   render() {

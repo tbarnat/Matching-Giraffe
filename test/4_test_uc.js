@@ -5,10 +5,11 @@ let dailyQueries = require('./4_input').dailyQueries
 let response0 = require('./4_input').response0
 let response22 = require('./4_input').response22
 let response23 = require('./4_input').response23
+let response24 = require('./4_input').response24
 
 // req_res_arr: {no:number, action:string, reqData:{}, success:boolean, errorMsg?:string, resData?: {}}
 let req_res_arr = [
-  {no:0, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
+  /*{no:0, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
   {no:1, action:'get_matches', reqData:dailyQueries[1], success:false, errorMsg: "Internal error: surplus property: foo added to object"}, //case1: to many fields
   {no:2, action:'get_matches', reqData:dailyQueries[2], success:false, errorMsg: "Internal error: object properties are missing: trainer"}, //case2: to few fields
   {no:3, action:'get_matches', reqData:dailyQueries[3], success:false, errorMsg: "Internal error: object properties are missing: kidName"}, //case3: to incorrect structure
@@ -32,8 +33,13 @@ let req_res_arr = [
   {no:21, action:'get_matches', reqData:dailyQueries[21], success:false, errorMsg: "InvalidPreferences have a non-existing horse: Bug-bug-bug in preferences"
   }, //case:21 incomplete preferences
   {no:22, action:'get_matches', reqData:dailyQueries[22], success:true, resData:response22}, //case:22 - nothing to solve
-  {no:23, action:'get_matches', reqData:dailyQueries[23], success:true, resData:response23}, //case:23 query partially solved - one hour fully solved
+  {no:23, action:'get_matches', reqData:dailyQueries[23], success:true, resData:response23}, //case:23 query partially solved - one hour fully solved*/
+  {no:24, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
+  {no:25, action:'save_matches', reqData:response0.solution, success:true},
+  {no:26, action:'get_matches', reqData:dailyQueries[24], success:true, resData:response24},
+  {no:27, action:'save_matches', reqData:response24.solution, success:true},
 ]
+
 
 genericTest('### ### Get matches test ### ###','qwe','asd', req_res_arr)
 

@@ -1,9 +1,9 @@
 MOST RECENT TODOS:
 
-FEATURE: when day is saved it is not editable, as it should
-BUG: link is not sharable
+BUG: getMatches saves the order of entered kids
 BUG: when removing content from Kid typeahead field on DayPlan the field disappears
 FEATURE: validation (each hour should be last + 100)
+CHANGE client to use config instead of hardcoded url (make it local or )
 FEATURE: login
 FEATURE: each trainingDetails should have trainer column
 

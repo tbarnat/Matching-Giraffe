@@ -418,7 +418,33 @@ exports.dailyQueries = [{
       }
     ],
     dailyExcludes: [],
-  }
+  },
+  //24
+  {
+    day: '2019-03-14',
+    hours: [
+      {
+        hour: '1230',
+        trainer: ['Paulina'],
+        remarks: '',
+        trainingsDetails: [
+          {kidName: 'Julka Mala'},
+        ],
+      },
+      {
+        hour: '1330',
+        trainer: ['Ja'],
+        remarks: '',
+        trainingsDetails: [
+          {kidName: 'Julka Mala'},
+          {kidName: 'Kalina', horse: 'Dzidzia'},
+          {kidName: 'Ola C', horse: ''},
+          {kidName: 'Maja', horse: ''},
+        ],
+      },
+    ],
+    dailyExcludes: []
+  },
 ]
 
 exports.response0 = {
@@ -528,5 +554,51 @@ exports.response23 = {
         ]
       }
     ],
+  }
+}
+
+
+exports.response24 = {
+  solution: {
+    day: "2019-03-14",
+    hours: [
+      {
+        hour: "1230",
+        trainer: [
+          "Paulina"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Julka Mala",
+            horse: "Czejen"
+          }
+        ]
+      },
+      {
+        hour: "1330",
+        trainer: [
+          "Ja"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Ola C",
+            horse: "Parys"
+          },
+          {
+            kidName: "Maja",
+            horse: "Lady"
+          },
+          {
+            kidName: "Julka Mala",
+            horse: "Czejen"
+          },
+          {
+            kidName: "Kalina",
+            horse: "Dzidzia"
+          }
+        ]
+
+      }
+    ]
   }
 }

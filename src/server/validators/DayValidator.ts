@@ -78,13 +78,6 @@ export abstract class  DayValidator extends BaseValidator {
     return
   }
 
-  protected async dayAlreadyExists(day: IHorseRidingDayQ | IHorseRidingDay): Promise<string | undefined> {
-    if ((await this.db.find('diary', {userName: this.userName, day: day.day})).length) {
-      return `Entry by day: ${day.day} already exists`
-    }
-    return
-  }
-
   protected hourFieldIsValid(day: IHorseRidingDayQ | IHorseRidingDay): string | undefined{
     // hour name is valid
     let hourNames: string[] = (day.hours as any).map( (hourInfo: any)=> {

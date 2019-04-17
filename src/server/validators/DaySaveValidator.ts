@@ -24,11 +24,6 @@ export default class DayQueryValidator extends DayValidator {
       return errorMsg
     }
 
-    errorMsg = await this.dayAlreadyExists(horseRidingDay)
-    if(errorMsg){
-      return errorMsg
-    }
-
     errorMsg = await this.hourFieldIsValid(horseRidingDay)
     if(errorMsg){
       return errorMsg

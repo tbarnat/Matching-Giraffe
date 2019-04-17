@@ -25,11 +25,6 @@ export default class DayQueryValidator extends DayValidator {
       return errorMsg
     }
 
-    errorMsg = await this.dayAlreadyExists(dailyQuery)
-    if (errorMsg) {
-      return errorMsg
-    }
-
     errorMsg = await this.hourFieldIsValid(dailyQuery)
     if (errorMsg) {
       return errorMsg
