@@ -56,6 +56,9 @@ export default class Server {
     this.dispatch = new Dispatch(this.db, this.log)
     let app = express()
     app.use('/', express.static(path.join(__dirname, '../../client-frontend/build')))
+    app.get('/*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../../client-frontend/build/index.html'));
+    })
     this.httpServer = http.createServer(app);
     //this.httpServer = http.createServer();
     this.wss = new WebSocket.Server({server: this.httpServer});

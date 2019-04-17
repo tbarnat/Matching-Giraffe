@@ -53,6 +53,7 @@ class Diary extends React.Component<any, any> {
     if (asset.success) {
       this.setState({ ...asset.data, error: null })
     } else {
+      this.props.history.replace('/diary')
       this.setState({
         isError: true,
         errorMsg: asset.data.errorMsg

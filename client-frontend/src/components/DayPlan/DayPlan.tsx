@@ -177,6 +177,9 @@ class DayPlan extends React.Component<any, IDayPlanState > {
       remarks: this.state.remarks,
       dailyExcludes: this.state.dailyExcludes
     }
+    query.hours = query.hours.filter(hour => hour.hour)
+    console.log(query)
+
     let asset = await window.hmClient.sendAndWait('get_matches', query);
     if (asset.success) {
       this.setState({ ...asset.data.solution, error: null })
