@@ -4,6 +4,7 @@ genericTest = require('./0_genericTest').genericTest
 let dailyQueries = require('./4_input').dailyQueries
 let response0 = require('./4_input').response0
 let response22 = require('./4_input').response22
+let response23 = require('./4_input').response23
 
 // req_res_arr: {no:number, action:string, reqData:{}, success:boolean, errorMsg?:string, resData?: {}}
 let req_res_arr = [
@@ -31,6 +32,7 @@ let req_res_arr = [
   {no:21, action:'get_matches', reqData:dailyQueries[21], success:false, errorMsg: "InvalidPreferences have a non-existing horse: Bug-bug-bug in preferences"
   }, //case:21 incomplete preferences
   {no:22, action:'get_matches', reqData:dailyQueries[22], success:true, resData:response22}, //case:22 - nothing to solve
+  {no:23, action:'get_matches', reqData:dailyQueries[23], success:true, resData:response23}, //case:23 query partially solved - one hour fully solved
 ]
 
 genericTest('### ### Get matches test ### ###','qwe','asd', req_res_arr)

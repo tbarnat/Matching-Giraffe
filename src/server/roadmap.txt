@@ -1,6 +1,11 @@
 MOST RECENT TODOS:
 
-- solve typescript error on DayPlan.tsx
+FEATURE: when day is saved it is not editable, as it should
+BUG: link is not sharable
+BUG: when removing content from Kid typeahead field on DayPlan the field disappears
+FEATURE: validation (each hour should be last + 100)
+FEATURE: login
+FEATURE: each trainingDetails should have trainer column
 
 Backend
 - add error codes

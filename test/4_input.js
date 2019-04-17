@@ -341,6 +341,7 @@ exports.dailyQueries = [{
     ],
     dailyExcludes: ['Parys']
   },
+  //20
   {
     day: '2019-03-14',
     hours: [
@@ -355,6 +356,7 @@ exports.dailyQueries = [{
     ],
     dailyExcludes: []
   },
+  //21
   {
     day: '2019-03-14',
     hours: [
@@ -369,6 +371,7 @@ exports.dailyQueries = [{
     ],
     dailyExcludes: []
   },
+  //22
   {
     day: '2019-03-14',
     hours: [
@@ -385,7 +388,38 @@ exports.dailyQueries = [{
       },
     ],
     dailyExcludes: []
-  }]
+  },
+  //23
+  {
+    day: "2019-03-14",
+    hours: [
+      {
+        hour: "1230",
+        trainer: [
+          "Paulina"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Julka Mala",
+            horse: "Bracio"
+          },
+        ]
+      },
+      {
+        hour: "1330",
+        trainer: [
+          "Paulina"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Emilka"
+          },
+        ]
+      }
+    ],
+    dailyExcludes: [],
+  }
+]
 
 exports.response0 = {
   solution: {
@@ -462,7 +496,37 @@ exports.response22 = {
         ]
       }
     ],
-    dailyExcludes: [],
-    timeResInMinutes: 60
+  }
+}
+
+exports.response23 = {
+  solution: {
+    day: "2019-03-14",
+    hours: [
+      {
+        hour: "1230",
+        trainer: [
+          "Paulina"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Julka Mala",
+            horse: "Bracio"
+          },
+        ]
+      },
+      {
+        hour: "1330",
+        trainer: [
+          "Paulina"
+        ],
+        trainingsDetails: [
+          {
+            kidName: "Emilka",
+            horse: "Dzidzia"
+          },
+        ]
+      }
+    ],
   }
 }
