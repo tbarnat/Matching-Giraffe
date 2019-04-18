@@ -1,11 +1,12 @@
 MOST RECENT TODOS:
 
-BUG: getMatches saves the order of entered kids
 BUG: when removing content from Kid typeahead field on DayPlan the field disappears
 FEATURE: validation (each hour should be last + 100)
-CHANGE client to use config instead of hardcoded url (make it local or )
+CHANGE client to use config instead of hardcoded url (make it local or ), it creates a useful local full local dev env.
 FEATURE: login
-FEATURE: each trainingDetails should have trainer column
+FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation
+FEATURE: allow for different presentation of each DayPlan (and corresDairy) depending on presentation type param
+ (as it is now / or each trainingDetails should have trainer column)
 
 Backend
 - add error codes
