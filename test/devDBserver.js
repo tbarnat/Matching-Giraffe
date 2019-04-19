@@ -1,12 +1,12 @@
 const path = require('path')
-const Server = require('../dist/server/Server').default;
+const DevDBserver = require('../dist/server/Server').default;
 
 const config = {
     port: 8080,
     path: __dirname,
     db: {
         uri: 'mongodb://localhost:27017',
-        dbName: 'hmProd' //dump form remote
+        dbName: 'hmDev'
     },
     logger: {
       name: 'hrsmchr',
@@ -19,6 +19,6 @@ const config = {
     }
 }
 
-startServer = new Server(config)
+startServer = new DevDBserver(config)
 
 exports.startServer = startServer

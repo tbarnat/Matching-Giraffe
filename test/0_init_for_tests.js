@@ -228,6 +228,6 @@ exports.initTestServer = async() => {
   if(!stepUno){
     return false
   }
-  require('./server').startServer
+  require('./devDBserver').startServer
   return true
 }

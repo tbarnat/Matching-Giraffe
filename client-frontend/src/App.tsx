@@ -28,8 +28,7 @@ class App extends React.Component {
 
   constructor(props: any) {
     super(props)
-
-    window.hmClient = new Client('ws://3.122.192.224:8080'); //'ws://localhost:8080'
+    window.hmClient = new Client(location.host);
     (async () => {
       await window.hmClient.login('qwe', 'asd');
     })()

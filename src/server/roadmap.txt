@@ -1,10 +1,17 @@
 MOST RECENT TODOS:
 
 BUG: when removing content from Kid typeahead field on DayPlan the field disappears
+---
+BUG: no validation on fileds
+FEATURE: filled format hour with colon 12:00 (add mask)
+FEATURE: add mask for months
 FEATURE: validation (each hour should be last + 100)
-CHANGE client to use config instead of hardcoded url (make it local or ), it creates a useful local full local dev env.
+---
 FEATURE: login
-FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation
+FEATURE: sessions.. cookies
+FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color
+FEATURE: domain, letsenctrypt free https
+---
 FEATURE: allow for different presentation of each DayPlan (and corresDairy) depending on presentation type param
  (as it is now / or each trainingDetails should have trainer column)
 
