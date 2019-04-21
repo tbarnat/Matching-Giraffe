@@ -1,17 +1,27 @@
 MOST RECENT TODOS:
 
-BUG: when removing content from Kid typeahead field on DayPlan the field disappears
----
-BUG: no validation on fileds
-FEATURE: filled format hour with colon 12:00 (add mask)
-FEATURE: add mask for months
-FEATURE: validation (each hour should be last + 100)
+FEATURE: when overwriting a day, fire conf modal
 ---
 FEATURE: login
 FEATURE: sessions.. cookies
 FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color
 FEATURE: domain, letsenctrypt free https
 ---
+BUG: no validation on fileds
+FEATURE: filled format hour with colon 12:00 (add mask)
+FEATURE: add mask for months
+FEATURE: validation (each hour should be last + 100)
+BUG: when removing content from Kid typeahead field on DayPlan the field disappears
+---
+Horses with pics
+Kids pics from facebook frieds
+---
+FEATURE: during signup user creates a stable (at least one). StableName field is added to every entry in db
+for each stable there are two types of access: manager and guest. Manager can edit everything, guest can view calendar only
+manager access level requires sign-in, guest access for diary requires hash link
+Each account owner can send a invitation for other acc owner to manage his stable (give full access to db resources).
+After sign-in there's a screen showing stables you would like to pick (create) and users you share it with
+
 FEATURE: allow for different presentation of each DayPlan (and corresDairy) depending on presentation type param
  (as it is now / or each trainingDetails should have trainer column)
 
