@@ -609,11 +609,11 @@ class App extends React.Component<any, any> {
                 Utwórz</Button></Col>
               <Col xs={"auto"}><Button variant="secondary" onClick={() => this.editEntry(type)}
                                        disabled={!this.state.existingEntry || (this.state.active != type)}>
-                Edytuj</Button></Col>
+                Zmień</Button></Col>
               <span/>
               <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
                                        disabled={!this.state.existingEntry || (this.state.active != type)}>
-                Usuń</Button></Col>
+                Wywal</Button></Col>
               <Col/>
             </Row>
             <br/>
@@ -646,4 +646,4 @@ class App extends React.Component<any, any> {
   }
 }
 
-export default App;
+export default App; //todo wtf?!

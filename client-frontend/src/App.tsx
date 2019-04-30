@@ -3,6 +3,7 @@ import {Switch, Route} from "react-router-dom";
 
 import './App.scss';
 import AppMenu from './components/AppMenu/AppMenu';
+import SignIn from './components/SingIn/SignIn';
 import DayPlan from './components/DayPlan/DayPlan';
 import DayPlanTest from './components/DayPlan/DayPlanTest';
 import Diary from './components/Diary/Diary';
@@ -29,9 +30,9 @@ class App extends React.Component {
   constructor(props: any) {
     super(props)
     window.hmClient = new Client(location.host);
-    (async () => {
+    /*(async () => {
       await window.hmClient.login('qwe', 'asd');
-    })()
+    })()*/
   }
 
   componentDidMount() {
@@ -40,12 +41,14 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <AppMenu/>
+        {/*<AppMenu/>*/}
+        <SignIn/>
         <div className="Content">
 
           <Switch>
             <Route path="/day" component={DayPlan} />
             <Route path="/diary/:chosendate" component={Diary} />
+            {/*/diary/:chosendate/:shortUUID*/}
             <Route path="/diary" component={DiaryList} />
             <Route path="/admin" component={AdminPanel} />
             <Route path="/about" component={About} />

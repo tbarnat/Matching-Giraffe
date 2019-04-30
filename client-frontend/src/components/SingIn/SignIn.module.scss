@@ -1,0 +1,36 @@
+.SignIn{
+  background-color: #f7faff;
+
+  .WelcomeMsg{
+    font-family: Impact, Charcoal, sans-serif;
+  }
+
+  .LoginCard{
+    /*width: ;*/
+    margin: 20px;
+    padding: 20px;
+
+    .LoginForm{
+      .LoginFormRowLabel{
+        font-size: 14px;
+        font-weight: bold;
+        padding-top: 10px;
+      }
+
+      .LoginFormRowButton{
+        margin-top: 30px;
+
+        .LoginFormButton{
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .TextButtons{
+    font-size: 13px;
+    color: darkblue;
+    cursor: pointer;
+    font-family: Tahoma, Geneva, sans-serif;
+  }
+}
