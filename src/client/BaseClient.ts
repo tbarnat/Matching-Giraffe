@@ -74,7 +74,7 @@ export default abstract class BaseClient {
     try {
       this.webSocket.send('"ping"')
     } catch (err) {
-      console.log('ws send error - TelegramEmitter socket closed')
+      console.log('ws send error - socket closed')
       clearTimeout(this.pingTimer);
     }
   }

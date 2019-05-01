@@ -2,9 +2,11 @@ MOST RECENT TODOS:
 
 FEATURE: when overwriting a day, fire conf modal
 ---
-FEATURE: login
+FEATURE: login 1. if no auth ws redirect to login page, after auth redirect to dayplan
+FEATURE: days open via hash
+FEAUTER: change structure: each use has a HRC which is owner of all other entries
 FEATURE: sessions.. cookies
-FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color
+FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color(skin) / list of HRC
 FEATURE: domain, letsenctrypt free https
 ---
 BUG: no validation on fileds
@@ -16,11 +18,12 @@ BUG: when removing content from Kid typeahead field on DayPlan the field disappe
 Horses with pics
 Kids pics from facebook frieds
 ---
-FEATURE: during signup user creates a stable (at least one). StableName field is added to every entry in db
+FEATURE: during signup user creates a stable (at least one). HRC field is added to every entry in db
 for each stable there are two types of access: manager and guest. Manager can edit everything, guest can view calendar only
 manager access level requires sign-in, guest access for diary requires hash link
 Each account owner can send a invitation for other acc owner to manage his stable (give full access to db resources).
-After sign-in there's a screen showing stables you would like to pick (create) and users you share it with
+After sign-in there's a modal showing stables you would like to pick
+Via admin panel you can edit HRC add users, create new HRC for account, delete
 
 FEATURE: allow for different presentation of each DayPlan (and corresDairy) depending on presentation type param
  (as it is now / or each trainingDetails should have trainer column)

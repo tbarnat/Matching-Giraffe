@@ -6,6 +6,7 @@
 config.js
 dist
 tmp
+client-frontend/src/images
 README.md
 
 # dependencies

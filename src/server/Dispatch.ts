@@ -111,7 +111,6 @@ export default class Dispatch {
 
   public async listDays(userName: string, data: any): Promise<IBackendMsg> {
     let msgList = await this.listEntriesNames(userName, data, 'diary', 'day')
-    console.log(msgList)
     msgList.data = msgList.data.map((dateString: string) => {
       return new Date(dateString)
     })

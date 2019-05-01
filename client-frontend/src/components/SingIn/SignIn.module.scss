@@ -1,8 +1,16 @@
 .SignIn{
   background-color: #f7faff;
 
+  .Logo{
+    width: 150px;
+    height: 200px;
+    margin: 10px;
+    margin-bottom: 30px;
+  }
+
   .WelcomeMsg{
     font-family: Impact, Charcoal, sans-serif;
+    font-size: 18px;
   }
 
   .LoginCard{

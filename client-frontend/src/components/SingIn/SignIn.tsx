@@ -5,10 +5,14 @@ import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Image from 'react-bootstrap/Image';
 import App from "../AdminPanel/AdminPanel";
 import classes from './SignIn.module.scss';
+import logo from '../../images/logo.png';
 
-class SignIn extends React.Component {
+
+
+class SignIn extends React.Component<any,any> {
 
   state = {
     login: '',
@@ -16,15 +20,30 @@ class SignIn extends React.Component {
   }
 
   public async handleSignIn() {
-    await window.hmClient.login(this.state.login, this.state.password);
+    //future use: after login server have to return list of HRCs if >1 redirect to dayPlan with fixed modal which forces to select HRC
+    let isLoggedIn = await window.hmClient.login(this.state.login, this.state.password)
+    console.log(isLoggedIn)
+    this.props.setLoggedIn(isLoggedIn);
+    //
+    //apply language user settings
   }
 
   public handleSingUp() {
-    //redirect
+    //modal (email, login, pswd x2, HRC name)
   }
 
-  public handleDemo() {
-    //redirect to yt
+  public changeLoginHandler(e: any){
+    let login = e.target.value
+    if(login){
+      this.setState((prevState: any) => ({...prevState, login}))
+    }
+  }
+
+  public changePasswordHandler(e: any){
+    let password = e.target.value
+    if(password){
+      this.setState((prevState: any) => ({...prevState, password}))
+    }
   }
 
   render() {
@@ -33,11 +52,13 @@ class SignIn extends React.Component {
         <Container>
           <br/>
           <Row>
-
+            <Col>
+              <Image src={logo} className={classes.Logo} rounded />
+            </Col>
           </Row>
           <Row>
             <Col>
-              <h3 className={classes.WelcomeMsg}>Hej, dobrze Cię znowu widzieć!</h3>
+              <h3 className={classes.WelcomeMsg}>Żyrafka pomaga zobaczyć więcej</h3>
             </Col>
           </Row>
           <Row>
@@ -49,13 +70,13 @@ class SignIn extends React.Component {
                     <Form.Label>Login</Form.Label>
                   </Row>
                   <Row>
-                    <Form.Control/>
+                    <Form.Control onChange={(e:any) => this.changeLoginHandler(e)}/>
                   </Row>
                   <Row className={classes.LoginFormRowLabel}>
                     <Form.Label>Haseł</Form.Label>
                   </Row>
                   <Row>
-                    <Form.Control/>
+                    <Form.Control onChange={(e:any) => this.changePasswordHandler(e)}/>
                   </Row>
                   <Row className={classes.LoginFormRowButton}>
                     <Button variant="secondary" className={classes.LoginFormButton} onClick={() => this.handleSignIn()}>
@@ -86,7 +107,7 @@ class SignIn extends React.Component {
           </Row>
           <Row>
             <Col>
-              <Button variant="secondary" onClick={() => this.handleDemo()}>
+              <Button variant="secondary" onClick={() => {}}>
                 Obczaj filmik</Button>
             </Col>
           </Row>

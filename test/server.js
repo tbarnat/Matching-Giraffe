@@ -6,7 +6,7 @@ const config = {
     path: __dirname,
     db: {
         uri: 'mongodb://localhost:27017',
-        dbName: 'hmProd' //dump form remote
+        dbName: 'hmProd' //dump from remote
     },
     logger: {
       name: 'hrsmchr',

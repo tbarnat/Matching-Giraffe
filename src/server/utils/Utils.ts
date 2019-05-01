@@ -53,11 +53,9 @@ export default class Utils {
     Object.keys(object1).sort().forEach(function(key) {
       object1Sorted[key] = object1[key];
     });
-    console.log(object1Sorted)
     Object.keys(object2).sort().forEach(function(key) {
       object2Sorted[key] = object2[key];
     });
-    console.log(object2Sorted)
     return (JSON.stringify(object1Sorted) == JSON.stringify(object2Sorted))
   }
 }
