@@ -11,6 +11,7 @@ import {ActionInMsg} from "../../Client";
 import {Typeahead} from 'react-bootstrap-typeahead';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import {AlertModal, ConformationModal} from "../Modal";
+import Card from 'react-bootstrap/Card';
 
 const grid = 8;
 
@@ -21,7 +22,7 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
   margin: `0 ${grid}px 0 0`,
 
   // change background colour if dragging
-  background: isDragging ? '#fc720c' : '#ff9749',
+  background: isDragging ? '#D88208': '#FDB94C',
   borderRadius: '15px',
 
   // styles we need to apply on draggables
@@ -29,8 +30,9 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
 });
 
 const getListStyle = (isDraggingOver: any) => ({
-  background: isDraggingOver ? '#ffd0ad' : '#fff1e8',
-  borderRadius: '25px',
+  background: isDraggingOver ? '#e6e9ee' : '#f7faff',
+  borderRadius: '20px',
+  margin: '1px',
   border: '1px solid darkgrey',
   display: 'flex',
   padding: grid,
@@ -559,72 +561,79 @@ class App extends React.Component<any, any> {
 
     const types = [
       {type: 'kid', label: 'Bachory'},
-      {type: 'horse', label: 'Horsesy'},
+      {type: 'horse', label: 'Koniasie'},
       {type: 'trainer', label: 'Kadra'},]
     const formForEachEntryType = types.map((row: { type: string, label: string }) => {
       let type = row.type
       if (type != 'kid' || this.state.options.horse.length > 0) {
         return (
-          <Container className={classes.AdminPanelRow} key={row.type + '_adm'}>
-            <Row>
-              <Col className={classes.Labels}>
-                <h4><strong>{row.label}</strong></h4>
-              </Col>
-            </Row>
-            <hr/>
-            <Row>
-              <Col xs={1} md={1}/>
-              <Col>
-                <Row style={{paddingBottom: 15}}>
-                  <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>Imię</Col>
-                  <Col xs={this.fcl.input.xs} md={this.fcl.input.md} className={classes.AutocompleteSelectOne}>
-                    <Typeahead
-                      key={row.type + '_typeahead_adm'}
-                      placeholder={row.label}
-                      onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, type)}
-                      onFocus={() => this.focusMainLevelHandler(row.type)}
-                      options={this.state.options[type]}
-                      // selected={this.state[name].input}
-                      allowNew={true}
-                      newSelectionPrefix={'Dodaj nowy: '}
-                      clearButton
-                      inputProps={{
-                        width: '20px'
-                      }}
-                      ref={(ref) => this.typeaheadRef[type] = ref}
-                    />
-                  </Col>
-                </Row>
-                {this.getMoreFormForEntry(type)}
-                {/*<Row>
+          <div>
+          <Card className={classes.AdminPanelCard}>
+            <Container className={classes.AdminPanelRow} key={row.type + '_adm'}>
+              <Row>
+                <Col>
+                  <div className={classes.TitleContainer}>
+                    <h3 className={classes.Title}>{row.label}</h3>
+                  </div>
+                </Col>
+              </Row>
+              <Row>
+                <Col xs={1} md={1}/>
+                <Col>
+                  <Row style={{paddingBottom: 15}}>
+                    <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>Imię</Col>
+                    <Col xs={this.fcl.input.xs} md={this.fcl.input.md} className={classes.AutocompleteSelectOne}>
+                      <Typeahead
+                        key={row.type + '_typeahead_adm'}
+                        placeholder={row.label}
+                        onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, type)}
+                        onFocus={() => this.focusMainLevelHandler(row.type)}
+                        options={this.state.options[type]}
+                        // selected={this.state[name].input}
+                        allowNew={true}
+                        newSelectionPrefix={'Dodaj nowy: '}
+                        clearButton
+                        inputProps={{
+                          width: '20px'
+                        }}
+                        ref={(ref) => this.typeaheadRef[type] = ref}
+                      />
+                    </Col>
+                  </Row>
+                  {this.getMoreFormForEntry(type)}
+                  {/*<Row>
                 </Row>*/}
-              </Col>
-              <Col xs={1} md={4}/>
-            </Row>
+                </Col>
+                <Col xs={1} md={4}/>
+              </Row>
+              <Row className={classes.AdminPanelButtons}>
+                <Col/>
+                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.newEntry(type)}
+                                         disabled={this.state.existingEntry || (this.state.active != type)}>
+                  Utwórz</Button></Col>
+                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.editEntry(type)}
+                                         disabled={!this.state.existingEntry || (this.state.active != type)}>
+                  Zapisz zmiany</Button></Col>
+                <span/>
+                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
+                                         disabled={!this.state.existingEntry || (this.state.active != type)}>
+                  Wywal</Button></Col>
+                <Col/>
+              </Row>
+            </Container>
+          </Card>
             <br/>
-            <Row>
-              <Col/>
-              <Col xs={"auto"}><Button variant="secondary" onClick={() => this.newEntry(type)}
-                                       disabled={this.state.existingEntry || (this.state.active != type)}>
-                Utwórz</Button></Col>
-              <Col xs={"auto"}><Button variant="secondary" onClick={() => this.editEntry(type)}
-                                       disabled={!this.state.existingEntry || (this.state.active != type)}>
-                Zmień</Button></Col>
-              <span/>
-              <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
-                                       disabled={!this.state.existingEntry || (this.state.active != type)}>
-                Wywal</Button></Col>
-              <Col/>
-            </Row>
-            <br/>
-            <hr/>
-          </Container>
+            </div>
         );
       }
     })
     return (
-      <div className={classes.AdminPanelRow}>
-        {formForEachEntryType}
+      <div className={classes.AdminPanel}>
+        <Col/>
+        <Col>
+          {formForEachEntryType}
+        </Col>
+        <Col/>
         <AlertModal
           show={this.state.showAlertModal}
           onHide={() => {

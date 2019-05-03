@@ -325,9 +325,9 @@ class DayPlan extends React.Component<any, IDayPlanState > {
             <Col>
               <div className={[classes.Hours, classes.LabelSection].join(' ')}>
                 <span className={classes.Label}>Godzina</span>
-                <Form.Control
+                <Form.Control className={classes.InputHour}
                   // label="Godzina"
-                  placeholder="Godzina"
+                  placeholder="hhmm"
                   value={hour.hour}
                   onChange={(e: any) => this.changeHourHandler(e, hourIndex)}
                 />
@@ -354,54 +354,62 @@ class DayPlan extends React.Component<any, IDayPlanState > {
 
     return (
       <Container className={classes.DayPlan} fluid>
-        <Row>
-          <Col className={classes.LabelSection}>
-            <span className={classes.Label}>Dzień</span>
-            <Form.Control
-              placeholder="Dzień"
-              value={this.state.day}
-              onChange={(e: any) => this.setState({ day: e.target.value })}
-            />
-          </Col>
-          <Col className={classes.LabelSection}>
-            <span className={classes.Label}>Wyłączone konie</span>
-            <Typeahead
-              placeholder="Wyłączone konie"
-              id={'dailyExcludes'}
-              onChange={(e: any) => this.setState({ dailyExcludes: e })}
-              options={this.state.options.horse}
-              selected={this.state.dailyExcludes}
-              multiple
-              selectHintOnEnter
-              emptyLabel="Brak wyników"
-            />
-          </Col>
-          <Col className={classes.LabelSection}>
-            <span className={classes.Label}>Uwagi</span>
-            <Form.Control
-              placeholder="Uwagi"
-              value={this.state.remarks}
-              onChange={(e: any) => this.setState({ remarks: e.target.value })}
-            />
-          </Col>
-        </Row>
-        <hr />
-        {hours}
-        {/* <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button> */}
-        {/* <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button> */}
-        <Alert dismissible variant="danger" onClose={() => this.setState({ isError: false })} show={this.state.isError}>
-          <p>
-            {this.state.errorMsg}
-          </p>
-        </Alert>
+        <Col/>
+        <Col>
+          <br/>
+          <Row>
+            <Col className={classes.LabelSection}>
+              <span className={classes.Label}>Dzień</span>
+              <Form.Control
+                placeholder="YYYY-MM-DD"
+                value={this.state.day}
+                onChange={(e: any) => this.setState({ day: e.target.value })}
+              />
+              {/*https://www.npmjs.com/package/react-bootstrap-maskedinput*/}
+              {/*onChange filtering*/}
+            </Col>
+            <Col className={classes.LabelSection}>
+              <span className={classes.Label}>Wyłączone konie</span>
+              <Typeahead
+                placeholder="Wyłączone konie"
+                id={'dailyExcludes'}
+                onChange={(e: any) => this.setState({ dailyExcludes: e })}
+                options={this.state.options.horse}
+                selected={this.state.dailyExcludes}
+                multiple
+                selectHintOnEnter
+                emptyLabel="Brak wyników"
+              />
+            </Col>
+            <Col className={classes.LabelSection}>
+              <span className={classes.Label}>Uwagi</span>
+              <Form.Control
+                placeholder="Uwagi"
+                value={this.state.remarks}
+                onChange={(e: any) => this.setState({ remarks: e.target.value })}
+              />
+            </Col>
+          </Row>
+          <br/>
+          {hours}
+          {/* <Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button> */}
+          {/* <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button> */}
+          <Alert dismissible variant="danger" onClose={() => this.setState({ isError: false })} show={this.state.isError}>
+            <p>
+              {this.state.errorMsg}
+            </p>
+          </Alert>
 
-        <Row>
-          <Col className={classes.ButtonSection}>
-            <Button variant="warning" onClick={this.resetForm}>Czyść</Button>
-            <Button variant="secondary" onClick={this.generate}>Znajdź</Button>
-            <Button variant="outline-secondary" onClick={this.saveDay}>{'Zapisz'}</Button>
-          </Col>
-        </Row>
+          <Row>
+            <Col className={classes.ButtonSection}>
+              <Button variant="warning" onClick={this.resetForm}>Czyść</Button>
+              <Button variant="secondary" onClick={this.generate}>Znajdź</Button>
+              <Button variant="outline-secondary" onClick={this.saveDay}>{'Zapisz'}</Button>
+            </Col>
+          </Row>
+        </Col>
+        <Col/>
+
       </Container >
     )
 

@@ -5,10 +5,10 @@ import './App.scss';
 import AppMenu from './components/AppMenu/AppMenu';
 import SignIn from './components/SingIn/SignIn';
 import DayPlan from './components/DayPlan/DayPlan';
-import DayPlanTest from './components/DayPlan/DayPlanTest';
 import Diary from './components/Diary/Diary';
 import DiaryList from './components/Diary/DiaryList';
 import AdminPanel from './components/AdminPanel/AdminPanel';
+import Account from './components/Account/Account';
 import Client from './Client'
 import {BackendData} from "../../src/server/DataModel";
 import {About} from "./components/About";
@@ -42,14 +42,14 @@ class App extends React.Component {
     isLoggedIn: false
   }
 
-  /*async componentDidMount(){
+  //uncomment to enable auto login for dev, before the sessions are enabled
+  async componentDidMount(){
     (async () => {
       this.setState({isLoggedIn: await window.hmClient.login('qwe', 'asd')})
     })()
-  }*/
+  }
 
   setLoggedIn(isLoggedIn: boolean){
-    console.log('x')
     this.setState({isLoggedIn})
   }
 
@@ -65,8 +65,8 @@ class App extends React.Component {
               <Route path="/diary/:chosendate" component={Diary}/>
               <Route path="/diary" component={DiaryList}/>
               <Route path="/admin" component={AdminPanel}/>
+              <Route path="/account" component={Account}/>
               <Route path="/about" component={About}/>
-              <Route path="/test" component={DayPlanTest}/>
             </Switch>
           </div>
         </div>

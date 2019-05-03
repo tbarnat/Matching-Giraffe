@@ -61,6 +61,8 @@ class DiaryList extends React.Component<RouteComponentProps> {
   render() {
     return this.state.plannedDays.length ? (
       <Container className={classes.DiaryList} fluid>
+        <br/>
+        <br/>
         <Row>
           <Col>
             <div className={classes.Calendar}>

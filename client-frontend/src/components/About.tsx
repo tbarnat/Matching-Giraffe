@@ -6,6 +6,8 @@ export class About extends React.Component<any, any> {
   render() {
     return (
       <Container>
+        <br/>
+        <br/>
         <Row>
           {'This app is dedicated for people working in a horse riding school. It helps to distribute horses among riders, create and share a schedule'}
         </Row>
@@ -16,6 +18,7 @@ export class About extends React.Component<any, any> {
         <Row>
           {'Thank\'s for using and sharing!'}
         </Row>*/}
+        <br/>
         <Row>
           {'MIT licence'}
         </Row>

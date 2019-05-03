@@ -1,0 +1,21 @@
+.AppMenu{
+
+  .NavBar{
+    background-image: linear-gradient(to right, #D88208 , #FDB94C);
+  }
+
+  .LogoSpace{
+    width:60px;
+    height: 30px;
+  }
+
+  .Logo{
+    z-index: 1;
+    left: 10px;
+    top: 5px;
+    position: absolute;
+    width: 90px;
+    height: 120px;
+  }
+
+}

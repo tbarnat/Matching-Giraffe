@@ -201,6 +201,7 @@ export type ActionInMsg =
 
   /*day actions*/
   'get_day'                                      | 'remove_day'     | 'list_days'  |
+  'get_day_view_by_hash' |
 
   /*regular entries actions*/
   'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'     | 'list_kid'     | 'haveAny_kid'    | 'prefs_template' |

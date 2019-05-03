@@ -447,4 +447,13 @@ export default class Dispatch {
     delete entry.userName
     return entry
   }
+
+  public async getDayViewByHash(hash: string): Promise<IBackendMsg>{
+    let entry = (await this.db.find('diary', {uniqueHash:hash}))[0]
+    if (entry) {
+      entry = Dispatch.stripFromUserNameAnd_Id(entry)
+      return {success: true, data: entry}
+    }
+    return {success: false, data: {}}
+  }
 }

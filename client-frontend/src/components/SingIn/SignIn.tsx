@@ -6,11 +6,8 @@ import Button from "react-bootstrap/Button";
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import Image from 'react-bootstrap/Image';
-import App from "../AdminPanel/AdminPanel";
 import classes from './SignIn.module.scss';
 import logo from '../../images/logo.png';
-
-
 
 class SignIn extends React.Component<any,any> {
 
@@ -50,7 +47,6 @@ class SignIn extends React.Component<any,any> {
     return (
       <div className={classes.SignIn}>
         <Container>
-          <br/>
           <Row>
             <Col>
               <Image src={logo} className={classes.Logo} rounded />

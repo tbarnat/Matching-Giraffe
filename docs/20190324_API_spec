@@ -23,8 +23,11 @@ it is possible to send request and process it later
 Request takes two params: (action: ActionInMsg, data; any)
 List of possible actions and corresponding data:
 
-    ------ general ------
+====== actions for which login is required ======
+
     'login', {userName: string, password: string}
+
+    ------ general ------
     'logout', {}
     'get_whole_asset', {} // get all kids, horses and trainers for users - avoid requests for every list
 
@@ -62,6 +65,9 @@ List of possible actions and corresponding data:
     'list_trainer', {query?: string, taken?:string[]} //only starting from the beginning of phrase to find
     'haveAny_trainer', any
 
+====== actions for which login isn't required ======
+
+    'get_day_view_by_hash', {hash: string}
 
 
 ===================== RESPONSE SPECIFICATION =====================

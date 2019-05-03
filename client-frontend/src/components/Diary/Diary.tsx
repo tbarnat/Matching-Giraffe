@@ -162,64 +162,70 @@ class Diary extends React.Component<any, any> {
 
       return (
         <Container className={classes.Diary} fluid>
-          <Row>
-            <Col className={classes.LabelSection}>
-              <span className={classes.Label}>Dzień</span>
-              <Form.Control
-                // placeholder="Dzień"
-                value={this.state.day}
-                disabled
-              />
-            </Col>
-            <Col className={classes.LabelSection}>
-              <span className={classes.Label}>Wyłączone konie</span>
-              <Typeahead
-                // placeholder="Wyłączone konie"
-                id={'dailyExcludes'}
-                onChange={(e: any) => this.setState({dailyExcludes: e})}
-                options={[]}
-                selected={this.state.dailyExcludes}
-                multiple
-                emptyLabel="Brak wyników"
-                disabled
-              />
-            </Col>
-            <Col className={classes.LabelSection}>
-              <span className={classes.Label}>Uwagi</span>
-              <Form.Control
-                // placeholder="Uwagi"
-                value={this.state.remarks}
-                disabled
-              />
-            </Col>
-          </Row>
-          <hr/>
-          {hours}
-          {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
+          <Col/>
+          <Col>
+            <br/>
+            <Row>
+              <Col className={classes.LabelSection}>
+                <span className={classes.Label}>Dzień</span>
+                <Form.Control
+                  // placeholder="Dzień"
+                  value={this.state.day}
+                  disabled
+                />
+              </Col>
+              <Col className={classes.LabelSection}>
+                <span className={classes.Label}>Wyłączone konie</span>
+                <Typeahead
+                  // placeholder="Wyłączone konie"
+                  id={'dailyExcludes'}
+                  onChange={(e: any) => this.setState({dailyExcludes: e})}
+                  options={[]}
+                  selected={this.state.dailyExcludes}
+                  multiple
+                  emptyLabel="Brak wyników"
+                  disabled
+                />
+              </Col>
+              <Col className={classes.LabelSection}>
+                <span className={classes.Label}>Uwagi</span>
+                <Form.Control
+                  // placeholder="Uwagi"
+                  value={this.state.remarks}
+                  disabled
+                />
+              </Col>
+            </Row>
+            <hr/>
+            {hours}
+            {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>*/}
-          <Row>
-            <Col className={classes.ButtonSection}>
-              <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
-              <Button variant="secondary" onClick={() => {
-                let dayToEdit = JSON.parse(JSON.stringify(this.state))
-                delete dayToEdit.showConfModal
-                dayToEdit = dayToEdit as IHorseRidingDayQ
-                dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
-                  let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
-                    return {kidName: trainingDetail.kidName}
-                  }))
-                  trainingsDetails.push({kidName:undefined})
-                  Object.assign(hour, {trainingsDetails})
-                  return hour
-                })
-                this.props.history.push({pathname:'/day',state: dayToEdit})
+            <Row>
+              <Col className={classes.ButtonSection}>
+                <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
+                <Button variant="secondary" onClick={() => {
+                  let dayToEdit = JSON.parse(JSON.stringify(this.state))
+                  delete dayToEdit.showConfModal
+                  dayToEdit = dayToEdit as IHorseRidingDayQ
+                  dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
+                    let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
+                      return {kidName: trainingDetail.kidName}
+                    }))
+                    trainingsDetails.push({kidName:undefined})
+                    Object.assign(hour, {trainingsDetails})
+                    return hour
+                  })
+                  this.props.history.push({pathname:'/day',state: dayToEdit})
 
-              }}>Edytuj</Button>
-              <Button variant="outline-secondary" onClick={() => {
-                this.props.history.push('/diary')
-              }}>Wróc</Button>
-            </Col>
-          </Row>
+                }}>Edytuj</Button>
+                <Button variant="outline-secondary" onClick={() => {
+                  this.props.history.push('/diary')
+                }}>Wróc</Button>
+              </Col>
+            </Row>
+          </Col>
+          <Col/>
+
 
           <ConformationModal
             show={this.state.showConfModal}

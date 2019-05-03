@@ -52,7 +52,7 @@ export default class Server {
     repl.start(`deribot:${port}> `).context.server = this
   }
 
-  private createHttpServer(config: IServerConfig){
+  private createHttpServer(config: IServerConfig) {
     this.dispatch = new Dispatch(this.db, this.log)
     let app = express()
     app.use('/', express.static(path.join(__dirname, '../../client-frontend/build')))
@@ -105,6 +105,8 @@ export default class Server {
           } catch (err) {
             this.log.error(err, 'onClientMessageReceived')
           }
+        } else if (request.action == 'get_day_view_by_hash'){
+          this.getDayViewByHash(ws, request)
         } else if (request.action == 'login') {
           this.log.info(`message received: ${msg} \n`);
           //request: {userName:string,password:string}
@@ -172,6 +174,11 @@ export default class Server {
         reply = {success: false, data: {errorMsg: 'unknown request'}}
         break;
     }
+    this.sendMsg(ws, request, reply)
+  }
+
+  private getDayViewByHash(ws: WebSocket, request: IFrontendMsg){
+    let reply = this.dispatch.getDayViewByHash(request.data.hash)
     this.sendMsg(ws, request, reply)
   }
 
