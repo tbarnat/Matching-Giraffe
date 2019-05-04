@@ -5,7 +5,7 @@ import {IInterfaceObj} from "./BaseValidator";
 
 export default class DayQueryValidator extends DayValidator {
 
-  constructor(protected userName: string, protected db: Database) {
+  constructor(protected hrcHash: string, protected db: Database) {
     super()
   }
 

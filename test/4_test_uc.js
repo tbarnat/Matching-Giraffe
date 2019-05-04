@@ -9,7 +9,7 @@ let response24 = require('./4_input').response24
 
 // req_res_arr: {no:number, action:string, reqData:{}, success:boolean, errorMsg?:string, resData?: {}}
 let req_res_arr = [
-  /*{no:0, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
+  {no:0, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
   {no:1, action:'get_matches', reqData:dailyQueries[1], success:false, errorMsg: "Internal error: surplus property: foo added to object"}, //case1: to many fields
   {no:2, action:'get_matches', reqData:dailyQueries[2], success:false, errorMsg: "Internal error: object properties are missing: trainer"}, //case2: to few fields
   {no:3, action:'get_matches', reqData:dailyQueries[3], success:false, errorMsg: "Internal error: object properties are missing: kidName"}, //case3: to incorrect structure
@@ -17,7 +17,7 @@ let req_res_arr = [
   {no:5, action:'get_matches', reqData:dailyQueries[5], success:false, errorMsg: "Internal error: day: '2019-03-142' length out of bounds (10-10)"}, //case5: incorrect day format - to long
   {no:6, action:'get_matches', reqData:dailyQueries[6], success:false, errorMsg: "Day name: 2O19-03-I4 is not ok. Apply following format: YYYY-MM-DD"}, //case6: incorrect day format - not number
   {no:7, action:'get_matches', reqData:dailyQueries[7], success:false, errorMsg: "Day name: 2019-02-31 is not ok. Apply following format: YYYY-MM-DD"}, //case7: incorrect day format - not convertable to date
-  {no:8, action:'get_matches', reqData:dailyQueries[8], success:false, errorMsg: "Entry by day: 2019-01-01 already exists"}, //case8: day already exists
+  {no:8, action:'get_matches', reqData:dailyQueries[8], success:true}, //case8: it is possible to override
   {no:9, action:'get_matches', reqData:dailyQueries[9], success:false, errorMsg: "Hour name: 12:30 is not ok. Apply following format: hhmm"}, //case9: hour format incorrect
   {no:10, action:'get_matches', reqData:dailyQueries[10], success:false, errorMsg: "Hours are entered in non-ascending order"}, //case10: hours not sorted
   {no:11, action:'get_matches', reqData:dailyQueries[11], success:false, errorMsg: "Kid by the name: Bug kid does not exist in db"}, //case11: kid does not exist
@@ -33,7 +33,7 @@ let req_res_arr = [
   {no:21, action:'get_matches', reqData:dailyQueries[21], success:false, errorMsg: "InvalidPreferences have a non-existing horse: Bug-bug-bug in preferences"
   }, //case:21 incomplete preferences
   {no:22, action:'get_matches', reqData:dailyQueries[22], success:true, resData:response22}, //case:22 - nothing to solve
-  {no:23, action:'get_matches', reqData:dailyQueries[23], success:true, resData:response23}, //case:23 query partially solved - one hour fully solved*/
+  {no:23, action:'get_matches', reqData:dailyQueries[23], success:true, resData:response23}, //case:23 query partially solved - one hour fully solved
   {no:24, action:'get_matches', reqData:dailyQueries[0], success:true, resData:response0},
   {no:25, action:'save_matches', reqData:response0.solution, success:true},
   {no:26, action:'get_matches', reqData:dailyQueries[24], success:true, resData:response24},

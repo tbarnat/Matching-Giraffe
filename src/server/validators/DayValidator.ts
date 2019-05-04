@@ -14,7 +14,7 @@ import Utils from "../utils/Utils";
 export abstract class  DayValidator extends BaseValidator {
 
   protected db: Database
-  protected userName: string
+  protected hrcHash: string
 
   protected allHorsos: IHorso[]
   protected allHorsosString: string[]
@@ -28,9 +28,9 @@ export abstract class  DayValidator extends BaseValidator {
 
   public async init() {
     let promiseArr: any[] = []
-    promiseArr.push(this.db.find('horsos', {userName: this.userName}))
-    promiseArr.push(this.db.find('kidos', {userName: this.userName}))
-    promiseArr.push(this.db.find('trainers', {userName: this.userName}))
+    promiseArr.push(this.db.find('horsos', {hrcHash: this.hrcHash}))
+    promiseArr.push(this.db.find('kidos', {hrcHash: this.hrcHash}))
+    promiseArr.push(this.db.find('trainers', {hrcHash: this.hrcHash}))
     let resolvedArr = await Promise.all(promiseArr)
     this.allHorsos = (resolvedArr[0] as IHorso[])
     this.allHorsosString = this.allHorsos.map(horso => horso.name)

@@ -77,6 +77,7 @@ export default class Server {
   public async onWssServerConnection(ws: WebSocket, request: http.IncomingMessage) {
 
     let userName: string | undefined
+    let hrcHash: string | undefined
     this.wsClients.push(ws);
     const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
@@ -98,15 +99,16 @@ export default class Server {
           return
         }*/
         let request = JSON.parse(msg.toString()) as IFrontendMsg;
-        if (userName) {
+        if (userName && hrcHash) {
           this.log.debug(`message received: ${msg} \n`);
           try {
-            await this.onClientMessageReceived(ws, userName, request)
+            //after request is received userName access level for hrc is checked
+            await this.onClientMessageReceived(ws, userName, hrcHash, request)
           } catch (err) {
             this.log.error(err, 'onClientMessageReceived')
           }
         } else if (request.action == 'get_day_view_by_hash'){
-          this.getDayViewByHash(ws, request)
+          await this.getDayViewByHash(ws, request)
         } else if (request.action == 'login') {
           this.log.info(`message received: ${msg} \n`);
           //request: {userName:string,password:string}
@@ -116,6 +118,7 @@ export default class Server {
             let hash = crypto.createHash('md5').update(request.data.password).digest('hex');
             if (loginInfo.password === hash) {
               userName = loginInfo.userName
+              hrcHash = loginInfo.hrcs[0]
               this.dispatch.registerVisit(userName)
               this.log.info(`Authenticated connection for user: \'${userName}\', ip: ${ip}`);
               reply = {success: true, data: {}}
@@ -124,6 +127,7 @@ export default class Server {
           this.sendMsg(ws, request, reply)
         } else if (request.action == 'logout') {
           userName = undefined
+          hrcHash = undefined
           this.sendMsg(ws, request, {success: true, data: {}})
         }
       } catch (error) {
@@ -132,30 +136,30 @@ export default class Server {
     });
   }
 
-  public async onClientMessageReceived(ws: WebSocket, userName: string, request: IFrontendMsg) {
+  public async onClientMessageReceived(ws: WebSocket, userName: string, hrcHash: string, request: IFrontendMsg) {
     let reply: IBackendMsg
     let data = request.data
     switch (request.action) {
       case 'get_whole_asset':
-        reply = await this.dispatch.getAsset(userName);
+        reply = await this.dispatch.getAsset(hrcHash);
         break;
       case 'get_matches':
-        reply = await this.dispatch.getMatches(userName, data);
+        reply = await this.dispatch.getMatches(hrcHash, data);
         break;
       case 'save_matches':
-        reply = await this.dispatch.saveMatches(userName, data)
+        reply = await this.dispatch.saveMatches(hrcHash, data)
         break;
       case 'get_day':
-        reply = await this.dispatch.getDay(userName, data)
+        reply = await this.dispatch.getDay(hrcHash, data)
         break;
       case'list_days':
-        reply = await this.dispatch.listDays(userName, data)
+        reply = await this.dispatch.listDays(userName, hrcHash, data)
         break;
       case 'remove_day':
-        reply = await this.dispatch.deleteDay(userName, data)
+        reply = await this.dispatch.deleteDay(hrcHash, data)
         break;
       case 'prefs_template':
-        reply = await this.dispatch.getPrefsTemplate(userName, data)
+        reply = await this.dispatch.getPrefsTemplate(hrcHash, data)
         break;
       default:
         if (request.action) {
@@ -166,7 +170,7 @@ export default class Server {
             if (this.actionPrefixes.includes(prefix) && this.actionSuffixes.includes(suffix)) {
               let collectionName = this.actionSuffixToCollection(suffix)
               let method = this.actionPrefixToMethod(prefix)
-              reply = await method.call(this.dispatch, userName, data, collectionName)
+              reply = await method.call(this.dispatch, userName, hrcHash, data, collectionName)
               break
             }
           }
@@ -177,8 +181,8 @@ export default class Server {
     this.sendMsg(ws, request, reply)
   }
 
-  private getDayViewByHash(ws: WebSocket, request: IFrontendMsg){
-    let reply = this.dispatch.getDayViewByHash(request.data.hash)
+  private async getDayViewByHash(ws: WebSocket, request: IFrontendMsg){
+    let reply = await this.dispatch.getDayViewByHash(request.data.hash)
     this.sendMsg(ws, request, reply)
   }
 
@@ -188,7 +192,7 @@ export default class Server {
     ws.send(JSON.stringify(reply))
   }
 
-  private actionPrefixToMethod(actionPrefix: string): ((userName: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
+  private actionPrefixToMethod(actionPrefix: string): ((userName: string, hrcHash: string, request: IFrontendMsg, collName: string) => Promise<IBackendMsg>) {
     switch (actionPrefix) {
       case 'get':
         return this.dispatch.getDbEntry
@@ -217,6 +221,8 @@ export default class Server {
         return 'trainers'
       case 'user':
         return 'users'
+      case 'hrc':
+        return 'hrcs'
       default:
         return 'undefined'
     }

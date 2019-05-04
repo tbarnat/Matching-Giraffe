@@ -1,6 +1,6 @@
 /* ---------- COLLECTIONS ---------- */
 
-export type Collection = 'horsos' | 'kidos' | 'trainers' | 'users' | 'diary' | 'undefined'
+export type Collection = 'horsos' | 'kidos' | 'trainers' | 'users' | 'diary' | 'hrcs' | 'undefined'
 
 
 /* ---------- BASE ENTITIES ---------- */
@@ -211,4 +211,5 @@ export type ActionInMsg =
 export interface ILoginAttempt {
   userName: string // unique
   password: string // #
+  hrcs: string[]
 }

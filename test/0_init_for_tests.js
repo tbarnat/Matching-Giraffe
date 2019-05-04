@@ -131,19 +131,19 @@ let kidosQWE =
 let trainersQWE = [{name: 'Ja'}, {name: 'Paulina'}, {name: 'Inna'}]
 
 let horsosTEST_USER1 = [
-  {name: 'Aaa1', userName: 'test_user1'},
-  {name: 'aab2', userName: 'test_user1'},
-  {name: 'Aaa2', userName: 'test_user1'},
-  {name: 'Abb4', userName: 'test_user1'},
-  {name: 'aaa3', userName: 'test_user1'},
-  {name: 'aaa4', userName: 'test_user1'},
-  {name: 'Abb5', userName: 'test_user1'},
-  {name: 'aaa5', userName: 'test_user1'},
-  {name: 'aab1', userName: 'test_user1'},
-  {name: 'aab3', userName: 'test_user1'},
-  {name: 'Abb6', userName: 'test_user1'},
-  {name: 'Xxx1', userName: 'test_user1'},
-  {name: 'Xxx2', userName: 'test_user1'},]
+  {name: 'Aaa1', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aab2', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Aaa2', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Abb4', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aaa3', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aaa4', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Abb5', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aaa5', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aab1', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'aab3', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Abb6', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Xxx1', hrcHash: '43TUNdHvko6piEA7koogAo'},
+  {name: 'Xxx2', hrcHash: '43TUNdHvko6piEA7koogAo'},]
 
 
 fillInDatabase = async () => {
@@ -164,12 +164,13 @@ fillInDatabase = async () => {
   let collections = {horsos: horsosQWE, kidos: kidosQWE, trainers: trainersQWE}
   for (let collName of Object.keys(collections)) {
     await db.insertMany(collName, collections[collName])
-    await db.updateMany(collName, {}, {$set: {"userName": "qwe"}})
+    await db.updateMany(collName, {}, {$set: {"hrcHash": "ttU2NdHvko6piEA7k00gAO"}})
   }
   await db.insertOne('users', {
     userName: 'qwe',
     email: 'qwe@wp.pl',
     password: '7815696ecbf1c96e6894b779456d330e', //asd
+    hrcs: ['ttU2NdHvko6piEA7k00gAO'],
     lastVisit: Date.now(),
     allVisits: 0
   })
@@ -186,7 +187,7 @@ fillInDatabase = async () => {
       },
     ],
     dailyExcludes: [],
-    userName: "qwe"
+    hrcHash: "ttU2NdHvko6piEA7k00gAO"
   })
 
   //--------TEST_USER1----------
@@ -194,6 +195,7 @@ fillInDatabase = async () => {
     userName: 'test_user1',
     email: 'tu1@gmail.com',
     password: '7815696ecbf1c96e6894b779456d330e', //asd
+    hrcs: ['43TUNdHvko6piEA7koogAo'],
     lastVisit: Date.now(),
     allVisits: 0
   })
@@ -205,6 +207,7 @@ fillInDatabase = async () => {
     userName: 'test_user2',
     email: 'tu2@gmail.com',
     password: '7815696ecbf1c96e6894b779456d330e', //asd
+    hrcs: ['rHC9iMCNFKA7a9DCT3gYpr'],
     lastVisit: Date.now(),
     allVisits: 0
   })
