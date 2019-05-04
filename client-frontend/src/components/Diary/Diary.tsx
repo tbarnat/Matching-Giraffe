@@ -39,36 +39,41 @@ class Diary extends React.Component<any, any> {
       },
     ],
     showConfModal: false,
-    incorrectUrlHash: false
+    incorrectUrlHash: false,
+    isInitialized: false
   };
 
 
   async componentDidMount() {
     const chosendate = this.props.match.params.chosendate;
     const splittedDate = chosendate.match(/(\d{4})(\d{2})(\d{2})/);
-    const query = {name: `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}`};
-    //todo separate action 'get_day_by_hash' if user is not logged in
-    /*
-    if not logged in:
-    let asset = await window.hmClient.sendAndWait('get_day_by_hash', query);
-    if (asset.success) {
-      this.setState({...asset.data, error: null})
-    } else {
-      this.state.incorrectUrlHash = true
+    let formattedDate = `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}`
+    if(this.props.userName){
+      let day = await window.hmClient.sendAndWait('get_day',{name: formattedDate});
+      if (day.success) {
+        this.setState({...day.data, isInitialized: true})
+      } else {
+        this.props.history.replace('/diary')
+        /*this.setState({
+          isError: true,
+          errorMsg: asset.data.errorMsg
+        })*/
+      }
+    }else{
+      //let dayHash = window.location.pathname.split('/').pop()
+      let dayHash = this.props.match.params.dayHash;
+      let day = await window.hmClient.sendAndWait('get_day_view_by_hash', {dayHash},false);
+      if (day.success && day.data.day == formattedDate) {
+        console.log('dobryhash')
+        this.setState({...day.data, isInitialized: true})
+      } else {
+        console.log('złyhash')
+        this.setState({incorrectUrlHash: true, isInitialized: true})
+      }
     }
-    */
 
-    let asset = await window.hmClient.sendAndWait('get_day', query);
-    console.log(asset)
-    if (asset.success) {
-      this.setState({...asset.data})
-    } else {
-      this.props.history.replace('/diary')
-      /*this.setState({
-        isError: true,
-        errorMsg: asset.data.errorMsg
-      })*/
-    }
+
+
   }
 
   async removeDay() {
@@ -81,168 +86,172 @@ class Diary extends React.Component<any, any> {
   }
 
   render() {
-    if(!this.state.incorrectUrlHash){
-      const hours = this.state.hours.map((hour, hourIndex) => {
-        const kids = hour.trainingsDetails.map((training, trainingIndex) => {
-          return (
-            <div className={classes.KidAndButtonContainer} key={trainingIndex}
-            >
-              <Typeahead
-                id={trainingIndex}
-                placeholder="Dziecko"
-                options={[]}
-                selected={training.kidName === undefined ? [] : [training.kidName]}
-                inputProps={{
-                  width: '20px'
-                }}
-                disabled
-              />
-            </div>
+    console.log(this.state.incorrectUrlHash)
+    if(this.state.isInitialized){
+      if(!this.state.incorrectUrlHash){
+        const hours = this.state.hours.map((hour, hourIndex) => {
+          const kids = hour.trainingsDetails.map((training, trainingIndex) => {
+            return (
+              <div className={classes.KidAndButtonContainer} key={trainingIndex}
+              >
+                <Typeahead
+                  id={trainingIndex}
+                  placeholder="Dziecko"
+                  options={[]}
+                  selected={training.kidName === undefined ? [] : [training.kidName]}
+                  inputProps={{
+                    width: '20px'
+                  }}
+                  disabled
+                />
+              </div>
+            )
+          })
+
+          const horses = hour.trainingsDetails.map((training, trainingIndex) => {
+            return training.kidName
+              ? (
+                <Typeahead
+                  key={trainingIndex}
+                  id={trainingIndex}
+                  placeholder="Koń"
+                  options={[]}
+                  selected={training.horse ? [training.horse] : []}
+                  disabled
+                />
+              ) : null;
+          })
+
+
+          const trainers = (
+            <Typeahead
+              // placeholder="Trenerzy"
+              id={`Trainers-${hourIndex}`}
+              options={[]}
+              selected={this.state.hours[hourIndex].trainer}
+              multiple
+              emptyLabel="Brak wyników"
+              disabled
+            />
           )
+
+          return (
+            <Card key={hourIndex} className={classes.OneHour}>
+              <Row>
+                <Col>
+                  <div className={[classes.Hours, classes.LabelSection].join(' ')}>
+                    <span className={classes.Label}>Godzina</span>
+                    <Form.Control
+                      // label="Godzina"
+                      // placeholder="Godzina"
+                      value={hour.hour}
+                      disabled
+                    />
+                  </div>
+                  <div className={[classes.Trainers, classes.LabelSection].join(' ')}>
+                    <span className={classes.Label}>Trenerzy</span>
+                    {trainers}
+                  </div>
+                </Col>
+                <Col className={[classes.Kids, classes.LabelSection].join(' ')}>
+                  <span className={classes.Label}>Gówniaki</span>
+                  {kids}
+                </Col>
+                <Col className={[classes.Horses, classes.LabelSection].join(' ')}>
+                  <span className={classes.Label}>Konie</span>
+                  {horses}
+                </Col>
+              </Row>
+            </Card>
+          )
+
         })
-
-        const horses = hour.trainingsDetails.map((training, trainingIndex) => {
-          return training.kidName
-            ? (
-              <Typeahead
-                key={trainingIndex}
-                id={trainingIndex}
-                placeholder="Koń"
-                options={[]}
-                selected={training.horse ? [training.horse] : []}
-                disabled
-              />
-            ) : null;
-        })
-
-
-        const trainers = (
-          <Typeahead
-            // placeholder="Trenerzy"
-            id={`Trainers-${hourIndex}`}
-            options={[]}
-            selected={this.state.hours[hourIndex].trainer}
-            multiple
-            emptyLabel="Brak wyników"
-            disabled
-          />
-        )
 
         return (
-          <Card key={hourIndex} className={classes.OneHour}>
-            <Row>
-              <Col>
-                <div className={[classes.Hours, classes.LabelSection].join(' ')}>
-                  <span className={classes.Label}>Godzina</span>
+          <Container className={classes.Diary} fluid>
+            <Col/>
+            <Col>
+              <br/>
+              <Row>
+                <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Dzień</span>
                   <Form.Control
-                    // label="Godzina"
-                    // placeholder="Godzina"
-                    value={hour.hour}
+                    // placeholder="Dzień"
+                    value={this.state.day}
                     disabled
                   />
-                </div>
-                <div className={[classes.Trainers, classes.LabelSection].join(' ')}>
-                  <span className={classes.Label}>Trenerzy</span>
-                  {trainers}
-                </div>
-              </Col>
-              <Col className={[classes.Kids, classes.LabelSection].join(' ')}>
-                <span className={classes.Label}>Gówniaki</span>
-                {kids}
-              </Col>
-              <Col className={[classes.Horses, classes.LabelSection].join(' ')}>
-                <span className={classes.Label}>Konie</span>
-                {horses}
-              </Col>
-            </Row>
-          </Card>
-        )
-
-      })
-
-      return (
-        <Container className={classes.Diary} fluid>
-          <Col/>
-          <Col>
-            <br/>
-            <Row>
-              <Col className={classes.LabelSection}>
-                <span className={classes.Label}>Dzień</span>
-                <Form.Control
-                  // placeholder="Dzień"
-                  value={this.state.day}
-                  disabled
-                />
-              </Col>
-              <Col className={classes.LabelSection}>
-                <span className={classes.Label}>Wyłączone konie</span>
-                <Typeahead
-                  // placeholder="Wyłączone konie"
-                  id={'dailyExcludes'}
-                  onChange={(e: any) => this.setState({dailyExcludes: e})}
-                  options={[]}
-                  selected={this.state.dailyExcludes}
-                  multiple
-                  emptyLabel="Brak wyników"
-                  disabled
-                />
-              </Col>
-              <Col className={classes.LabelSection}>
-                <span className={classes.Label}>Uwagi</span>
-                <Form.Control
-                  // placeholder="Uwagi"
-                  value={this.state.remarks}
-                  disabled
-                />
-              </Col>
-            </Row>
-            <hr/>
-            {hours}
-            {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
+                </Col>
+                <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Wyłączone konie</span>
+                  <Typeahead
+                    // placeholder="Wyłączone konie"
+                    id={'dailyExcludes'}
+                    onChange={(e: any) => this.setState({dailyExcludes: e})}
+                    options={[]}
+                    selected={this.state.dailyExcludes}
+                    multiple
+                    emptyLabel="Brak wyników"
+                    disabled
+                  />
+                </Col>
+                <Col className={classes.LabelSection}>
+                  <span className={classes.Label}>Uwagi</span>
+                  <Form.Control
+                    // placeholder="Uwagi"
+                    value={this.state.remarks}
+                    disabled
+                  />
+                </Col>
+              </Row>
+              <hr/>
+              {hours}
+              {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>*/}
-            <Row>
-              <Col className={classes.ButtonSection}>
-                <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
-                <Button variant="secondary" onClick={() => {
-                  let dayToEdit = JSON.parse(JSON.stringify(this.state))
-                  delete dayToEdit.showConfModal
-                  dayToEdit = dayToEdit as IHorseRidingDayQ
-                  dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
-                    let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
-                      return {kidName: trainingDetail.kidName}
-                    }))
-                    trainingsDetails.push({kidName:undefined})
-                    Object.assign(hour, {trainingsDetails})
-                    return hour
-                  })
-                  this.props.history.push({pathname:'/day',state: dayToEdit})
+              <Row>
+                <Col className={classes.ButtonSection}>
+                  <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
+                  <Button variant="secondary" onClick={() => {
+                    let dayToEdit = JSON.parse(JSON.stringify(this.state))
+                    delete dayToEdit.showConfModal
+                    dayToEdit = dayToEdit as IHorseRidingDayQ
+                    dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
+                      let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
+                        return {kidName: trainingDetail.kidName}
+                      }))
+                      trainingsDetails.push({kidName:undefined})
+                      Object.assign(hour, {trainingsDetails})
+                      return hour
+                    })
+                    this.props.history.push({pathname:'/day',state: dayToEdit})
 
-                }}>Edytuj</Button>
-                <Button variant="outline-secondary" onClick={() => {
-                  this.props.history.push('/diary')
-                }}>Wróc</Button>
-              </Col>
-            </Row>
-          </Col>
-          <Col/>
+                  }}>Edytuj</Button>
+                  <Button variant="outline-secondary" onClick={() => {
+                    this.props.history.push('/diary')
+                  }}>Wróc</Button>
+                </Col>
+              </Row>
+            </Col>
+            <Col/>
 
 
-          <ConformationModal
-            show={this.state.showConfModal}
-            onHide={() => {
-              this.setState({showConfModal: false})
-            }}
-            callAfterConfirm={async () => {
-              await this.removeDay()
-              this.props.history.replace('/diary')
-            }}
-          />
-        </Container>
-      )
+            <ConformationModal
+              show={this.state.showConfModal}
+              onHide={() => {
+                this.setState({showConfModal: false})
+              }}
+              callAfterConfirm={async () => {
+                await this.removeDay()
+                this.props.history.replace('/diary')
+              }}
+            />
+          </Container>
+        )
+      }else{
+        return <NoDiaryEntry/>
+      }
     }else{
-      return <NoDiaryEntry/>
+      return <span>Loading...</span>
     }
-
   }
 };
 

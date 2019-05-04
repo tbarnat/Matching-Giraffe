@@ -19,10 +19,10 @@ class SignIn extends React.Component<any,any> {
   public async handleSignIn() {
     //future use: after login server have to return list of HRCs if >1 redirect to dayPlan with fixed modal which forces to select HRC
     let isLoggedIn = await window.hmClient.login(this.state.login, this.state.password)
-    console.log(isLoggedIn)
-    this.props.setLoggedIn(isLoggedIn);
-    //
-    //apply language user settings
+    if(isLoggedIn){
+      this.props.setUserName(this.state.login);
+      //apply language user settings
+    }
   }
 
   public handleSingUp() {

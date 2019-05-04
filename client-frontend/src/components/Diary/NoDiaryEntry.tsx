@@ -20,7 +20,7 @@ class NoDiaryEntry extends React.Component {
           </Row>
           <Row>
             <Col>
-              <h3 className={classes.Msg}>Żyrafka mówi, że dla tego linku nikt nie stworzył jeszcze dnia</h3>
+              <h3 className={classes.Msg}>Cuś nie pykło: link nie działa, ponieważ został źle skopiowany, lub ktoś zmienił / usunął ten dzień</h3>
             </Col>
           </Row>
           <br/>

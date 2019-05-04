@@ -39,47 +39,56 @@ class App extends React.Component {
   }
 
   state = {
-    isLoggedIn: false
+    userName: undefined
   }
 
   //uncomment to enable auto login for dev, before the sessions are enabled
-  async componentDidMount(){
-    (async () => {
-      this.setState({isLoggedIn: await window.hmClient.login('qwe', 'asd')})
-    })()
-  }
+  /* async componentDidMount(){
+     (async () => {
+       this.setState({isLoggedIn: await window.hmClient.login('qwe', 'asd')})
+     })()
+   }*/
 
-  setLoggedIn(isLoggedIn: boolean){
-    this.setState({isLoggedIn})
+  public setUserName(userName: string) {
+    this.setState({userName})
   }
 
   render() {
     let getAppOrSignIn
-    if(this.state.isLoggedIn){
+    if (this.state.userName) {
       getAppOrSignIn = (
         <div className="App">
           <AppMenu/>
           <div className="Content">
             <Switch>
               <Route path="/day" component={DayPlan}/>
-              <Route path="/diary/:chosendate" component={Diary}/>
+              <Route path="/diary/:chosendate" component={
+                (props: any) => <Diary {...props} userName={this.state.userName}/>
+              }/>
               <Route path="/diary" component={DiaryList}/>
               <Route path="/admin" component={AdminPanel}/>
-              <Route path="/account" component={Account}/>
+              <Route path="/account" component={
+                (props: any) => <Account {...props}
+                                         setUserName={(userName: string) => this.setUserName(userName)}
+                                         userName={this.state.userName}
+                />
+              }/>
               <Route path="/about" component={About}/>
             </Switch>
           </div>
         </div>
       )
-    }else{
+    } else {
       getAppOrSignIn = (
         <div className="App">
           {/*<SignIn/>*/}
           <div className="Content">
             <Switch>
-              <Route path="/diary/:chosendate" component={Diary}/>
+              <Route path="/diary/:chosendate/:dayHash" component={Diary}/>
               {/*!/diary/:chosendate/:shortUUID*/}
-              <Route path="/" component={(props: any) => <SignIn {...props} setLoggedIn = {(flag: boolean) => this.setLoggedIn(flag)}/>}/>
+              <Route path="/" component={
+                (props: any) => <SignIn {...props} setUserName={(userName: string) => this.setUserName(userName)}/>
+              }/>
             </Switch>
           </div>
         </div>
@@ -90,7 +99,7 @@ class App extends React.Component {
       <div>
         {getAppOrSignIn}
       </div>
-  );
+    );
   }
 
 }

@@ -10,6 +10,7 @@ export type ActionInMsg =
 
   /*day actions*/
   'get_day'                                      | 'remove_day'     | 'list_days'  |
+  'get_day_view_by_hash' |
 
   /*regular entries actions*/
   'get_kid'     | 'new_kid'     | 'edit_kid'     | 'remove_kid'     | 'list_kid'     | 'haveAny_kid'    | 'prefs_template' |
@@ -61,4 +62,11 @@ export default class Client extends BaseClient {
     return isLoggedIn
   }
 
+  public async logout(): Promise<boolean>{
+    let isLoggedIn =  ((await this.sendAndWait('logout', {})) as any).success
+    if(isLoggedIn){
+      console.log('logged out')
+    }
+    return isLoggedIn
+  }
 }

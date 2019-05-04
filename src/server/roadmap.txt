@@ -1,10 +1,15 @@
 MOST RECENT TODOS:
 
+check overall
+change buttons dairy (publish FB - disabled, rest hidden, and get sharable)
+add logo on hashDay view
+add signUp
+add password change
+add remove account
+Sessions
+
 FEATURE: when overwriting a day, fire conf modal
 ---
-FEATURE: login 1. if no auth ws redirect to login page, after auth redirect to dayplan
-FEATURE: days open via hash
-FEAUTER: change structure: each use has a HRC which is owner of all other entries
 FEATURE: sessions.. cookies
 FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color(skin) / list of HRC
 FEATURE: domain, letsenctrypt free https

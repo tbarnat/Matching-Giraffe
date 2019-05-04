@@ -1,6 +1,6 @@
 import {Database} from "./Database";
 import MatchingEngine from "./MatchingEngine";
-import {Collection, IBackendMsg, IHorseRidingDay, IHorso, IInstructo, IKido} from "./DataModel";
+import {Collection, IBackendMsg, IHorso, IInstructo, IKido} from "./DataModel";
 import DayQueryValidator from "./validators/DayQueryValidator";
 import DaySaveValidator from "./validators/DaySaveValidator";
 import {Logger} from "./utils/Logger";
@@ -74,9 +74,8 @@ export default class Dispatch {
       }
     }
     let day: string = data.day
-    let existingEntry: IHorseRidingDay[] = await this.db.find(collName, {hrcHash, day})
-    if (existingEntry && existingEntry[0]) {
-      this.log.info(`Dairy entry for the day: ${day} already exists, and might be overwritten`)
+    if (await this.db.findOne(collName, {hrcHash, day})) {
+      this.log.info(`Dairy entry for the day: ${day} will be overwritten`)
       /*return {success: false, data: {errorMsg: `Dairy entry for the day: ${day} already exists`}}*/
     }
     let DSV = new DaySaveValidator(hrcHash, this.db)
@@ -90,9 +89,8 @@ export default class Dispatch {
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    let dayHash = this.getUniqueHash('diary','dayHash')
-    Object.assign(data, {dayHash})
-    let upsertRes = await this.db.updateOne(collName, {day: data.day}, {$set:Object.assign(data, {hrcHash})},{upsert: true})
+    let dayHash = this.getUniqueHash('diary','dayHash') //hash is reset for edit
+    let upsertRes = await this.db.updateOne(collName, {day: data.day}, {$set:Object.assign(data, {hrcHash}, {dayHash})},{upsert: true})
     if (upsertRes) {
       return {success: true, data}
     } else {
@@ -468,8 +466,11 @@ export default class Dispatch {
     return newHash
   }
 
-  public async getDayViewByHash(hash: string): Promise<IBackendMsg>{
-    let entry = (await this.db.find('diary', {dayHash:hash}))[0]
+  public async getDayViewByHash(dayHash: string): Promise<IBackendMsg>{
+    let entry = (await this.db.findOne('diary', {dayHash}))
+    console.log('------------------------')
+    console.log(entry)
+    console.log(dayHash)
     if (entry) {
       entry = Dispatch.stripFromHrcAnd_Id(entry)
       return {success: true, data: entry}

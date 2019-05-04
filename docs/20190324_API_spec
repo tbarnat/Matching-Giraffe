@@ -67,7 +67,7 @@ List of possible actions and corresponding data:
 
 ====== actions for which login isn't required ======
 
-    'get_day_view_by_hash', {hash: string}
+    'get_day_view_by_hash', {dayHash: string}
 
 
 ===================== RESPONSE SPECIFICATION =====================

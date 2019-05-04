@@ -94,16 +94,22 @@ export default class Server {
 
     ws.on('message', async (msg) => {
       try {
-        /*if (msg === '"ping"') {
+        if (msg === '"ping"') {
           ws.send('"pong"')
           return
-        }*/
+        }
         let request = JSON.parse(msg.toString()) as IFrontendMsg;
         if (userName && hrcHash) {
           this.log.debug(`message received: ${msg} \n`);
           try {
-            //after request is received userName access level for hrc is checked
-            await this.onClientMessageReceived(ws, userName, hrcHash, request)
+            if (request.action == 'logout') {
+              userName = undefined
+              hrcHash = undefined
+              this.sendMsg(ws, request, {success: true, data: {}})
+            }else{
+              //after request is received userName access level for hrc is checked
+              await this.onClientMessageReceived(ws, userName, hrcHash, request)
+            }
           } catch (err) {
             this.log.error(err, 'onClientMessageReceived')
           }
@@ -125,10 +131,6 @@ export default class Server {
             }
           }
           this.sendMsg(ws, request, reply)
-        } else if (request.action == 'logout') {
-          userName = undefined
-          hrcHash = undefined
-          this.sendMsg(ws, request, {success: true, data: {}})
         }
       } catch (error) {
         this.log.warn(error, 'Incorrect data type')
@@ -182,7 +184,7 @@ export default class Server {
   }
 
   private async getDayViewByHash(ws: WebSocket, request: IFrontendMsg){
-    let reply = await this.dispatch.getDayViewByHash(request.data.hash)
+    let reply = await this.dispatch.getDayViewByHash(request.data.dayHash)
     this.sendMsg(ws, request, reply)
   }
 
