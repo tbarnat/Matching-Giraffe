@@ -85,6 +85,12 @@ class Diary extends React.Component<any, any> {
     }
   }
 
+  public getHeader() {
+    if (this.state.incorrectUrlHash == false) {
+      return <MenuLike/>
+    }
+  }
+
   public getButtonSection() {
     if (this.state.incorrectUrlHash !== false) {
       return (
@@ -115,6 +121,14 @@ class Diary extends React.Component<any, any> {
           <Row>
             <Col className={classes.ButtonSection}>
               <Button variant="secondary" onClick={() => {
+
+                let tempDummy = document.createElement("input");
+                document.body.appendChild(tempDummy);
+                tempDummy.setAttribute('value', this.getShareableLink());
+                tempDummy.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempDummy);
+
                 this.setState((prevState: any) => ({
                   ...prevState, showLinkModal: true
                 }))
@@ -214,6 +228,7 @@ class Diary extends React.Component<any, any> {
 
         return (
           <Container className={classes.Diary} fluid>
+            {this.getHeader()}
             <Col/>
             <Col>
               <br/>
@@ -269,7 +284,10 @@ class Diary extends React.Component<any, any> {
                 this.props.history.replace('/diary')
               }}
             />
+
+            {/*Show link modal*/}
             <Modal
+              size="lg"
               show={this.state.showLinkModal}
               onHide={() => {
                 this.setState((prevState: any) => ({
@@ -285,9 +303,9 @@ class Diary extends React.Component<any, any> {
               <Modal.Body>
                 {this.getShareableLink()}
               </Modal.Body>
-              {/*<Modal.Footer style={{justifyContent: 'right', fontSize: '14px'}}>
+              <Modal.Footer style={{justifyContent: 'right', fontSize: '14px'}}>
                 Skopiowany do schowka :)
-              </Modal.Footer>*/}
+              </Modal.Footer>
             </Modal>
           </Container>
         )

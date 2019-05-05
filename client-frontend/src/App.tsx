@@ -11,7 +11,7 @@ import AdminPanel from './components/AdminPanel/AdminPanel';
 import Account from './components/Account/Account';
 import Client from './Client'
 import {BackendData} from "../../src/server/DataModel";
-import {About} from "./components/About";
+import {About} from "./components/About/About";
 import MenuLike from "./components/AppMenu/MenuLike";
 
 export interface IBackendMsg {
@@ -43,13 +43,14 @@ class App extends React.Component {
   }
 
   //uncomment to enable auto login for dev, before the sessions are enabled
-   /*async componentDidMount(){
+   async componentDidMount(){
      (async () => {
        await window.hmClient.login('qwe', 'asd')
        this.setState({userName: 'qwe'})
      })()
    }
-*/
+
+
   public setUserName(userName: string) {
     this.setState({userName})
   }
@@ -77,21 +78,20 @@ class App extends React.Component {
               <Route path="/about" component={About}/>
             </Switch>
           </div>
+          <br/>
         </div>
       )
     } else {
       getAppOrSignIn = (
         <div className="App">
-          <MenuLike/>
-          <div className="Content">
-            <Switch>
-              <Route path="/diary/:chosendate/:dayHash" component={Diary}/>
-              {/*!/diary/:chosendate/:shortUUID*/}
-              <Route path="/" component={
-                (props: any) => <SignIn {...props} setUserName={(userName: string) => this.setUserName(userName)}/>
-              }/>
-            </Switch>
-          </div>
+          <Switch>
+            <Route path="/diary/:chosendate/:dayHash" component={Diary}/>
+            {/*!/diary/:chosendate/:shortUUID*/}
+            <Route path="/" component={
+              (props: any) => <SignIn {...props} setUserName={(userName: string) => this.setUserName(userName)}/>
+            }/>
+          </Switch>
+          <br/>
         </div>
       )
     }

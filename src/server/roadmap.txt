@@ -1,7 +1,8 @@
 MOST RECENT TODOS:
 
-add signUp
+add signUp (creates hrc collection with hash and name, assigns admin privilages to user)
 add password change
+forgot password
 add remove account
 Sessions
 
