@@ -6,6 +6,7 @@ add remove account
 Sessions
 
 FEATURE: when overwriting a day, fire conf modal
+FEATURE: add shareable link to clipboard
 BUG: works shitty for heavy requests - server crashed
 ---
 FEATURE: sessions.. cookies

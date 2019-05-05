@@ -47,7 +47,7 @@ class SignIn extends React.Component<any,any> {
     return (
       <div className={classes.SignIn}>
         <Container>
-          <Row>
+          {/*<Row>
             <Col>
               <Image src={logo} className={classes.Logo} rounded />
             </Col>
@@ -56,7 +56,8 @@ class SignIn extends React.Component<any,any> {
             <Col>
               <h3 className={classes.WelcomeMsg}>Żyrafka pomaga zobaczyć więcej</h3>
             </Col>
-          </Row>
+          </Row>*/}
+          <br/>
           <Row>
               <Col xs={1} md={3}/>
               <Col xs={10} md={6}>

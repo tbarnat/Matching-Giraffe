@@ -4,7 +4,7 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Image from 'react-bootstrap/Image';
 import classes from './Diary.module.scss';
-import logo from '../../images/logo.png';
+import glitch from '../../images/glitch.jpg';
 
 class NoDiaryEntry extends React.Component {
 
@@ -15,12 +15,17 @@ class NoDiaryEntry extends React.Component {
           <br/>
           <Row>
             <Col>
-              <Image src={logo} className={classes.Logo} rounded />
+              <h3 className={classes.Msg}>Cuś nie pykło</h3>
             </Col>
           </Row>
           <Row>
             <Col>
-              <h3 className={classes.Msg}>Cuś nie pykło: link nie działa, ponieważ został źle skopiowany, lub ktoś zmienił / usunął ten dzień</h3>
+              <Image src={glitch} className={classes.Glitch} rounded />
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              Link nie działa, ponieważ został źle skopiowany, lub ktoś zmienił / usunął ten dzień
             </Col>
           </Row>
           <br/>

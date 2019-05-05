@@ -20,7 +20,7 @@ class MenuLike extends React.Component {
               <div className={classes.LogoSpace}/>
             </Navbar.Brand>
             <Col className={classes.Title}>
-              Żyrafka pomaga ułożyć dzień w ośrodku i pokazać go innym.
+              Żyrafka pomaga ułożyć dzień w Twoim ośrodku i pokazać go innym.
             </Col>
           </Navbar>
         </div>
