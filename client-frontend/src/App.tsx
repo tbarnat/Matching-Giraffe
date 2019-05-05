@@ -12,7 +12,7 @@ import Account from './components/Account/Account';
 import Client from './Client'
 import {BackendData} from "../../src/server/DataModel";
 import {About} from "./components/About";
-import SelectHRC from "./components/SelectHRC/SelectHRC";
+import MenuLike from "./components/AppMenu/MenuLike";
 
 export interface IBackendMsg {
   replyTo?: string //id of incoming message
@@ -43,12 +43,13 @@ class App extends React.Component {
   }
 
   //uncomment to enable auto login for dev, before the sessions are enabled
-  /* async componentDidMount(){
+   /*async componentDidMount(){
      (async () => {
-       this.setState({isLoggedIn: await window.hmClient.login('qwe', 'asd')})
+       await window.hmClient.login('qwe', 'asd')
+       this.setState({userName: 'qwe'})
      })()
-   }*/
-
+   }
+*/
   public setUserName(userName: string) {
     this.setState({userName})
   }
@@ -81,7 +82,7 @@ class App extends React.Component {
     } else {
       getAppOrSignIn = (
         <div className="App">
-          {/*<SignIn/>*/}
+          <MenuLike/>
           <div className="Content">
             <Switch>
               <Route path="/diary/:chosendate/:dayHash" component={Diary}/>

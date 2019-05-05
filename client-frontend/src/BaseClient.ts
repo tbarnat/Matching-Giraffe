@@ -4,7 +4,7 @@ export default abstract class BaseClient {
   private initialized: Deferred
   protected isLoggedIn: Deferred
   private readonly url: string // 'ws://localhost:8080';
-  private readonly pingTimeout: number = 10000
+  private readonly pingTimeout: number = 20000
   private readonly reconnectTimeout: number = 30000
   private pingTimer: NodeJS.Timer
   private reconnectTimer: NodeJS.Timer

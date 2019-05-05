@@ -89,7 +89,8 @@ export default class Dispatch {
     if (errorMsg) {
       return ({success: false, data: {errorMsg}} as IBackendMsg)
     }
-    let dayHash = this.getUniqueHash('diary','dayHash') //hash is reset for edit
+    let dayHash = await this.getUniqueHash('diary','dayHash') //hash is reset for edit
+    console.log(dayHash)
     let upsertRes = await this.db.updateOne(collName, {day: data.day}, {$set:Object.assign(data, {hrcHash}, {dayHash})},{upsert: true})
     if (upsertRes) {
       return {success: true, data}
@@ -228,7 +229,7 @@ export default class Dispatch {
   }
 
   private async newHrc(userName: string, data: any, collName: Collection): Promise<IBackendMsg> {
-    let hrcHash = this.getUniqueHash('hrcs','hrcHash')
+    let hrcHash = await this.getUniqueHash('hrcs','hrcHash')
     return {success: false, data: {hrcHash}}
   }
 
@@ -456,7 +457,7 @@ export default class Dispatch {
   }
 
   // better safe than sorry
-  private async getUniqueHash(collName: Collection, idHashFieldName: string){
+  private async getUniqueHash(collName: Collection, idHashFieldName: string): Promise<string>{
     let newHash = short.generate()
     let entry: any = await this.db.findOne(collName,{[idHashFieldName]:newHash})
     while(entry){
@@ -468,9 +469,6 @@ export default class Dispatch {
 
   public async getDayViewByHash(dayHash: string): Promise<IBackendMsg>{
     let entry = (await this.db.findOne('diary', {dayHash}))
-    console.log('------------------------')
-    console.log(entry)
-    console.log(dayHash)
     if (entry) {
       entry = Dispatch.stripFromHrcAnd_Id(entry)
       return {success: true, data: entry}

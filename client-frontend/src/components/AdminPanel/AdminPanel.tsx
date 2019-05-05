@@ -22,7 +22,7 @@ const getItemStyle = (isDragging: any, draggableStyle: any) => ({
   margin: `0 ${grid}px 0 0`,
 
   // change background colour if dragging
-  background: isDragging ? '#D88208': '#FDB94C',
+  background: isDragging ? '#D88208' : '#FDB94C',
   borderRadius: '15px',
 
   // styles we need to apply on draggables
@@ -41,7 +41,22 @@ const getListStyle = (isDraggingOver: any) => ({
   minHeight: '50px'
 });
 
-class App extends React.Component<any, any> {
+interface IAdminPanelState {
+  options: {
+    horse: string[],
+    kid: string[],
+    trainer: string[]
+  },
+  active: string | undefined,
+  existingEntry: boolean,
+  lastKnownServersVersion: {},
+  activeForm: {},
+  showAlertModal: boolean,
+  errorMsg: string,
+  showConfModal: boolean
+}
+
+class AdminPanel extends React.Component<IAdminPanelState, any> {
 
   private objectTypes = ['kid', 'horse', 'trainer']
   private typeaheadRef: { [name: string]: any } = {}
@@ -67,8 +82,8 @@ class App extends React.Component<any, any> {
       },
       active: undefined,
       existingEntry: false,
-      activeForm: {
-      },
+      lastKnownServersVersion: {},
+      activeForm: {},
       showAlertModal: false,
       errorMsg: 'no rsp',
       showConfModal: false
@@ -88,7 +103,7 @@ class App extends React.Component<any, any> {
       options[keyBezS] = asset[key].map((object: any) => {
         return object.name
       })
-      options[keyBezS].sort()
+      options[keyBezS].sort((name1, name2) => name1.localeCompare(name2, 'pl')) //todo get locale from App
     })
 
     this.setState({options})
@@ -112,6 +127,7 @@ class App extends React.Component<any, any> {
         this.setState({
           active: fieldName,
           existingEntry: true,
+          lastKnownServersVersion: JSON.parse(JSON.stringify(response.data)),
           activeForm: response.data,
         })
         if (response.data.remarks) {
@@ -119,15 +135,19 @@ class App extends React.Component<any, any> {
         }
       } else {
         name = e[0].label
+        let lastKnownServersVersion = {}
         let activeForm = {}
-        if (fieldName == 'kid' && !this.state.activeForm.prefs) {
-          activeForm = {prefs: this.getNewRandomPrefs()}
-        } else {
-          activeForm = {prefs: this.state.activeForm.prefs}
+        if (fieldName == 'kid') {
+          if (!this.state.activeForm.prefs) {
+            activeForm = {prefs: this.getNewRandomPrefs()}
+          } else {
+            activeForm = {prefs: this.state.activeForm.prefs}
+          }
         }
         this.setState({
           active: fieldName,
           existingEntry: false,
+          lastKnownServersVersion,
           activeForm
         })
       }
@@ -211,9 +231,7 @@ class App extends React.Component<any, any> {
 
   onChangeNewName(e: any) {
     let newName = e.target.value
-    if (newName) {
-      this.updateFormBySingleField({newName})
-    }
+    this.updateFormBySingleField({newName})
   }
 
   onChangeRemarks(e: any) {
@@ -391,7 +409,7 @@ class App extends React.Component<any, any> {
 
   onChangeSetPrefsTemplate = async (e: any) => {
     let currInput = ''
-    if (Array.isArray(e) && e[0]) {
+    if (Array.isArray(e)) {
       currInput = e[0]
       let response = (await window.hmClient.sendAndWait('prefs_template', currInput));
       if (response.success) {
@@ -490,7 +508,7 @@ class App extends React.Component<any, any> {
 
   changeAddAsHorseTypeaheadHandler(e: any) {
     let addAsHorse = undefined
-    if (Array.isArray(e) && e[0]) {
+    if (Array.isArray(e)) {
       addAsHorse = e[0]
     }
     this.updateFormBySingleField({addAsHorse})
@@ -521,9 +539,7 @@ class App extends React.Component<any, any> {
   async newEntry(entryType: string) {
     let action = `new_${entryType}` as ActionInMsg
     let entry = this.state.activeForm
-    console.log(entry)
     let response = (await window.hmClient.sendAndWait(action, entry));
-    console.log(response)
     if (response.success) {
       this.setState({active: undefined})
       await this.refreshAsset()
@@ -535,9 +551,7 @@ class App extends React.Component<any, any> {
   async editEntry(entryType: string) {
     let action = `edit_${entryType}` as ActionInMsg
     let entry = this.state.activeForm
-    console.log(entry)
     let response = (await window.hmClient.sendAndWait(action, entry));
-    console.log(response)
     if (response.success) {
       await this.refreshAsset()
     } else {
@@ -557,6 +571,24 @@ class App extends React.Component<any, any> {
     }
   }
 
+  public wasModified(): boolean {
+    let object1 = this.state.activeForm
+    let object2 = this.state.lastKnownServersVersion
+    let object1Sorted: any = {}
+    let object2Sorted: any = {}
+    Object.keys(object1).sort().forEach((key) => {
+      if(object1[key]){
+        object1Sorted[key] = object1[key];
+      }
+    });
+    Object.keys(object2).sort().forEach((key) => {
+      if(object2[key]){
+        object2Sorted[key] = object2[key];
+      }
+    });
+    return (JSON.stringify(object1Sorted) == JSON.stringify(object2Sorted))
+  }
+
   render() {
 
     const types = [
@@ -568,62 +600,62 @@ class App extends React.Component<any, any> {
       if (type != 'kid' || this.state.options.horse.length > 0) {
         return (
           <div>
-          <Card className={classes.AdminPanelCard}>
-            <Container className={classes.AdminPanelRow} key={row.type + '_adm'}>
-              <Row>
-                <Col>
-                  <div className={classes.TitleContainer}>
-                    <h3 className={classes.Title}>{row.label}</h3>
-                  </div>
-                </Col>
-              </Row>
-              <Row>
-                <Col xs={1} md={1}/>
-                <Col>
-                  <Row style={{paddingBottom: 15}}>
-                    <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>Imię</Col>
-                    <Col xs={this.fcl.input.xs} md={this.fcl.input.md} className={classes.AutocompleteSelectOne}>
-                      <Typeahead
-                        key={row.type + '_typeahead_adm'}
-                        placeholder={row.label}
-                        onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, type)}
-                        onFocus={() => this.focusMainLevelHandler(row.type)}
-                        options={this.state.options[type]}
-                        // selected={this.state[name].input}
-                        allowNew={true}
-                        newSelectionPrefix={'Dodaj nowy: '}
-                        clearButton
-                        inputProps={{
-                          width: '20px'
-                        }}
-                        ref={(ref) => this.typeaheadRef[type] = ref}
-                      />
-                    </Col>
-                  </Row>
-                  {this.getMoreFormForEntry(type)}
-                  {/*<Row>
+            <Card className={classes.AdminPanelCard}>
+              <Container className={classes.AdminPanelRow} key={row.type + '_adm'}>
+                <Row>
+                  <Col>
+                    <div className={classes.TitleContainer}>
+                      <h3 className={classes.Title}>{row.label}</h3>
+                    </div>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col xs={1} md={1}/>
+                  <Col>
+                    <Row style={{paddingBottom: 15}}>
+                      <Col xs={this.fcl.label.xs} md={this.fcl.label.md}>Imię</Col>
+                      <Col xs={this.fcl.input.xs} md={this.fcl.input.md} className={classes.AutocompleteSelectOne}>
+                        <Typeahead
+                          key={row.type + '_typeahead_adm'}
+                          placeholder={row.label}
+                          onChange={(e: any) => this.changeMainLevelTypeaheadHandler(e, type)}
+                          onFocus={() => this.focusMainLevelHandler(row.type)}
+                          options={this.state.options[type]}
+                          // selected={this.state[name].input}
+                          allowNew={true}
+                          newSelectionPrefix={'Dodaj nowy: '}
+                          clearButton
+                          inputProps={{
+                            width: '20px'
+                          }}
+                          ref={(ref) => this.typeaheadRef[type] = ref}
+                        />
+                      </Col>
+                    </Row>
+                    {this.getMoreFormForEntry(type)}
+                    {/*<Row>
                 </Row>*/}
-                </Col>
-                <Col xs={1} md={4}/>
-              </Row>
-              <Row className={classes.AdminPanelButtons}>
-                <Col/>
-                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.newEntry(type)}
-                                         disabled={this.state.existingEntry || (this.state.active != type)}>
-                  Utwórz</Button></Col>
-                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.editEntry(type)}
-                                         disabled={!this.state.existingEntry || (this.state.active != type)}>
-                  Zapisz zmiany</Button></Col>
-                <span/>
-                <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
-                                         disabled={!this.state.existingEntry || (this.state.active != type)}>
-                  Wywal</Button></Col>
-                <Col/>
-              </Row>
-            </Container>
-          </Card>
+                  </Col>
+                  <Col xs={1} md={4}/>
+                </Row>
+                <Row className={classes.AdminPanelButtons}>
+                  <Col/>
+                  <Col xs={"auto"}><Button variant="secondary" onClick={() => this.newEntry(type)}
+                                           disabled={this.state.existingEntry || (this.state.active != type)}>
+                    Utwórz</Button></Col>
+                  <Col xs={"auto"}><Button variant="secondary" onClick={() => this.editEntry(type)}
+                                           disabled={(!this.state.existingEntry) || (this.state.active != type) || (this.wasModified())}>
+                    Zapisz zmiany</Button></Col>
+                  <span/>
+                  <Col xs={"auto"}><Button variant="secondary" onClick={() => this.setState({showConfModal: true})}
+                                           disabled={!this.state.existingEntry || (this.state.active != type)}>
+                    Wywal</Button></Col>
+                  <Col/>
+                </Row>
+              </Container>
+            </Card>
             <br/>
-            </div>
+          </div>
         );
       }
     })
@@ -655,4 +687,4 @@ class App extends React.Component<any, any> {
   }
 }
 
-export default App; //todo wtf?!
+export default AdminPanel;

@@ -1,14 +1,12 @@
 MOST RECENT TODOS:
 
-check overall
-change buttons dairy (publish FB - disabled, rest hidden, and get sharable)
-add logo on hashDay view
 add signUp
 add password change
 add remove account
 Sessions
 
 FEATURE: when overwriting a day, fire conf modal
+BUG: works shitty for heavy requests - server crashed
 ---
 FEATURE: sessions.. cookies
 FEATURE: usersettings (db collection and ws dispatch) <- language / default dayPlan presentation / default color(skin) / list of HRC

@@ -6,12 +6,14 @@ import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Modal from "react-bootstrap/Modal";
 import {Typeahead} from 'react-bootstrap-typeahead';
 
 import {IHorseRidingDayQ, IHorseRidingHourQ, ITrainingQ} from '../../DataModel';
 import classes from './Diary.module.scss';
 import {ConformationModal} from "../Modal";
 import NoDiaryEntry from "./NoDiaryEntry";
+import MenuLike from "../AppMenu/MenuLike";
 
 
 interface IState extends IHorseRidingDayQ {
@@ -38,7 +40,9 @@ class Diary extends React.Component<any, any> {
         ]
       },
     ],
+    dayHash: undefined,
     showConfModal: false,
+    showLinkModal: false,
     incorrectUrlHash: false,
     isInitialized: false
   };
@@ -48,10 +52,10 @@ class Diary extends React.Component<any, any> {
     const chosendate = this.props.match.params.chosendate;
     const splittedDate = chosendate.match(/(\d{4})(\d{2})(\d{2})/);
     let formattedDate = `${splittedDate[1]}-${splittedDate[2]}-${splittedDate[3]}`
-    if(this.props.userName){
-      let day = await window.hmClient.sendAndWait('get_day',{name: formattedDate});
+    if (this.props.userName) {
+      let day = await window.hmClient.sendAndWait('get_day', {name: formattedDate});
       if (day.success) {
-        this.setState({...day.data, isInitialized: true})
+        this.setState({...day.data, incorrectUrlHash: undefined, isInitialized: true})
       } else {
         this.props.history.replace('/diary')
         /*this.setState({
@@ -59,36 +63,77 @@ class Diary extends React.Component<any, any> {
           errorMsg: asset.data.errorMsg
         })*/
       }
-    }else{
+    } else {
       //let dayHash = window.location.pathname.split('/').pop()
       let dayHash = this.props.match.params.dayHash;
-      let day = await window.hmClient.sendAndWait('get_day_view_by_hash', {dayHash},false);
+      let day = await window.hmClient.sendAndWait('get_day_view_by_hash', {dayHash}, false);
       if (day.success && day.data.day == formattedDate) {
-        console.log('dobryhash')
         this.setState({...day.data, isInitialized: true})
       } else {
-        console.log('złyhash')
         this.setState({incorrectUrlHash: true, isInitialized: true})
       }
     }
-
 
 
   }
 
   async removeDay() {
     let name = this.state.day
-    console.log({name})
     let response = (await window.hmClient.sendAndWait('remove_day', {name}));
     if (!response.success) {
       console.log('#smt not right:', response.data.errorMsg)
     }
   }
 
+  public getButtonSection() {
+    if (this.state.incorrectUrlHash !== false) {
+      return (
+        <Col>
+          <Row>
+            <Col className={classes.ButtonSection}>
+              <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
+              <Button variant="secondary" onClick={() => {
+                let dayToEdit = JSON.parse(JSON.stringify(this.state))
+                delete dayToEdit.showConfModal
+                dayToEdit = dayToEdit as IHorseRidingDayQ
+                dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
+                  let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
+                    return {kidName: trainingDetail.kidName}
+                  }))
+                  trainingsDetails.push({kidName: undefined})
+                  Object.assign(hour, {trainingsDetails})
+                  return hour
+                })
+                this.props.history.push({pathname: '/day', state: dayToEdit})
+
+              }}>Edytuj</Button>
+              <Button variant="outline-secondary" onClick={() => {
+                this.props.history.push('/diary')
+              }}>Wróc</Button>
+            </Col>
+          </Row>
+          <Row>
+            <Col className={classes.ButtonSection}>
+              <Button variant="secondary" onClick={() => {
+                this.setState((prevState: any) => ({
+                  ...prevState, showLinkModal: true
+                }))
+              }}>Pokaż publiczny link</Button>
+              <Button variant="secondary" disabled={true}>Publikuj na Buniu</Button>
+            </Col>
+          </Row>
+        </Col>
+      )
+    }
+  }
+
+  public getShareableLink(): string {
+    return window.location.href + '/' + this.state.dayHash
+  }
+
   render() {
-    console.log(this.state.incorrectUrlHash)
-    if(this.state.isInitialized){
-      if(!this.state.incorrectUrlHash){
+    if (this.state.isInitialized) {
+      if (!this.state.incorrectUrlHash) {
         const hours = this.state.hours.map((hour, hourIndex) => {
           const kids = hour.trainingsDetails.map((training, trainingIndex) => {
             return (
@@ -208,27 +253,7 @@ class Diary extends React.Component<any, any> {
               {/*<Button color="primary" variant="primary" onClick={() => console.log(this.state)}>get state</Button>
         <Button color="orange" variant="secondary" onClick={() => console.log(this.state.hours[0].trainingsDetails)}>get hours</Button>*/}
               <Row>
-                <Col className={classes.ButtonSection}>
-                  <Button variant="warning" onClick={() => this.setState({showConfModal: true})}>Usuń</Button>
-                  <Button variant="secondary" onClick={() => {
-                    let dayToEdit = JSON.parse(JSON.stringify(this.state))
-                    delete dayToEdit.showConfModal
-                    dayToEdit = dayToEdit as IHorseRidingDayQ
-                    dayToEdit.hours = dayToEdit.hours.map((hour: IHorseRidingHourQ) => {
-                      let trainingsDetails = (hour.trainingsDetails.map((trainingDetail: ITrainingQ) => {
-                        return {kidName: trainingDetail.kidName}
-                      }))
-                      trainingsDetails.push({kidName:undefined})
-                      Object.assign(hour, {trainingsDetails})
-                      return hour
-                    })
-                    this.props.history.push({pathname:'/day',state: dayToEdit})
-
-                  }}>Edytuj</Button>
-                  <Button variant="outline-secondary" onClick={() => {
-                    this.props.history.push('/diary')
-                  }}>Wróc</Button>
-                </Col>
+                {this.getButtonSection()}
               </Row>
             </Col>
             <Col/>
@@ -244,12 +269,32 @@ class Diary extends React.Component<any, any> {
                 this.props.history.replace('/diary')
               }}
             />
+            <Modal
+              show={this.state.showLinkModal}
+              onHide={() => {
+                this.setState((prevState: any) => ({
+                  ...prevState, showLinkModal: false
+                }))
+              }}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title id="contained-modal-title-vcenter-showlink">
+                  Publiczny link
+                </Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {this.getShareableLink()}
+              </Modal.Body>
+              {/*<Modal.Footer style={{justifyContent: 'right', fontSize: '14px'}}>
+                Skopiowany do schowka :)
+              </Modal.Footer>*/}
+            </Modal>
           </Container>
         )
-      }else{
+      } else {
         return <NoDiaryEntry/>
       }
-    }else{
+    } else {
       return <span>Loading...</span>
     }
   }

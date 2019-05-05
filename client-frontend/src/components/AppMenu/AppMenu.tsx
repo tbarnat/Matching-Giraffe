@@ -45,7 +45,6 @@ class AppMenu extends React.Component {
         </div>
       </div>
     )
-
   }
 };
 
